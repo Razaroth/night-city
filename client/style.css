@@ -184,6 +184,10 @@ input { font-family: var(--mono); }
 
 /* vitals */
 .vital { margin-bottom: 9px; }
+.level-row { display: grid; grid-template-columns: auto 1fr auto; align-items: baseline; gap: 8px; margin-bottom: 9px; padding: 5px 8px; border: 1px solid var(--magenta); box-shadow: 0 0 12px rgba(255,90,224,.25); }
+.level-row span { font-size: 9px; letter-spacing: 2px; color: var(--magenta); }
+.level-row b { font-family: var(--display); font-weight: 900; font-size: 16px; color: var(--magenta); text-shadow: 0 0 10px rgba(255,90,224,.7); }
+.level-row em { font-style: normal; font-size: 9px; color: var(--dim); }
 .vital .lab { display: flex; justify-content: space-between; font-size: 10px; letter-spacing: 1px; color: var(--dim); margin-bottom: 3px; }
 .vital .bar { height: 12px; background: #131d36; border: 1px solid #31486b; overflow: hidden; position: relative; }
 .vital .bar i { display: block; height: 100%; transition: width .25s; }

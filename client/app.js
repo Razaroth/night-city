@@ -433,6 +433,7 @@ function renderVitals () {
   if (!s) return
   const buffs = s.buffs || {}
   $('#vitals').innerHTML =
+    `<div class="level-row"><span>LEVEL</span><b>${s.level}</b><em>${s.xp} / ${s.xpToNext} XP</em></div>` +
     bar('hp', s.hp, s.maxHp, 'HEALTH') +
     bar('stam', s.stam, s.maxStam, 'STAMINA') +
     (s.maxRam > 0 ? bar('ram', s.ram, s.maxRam, 'RAM') : '') +
