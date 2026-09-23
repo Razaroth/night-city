@@ -99,6 +99,7 @@ export class Game {
     if (t === 'login') return this.handleLogin(session, msg)
     if (t === 'resume') return this.handleResume(session, msg)
     if (!session.authed) return this.send(session, { t: 'error', msg: 'Not authenticated.' })
+    if (t === 'logout') return this.handleLogout(session)
     if (t === 'charCreate') return this.handleCharCreate(session, msg)
     if (t === 'charDelete') return this.handleCharDelete(session)
     if (t === 'cmd') return this.handleCmd(session, msg.line ?? '')
@@ -110,6 +111,7 @@ export class Game {
     session.accountId = accountId
     session.username = account.username
     const token = db.createSession(accountId)
+    session.token = token
     const hasChar = !!db.getDb().world.players?.[accountId]
     this.send(session, { t: 'auth', ok: true, token, username: account.username, hasChar })
     this.send(session, { t: 'world', districts: this.districts, rooms: this.roomList, items: this.itemCatalog })
@@ -152,6 +154,27 @@ export class Game {
       return this.send(session, { t: 'auth', ok: false, error: 'Session expired. Log in again.' })
     }
     this.authSuccess(session, account.id, account)
+  }
+
+  handleLogout (session) {
+    const { player, accountId } = session
+    if (player) {
+      player.played_sec = (player.played_sec || 0) + Math.floor((this.now() - (session.enteredAt || this.now())) / 1000)
+      db.getDb().world.players[accountId] = P.serializePlayer(player)
+      db.queueSave()
+      this.roomLog(player.room, `${player.name} jacks out of the district.`, 'sys', accountId)
+    }
+    if (accountId) {
+      if (session.token) db.deleteSession(accountId, session.token)
+      this.byAccount.delete(accountId)
+    }
+    session.authed = false
+    session.accountId = null
+    session.username = null
+    session.player = null
+    session.enteredAt = null
+    session.token = null
+    this.send(session, { t: 'logout', ok: true })
   }
 
   creationPayload () {

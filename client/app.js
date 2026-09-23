@@ -90,6 +90,7 @@ function handle (msg) {
     case 'death': onDeath(msg); break
     case 'error': toast(msg.msg, 'bad'); addLog([{ text: msg.msg, cls: 'bad' }]); break
     case 'kicked': toast(msg.msg, 'bad'); localStorage.clear(); setTimeout(() => location.reload(), 1500); break
+    case 'logout': onLogout(); break
     case 'charDeleted': toast('Runner wiped.', 'bad'); break
   }
 }
@@ -105,6 +106,25 @@ function onAuth (msg) {
   localStorage.setItem('nc_user', msg.username)
   $('#auth-err').textContent = ''
   if (msg.hasChar) toast('Welcome back, ' + msg.username, 'good')
+}
+
+function onLogout () {
+  localStorage.removeItem('nc_token')
+  localStorage.removeItem('nc_user')
+  S.token = ''
+  S.username = ''
+  S.char = null
+  S.inv = null
+  S.room = null
+  S.jobs = null
+  S.shop = null
+  S.creation = null
+  if (S.deathTimer) { clearInterval(S.deathTimer); S.deathTimer = null }
+  $('#deathveil').classList.add('hidden')
+  $('#auth-pass').value = ''
+  $('#auth-err').textContent = ''
+  showScreen('auth')
+  toast('JACKED OUT. Bye for now.', 'sys')
 }
 
 function onEntered (msg) {
@@ -570,5 +590,6 @@ $('#cmdinput').addEventListener('keydown', (e) => {
 })
 
 /* ================= boot ================= */
+$('#logout-btn').onclick = () => send({ t: 'logout' })
 connect()
 setInterval(() => { if (S.connected) send({ t: 'ping' }) }, 25000)

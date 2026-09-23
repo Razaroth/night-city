@@ -73,6 +73,16 @@ battery, and `nc-gameplay.mjs` (WS bot using real world data; see test files):
 
 ## Notes / quirks
 
+- **Client logout (new)**: LOGOUT button in the HUD (`client/index.html`, styled
+  `.hud-logout`). Client sends `{t:'logout'}`; `handleLogout` (`server/engine.js`)
+  persists the player (played_sec, serialize, jack-out room log), revokes the
+  session token (`db.deleteSession` using `session.token` set in `authSuccess`),
+  clears `byAccount`, marks the session unauthenticated, and replies `{t:'logout'}`.
+  Client then clears `nc_token`/`nc_user` from localStorage, resets S state, and
+  returns to the auth screen (same open socket; no reconnect). Verified end-to-end
+  in headless chromium: register→create→game→LOGOUT→auth screen, localStorage
+  cleared, and a `resume` with the revoked token is rejected
+  ("Session expired. Log in again.").
 - **Attribute double-add (RESOLVED — root cause found)**: `makeNewPlayer` in
   `server/player.js` did `attrs[a] = 3 + v`, treating the create-form value as a
   *bonus on top of* the base 3, while the engine's charCreate validation and the

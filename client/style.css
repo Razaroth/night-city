@@ -169,6 +169,11 @@ input { font-family: var(--mono); }
 .hud-right { display: flex; gap: 14px; font-size: 12px; color: var(--dim); }
 .hud-stat b { color: var(--yellow); }
 #hud-online { color: var(--cyan); }
+.hud-logout {
+  background: transparent; border: 1px solid var(--red); color: var(--red);
+  font-size: 10px; letter-spacing: 1px; padding: 3px 10px; transition: .15s;
+}
+.hud-logout:hover { background: rgba(255,92,120,.15); box-shadow: 0 0 12px rgba(255,92,120,.5); }
 
 #gamebody {
   flex: 1; display: grid; grid-template-columns: 260px 1fr 320px; gap: 10px;
