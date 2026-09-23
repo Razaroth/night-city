@@ -88,6 +88,7 @@ function handle (msg) {
     case 'log': addLog(msg.lines); break
     case 'toast': toast(msg.text, msg.cls); break
     case 'death': onDeath(msg); break
+    case 'respawned': onRespawned(); break
     case 'error': toast(msg.msg, 'bad'); addLog([{ text: msg.msg, cls: 'bad' }]); break
     case 'kicked': toast(msg.msg, 'bad'); localStorage.clear(); setTimeout(() => location.reload(), 1500); break
     case 'logout': onLogout(); break
@@ -153,6 +154,20 @@ function onDeath (msg) {
     $('#death-sub').textContent = n > 0 ? 'RESPAWNING IN ' + n + 's…' : 'FLATLINED'
     if (n <= 0) { clearInterval(S.deathTimer); S.deathTimer = null }
   }, 1000)
+}
+
+function onRespawned () {
+  const fx = $('#respawnfx')
+  if (!fx) return
+  if (S.respawnTimer) clearTimeout(S.respawnTimer)
+  fx.classList.remove('hidden')
+  fx.classList.remove('run')
+  void fx.offsetWidth
+  fx.classList.add('run')
+  S.respawnTimer = setTimeout(() => {
+    fx.classList.add('hidden')
+    fx.classList.remove('run')
+  }, 2200)
 }
 
 /* ================= auth screen ================= */

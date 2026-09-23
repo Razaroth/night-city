@@ -576,6 +576,44 @@ input { font-family: var(--mono); }
 .death-text { font-family: var(--display); font-size: 64px; color: var(--red); letter-spacing: 12px; text-shadow: 0 0 40px rgba(255,59,92,.9); animation: pulse 1.2s infinite; }
 .death-sub { color: var(--dim); letter-spacing: 3px; margin-top: 10px; }
 
+/* respawn wake-up animation */
+#respawnfx {
+  position: fixed; inset: 0; z-index: 9995; pointer-events: none;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  background: radial-gradient(circle at 50% 60%, transparent 0%, rgba(0,0,0,.85) 75%);
+}
+#respawnfx .rfx-burst { position: absolute; top: 50%; left: 50%; width: 0; height: 0; border-radius: 50%; transform: translate(-50%,-50%); }
+#respawnfx .rfx-text {
+  font-family: var(--display); font-size: 44px; letter-spacing: 10px; color: var(--cyan);
+  text-shadow: 0 0 30px rgba(41,242,195,.9), 0 0 90px rgba(41,242,195,.5);
+  opacity: 0;
+}
+#respawnfx .rfx-sub { color: var(--dim); letter-spacing: 4px; margin-top: 10px; opacity: 0; font-size: 12px; }
+#respawnfx.run .rfx-burst { animation: rfx-burst .8s ease-out forwards; }
+#respawnfx.run .rfx-text { animation: rfx-text 1.8s ease-out forwards; }
+#respawnfx.run .rfx-sub { animation: rfx-sub 1.8s ease-out forwards; animation-delay: .9s; }
+
+@keyframes rfx-burst {
+  0% { width: 0; height: 0; opacity: 1; box-shadow: 0 0 0 0 rgba(41,242,195,.9), 0 0 60px 30px rgba(41,242,195,.5); }
+  40% { opacity: 1; }
+  100% { width: 120vw; height: 120vw; opacity: 0; box-shadow: 0 0 0 0 rgba(41,242,195,0), 0 0 40px 60px rgba(41,242,195,0); }
+}
+@keyframes rfx-text {
+  0% { opacity: 0; transform: scale(1.4); filter: blur(6px); }
+  12% { opacity: 1; transform: scale(1); filter: blur(0); }
+  22% { opacity: .2; transform: translateX(-4px); }
+  32% { opacity: 1; transform: translateX(2px); }
+  42% { opacity: .4; transform: translateX(-1px); }
+  55% { opacity: 1; }
+  75% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.05); filter: blur(4px); }
+}
+@keyframes rfx-sub {
+  0%, 40% { opacity: 0; }
+  60% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
 @media (max-width: 1100px) {
   #gamebody { grid-template-columns: 1fr; overflow-y: auto; }
   #left, #right { flex-direction: row; flex-wrap: wrap; }

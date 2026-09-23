@@ -587,6 +587,7 @@ export class Game {
     p.hackAt = 0
     this.log(session, `You wake in ${rooms[target]?.name}. A ripper charges you nothing for the privilege of breathing.`, 'good')
     this.roomLog(target, `${p.name} staggers in, freshly stitched.`, 'sys', session.accountId)
+    this.send(session, { t: 'respawned' })
     this.pushAll(session)
     this.describeCurrentRoom(session)
     db.queueSave()
