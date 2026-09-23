@@ -214,126 +214,251 @@ input { font-family: var(--mono); }
 
 #scene {
   position: relative; height: 168px; overflow: hidden; flex: 0 0 auto;
-  border: 1px solid var(--panel-edge);
-  --wa: color-mix(in srgb, var(--yellow) 55%, #fff);
-  --wb: color-mix(in srgb, var(--cyan) 45%, var(--text));
-  --neon: color-mix(in srgb, var(--district) 85%, #fff);
+  border: 1px solid color-mix(in srgb, var(--district) 55%, var(--panel-edge));
+  box-shadow: 0 0 26px color-mix(in srgb, var(--district) 22%, transparent), inset 0 0 34px rgba(0,0,0,.55);
+  --wa: color-mix(in srgb, var(--yellow) 62%, #fff);
+  --wb: color-mix(in srgb, var(--cyan) 40%, #fff);
+  --neon1: color-mix(in srgb, var(--district) 88%, #fff);
+  --neon2: color-mix(in srgb, var(--magenta) 78%, #fff);
+  --neon3: color-mix(in srgb, var(--red) 76%, #fff);
   --mid-skyline: polygon(0% 100%,0% 74%,3% 74%,3% 46%,6% 46%,6% 80%,12% 80%,12% 30%,15% 30%,15% 62%,20% 62%,20% 22%,24% 22%,24% 70%,29% 70%,29% 40%,33% 40%,33% 76%,38% 76%,38% 18%,42% 18%,42% 52%,46% 52%,46% 34%,51% 34%,51% 64%,56% 64%,56% 26%,60% 26%,60% 72%,65% 72%,65% 42%,70% 42%,70% 60%,74% 60%,74% 20%,78% 20%,78% 66%,83% 66%,83% 48%,88% 48%,88% 74%,93% 74%,93% 38%,97% 38%,97% 70%,100% 70%,100% 100%);
   --era-skyline: polygon(0% 100%,0% 82%,5% 82%,5% 66%,10% 66%,10% 86%,18% 86%,18% 76%,26% 76%,26% 58%,32% 58%,32% 84%,42% 84%,42% 70%,50% 70%,50% 88%,60% 88%,60% 74%,68% 74%,68% 60%,75% 60%,75% 82%,84% 82%,84% 68%,92% 68%,92% 84%,100% 84%,100% 100%);
-  background: linear-gradient(180deg, color-mix(in srgb, var(--district) 26%, #070b16) 0%, color-mix(in srgb, var(--district) 12%, #0a1020) 55%, #0a1020 90%);
+  background:
+    radial-gradient(120% 92% at 78% 116%, color-mix(in srgb, var(--red) 52%, transparent) 0%, transparent 56%),
+    linear-gradient(180deg,
+      color-mix(in srgb, var(--district) 72%, #150326) 0%,
+      color-mix(in srgb, var(--district) 55%, #3a0a30) 28%,
+      color-mix(in srgb, var(--magenta) 46%, #4d0a30) 50%,
+      color-mix(in srgb, var(--yellow) 20%, #2a0612) 100%);
 }
 .scene-sky {
   position: absolute; inset: 0;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--district) 32%, transparent), transparent 62%);
+  background:
+    radial-gradient(92% 76% at 30% 38%, color-mix(in srgb, var(--district) 62%, transparent), transparent 64%),
+    radial-gradient(82% 62% at 66% 44%, color-mix(in srgb, var(--purple) 56%, transparent), transparent 68%),
+    radial-gradient(50% 42% at 52% 40%, rgba(255, 180, 210, .30), transparent 70%);
+  mix-blend-mode: screen; opacity: 1;
 }
 .scene-sky::after {
-  content: ''; position: absolute; left: 0; right: 0; top: 34%; height: 22%;
-  background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--district) 16%, transparent));
-  filter: blur(6px); mix-blend-mode: screen;
+  content: ''; position: absolute; left: 0; right: 0; top: 28%; height: 26%;
+  background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--magenta) 55%, transparent));
+  filter: blur(8px); mix-blend-mode: screen;
 }
 .scene-sun {
-  position: absolute; left: 50%; top: 26px; width: 64px; height: 64px; margin-left: -32px; border-radius: 50%;
-  background: radial-gradient(circle, color-mix(in srgb, var(--district) 95%, #fff) 0%, color-mix(in srgb, var(--district) 62%, transparent) 42%, transparent 68%);
-  box-shadow: 0 0 46px color-mix(in srgb, var(--district) 70%, transparent), 0 0 110px color-mix(in srgb, var(--district) 30%, transparent);
+  position: absolute; left: 50%; top: 10px; width: 112px; height: 112px; margin-left: -56px; border-radius: 50%;
+  background: radial-gradient(circle, #fffdf0 0%, color-mix(in srgb, var(--yellow) 92%, #fff) 30%, color-mix(in srgb, var(--orange) 70%, var(--yellow)) 54%, transparent 74%);
+  box-shadow:
+    0 0 60px color-mix(in srgb, var(--yellow) 92%, transparent),
+    0 0 150px color-mix(in srgb, var(--orange) 68%, transparent),
+    0 0 300px color-mix(in srgb, var(--magenta) 40%, transparent);
+  opacity: .98;
 }
 .scene-sun::after {
-  content: ''; position: absolute; inset: -7px; border-radius: 50%;
-  border: 1.5px solid color-mix(in srgb, var(--district) 80%, transparent);
-  opacity: .7;
+  content: ''; position: absolute; inset: -9px; border-radius: 50%;
+  border: 2px solid color-mix(in srgb, var(--yellow) 60%, transparent);
+  opacity: .8; filter: blur(1px);
 }
 .scene-far {
-  position: absolute; left: 0; right: 0; bottom: 42%; height: 45%;
-  background-color: #141e38;
+  position: absolute; left: 0; right: 0; bottom: 42%; height: 46%;
+  background-color: #0b0d24;
   background-image:
-    repeating-linear-gradient(0deg, color-mix(in srgb, var(--blue) 34%, transparent) 0 1px, transparent 1px 4.5px),
-    repeating-linear-gradient(90deg, color-mix(in srgb, var(--magenta) 22%, transparent) 0 1px, transparent 1px 5.5px);
-  clip-path: polygon(0% 100%,0% 56%,4% 56%,4% 38%,8% 38%,8% 60%,14% 60%,14% 30%,18% 30%,18% 54%,23% 54%,23% 26%,27% 26%,27% 50%,33% 50%,33% 22%,37% 22%,37% 46%,42% 46%,42% 28%,47% 28%,47% 52%,53% 52%,53% 24%,57% 24%,57% 44%,62% 44%,62% 30%,67% 30%,67% 48%,72% 48%,72% 26%,76% 26%,76% 42%,81% 42%,81% 30%,86% 30%,86% 50%,91% 50%,91% 34%,95% 34%,95% 56%,100% 56%,100% 100%);
-  filter: blur(1px); opacity: .8;
+    repeating-linear-gradient(0deg, color-mix(in srgb, var(--neon1) 34%, transparent) 0 1px, transparent 1px 4.5px),
+    repeating-linear-gradient(90deg, color-mix(in srgb, var(--neon2) 26%, transparent) 0 1px, transparent 1px 5.5px);
+  filter: blur(1px); opacity: .95;
+}
+.scene-far::before {
+  content: ''; position: absolute; inset: 0;
+  background:
+    radial-gradient(1.4px 1.4px at 5% 40%, #ffd86b 98%, transparent),
+    radial-gradient(1.2px 1.2px at 12% 30%, var(--neon1) 98%, transparent),
+    radial-gradient(1.4px 1.4px at 19% 58%, #ff8ab4 98%, transparent),
+    radial-gradient(1.2px 1.2px at 26% 36%, var(--neon1) 98%, transparent),
+    radial-gradient(1.5px 1.5px at 33% 48%, #ffe9b0 98%, transparent),
+    radial-gradient(1.2px 1.2px at 40% 28%, var(--neon2) 98%, transparent),
+    radial-gradient(1.4px 1.4px at 47% 60%, #ffd86b 98%, transparent),
+    radial-gradient(1.2px 1.2px at 55% 34%, var(--neon1) 98%, transparent),
+    radial-gradient(1.5px 1.5px at 62% 50%, #ff8ab4 98%, transparent),
+    radial-gradient(1.2px 1.2px at 70% 26%, var(--neon3) 98%, transparent),
+    radial-gradient(1.3px 1.3px at 78% 56%, #ffe9b0 98%, transparent),
+    radial-gradient(1.5px 1.5px at 86% 38%, var(--neon2) 98%, transparent),
+    radial-gradient(1.2px 1.2px at 93% 46%, var(--neon1) 98%, transparent);
+  background-repeat: repeat; background-size: 120px 60px;
+  animation: windowflick 3.4s steps(1) infinite; opacity: .9;
+}
+.scene-far::after {
+  content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 72%;
+  background: repeating-linear-gradient(16deg, transparent 0 3px, color-mix(in srgb, var(--blue) 30%, transparent) 3px 4.5px);
+  filter: blur(3px); mix-blend-mode: screen; opacity: .5;
+}
+.scene-far { clip-path: polygon(0% 100%,0% 56%,4% 56%,4% 38%,8% 38%,8% 60%,14% 60%,14% 30%,18% 30%,18% 54%,23% 54%,23% 26%,27% 26%,27% 50%,33% 50%,33% 22%,37% 22%,37% 46%,42% 46%,42% 28%,47% 28%,47% 52%,53% 52%,53% 24%,57% 24%,57% 44%,62% 44%,62% 30%,67% 30%,67% 48%,72% 48%,72% 26%,76% 26%,76% 42%,81% 42%,81% 30%,86% 30%,86% 50%,91% 50%,91% 34%,95% 34%,95% 56%,100% 56%,100% 100%); }
+.scene-far::after { clip-path: inherit; }
+.scene-beam {
+  position: absolute; left: 30%; top: 0; width: 70px; height: 130px;
+  transform-origin: 50% 100%;
+  background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--neon2) 55%, transparent) 55%, rgba(255,255,255,.9) 62%, color-mix(in srgb, var(--neon1) 40%, transparent) 72%, transparent);
+  filter: blur(3px); mix-blend-mode: screen; opacity: 0;
+  animation: beam 9s linear infinite;
 }
 .scene-mid {
-  position: absolute; left: 0; right: 0; bottom: 33%; height: 50%;
-  background-color: #0d1a30;
+  position: absolute; left: 0; right: 0; bottom: 33%; height: 56%;
+  background-color: #04101f;
   background-image:
-    repeating-linear-gradient(0deg, var(--wa) 0 1.2px, transparent 1.2px 3.8px),
-    repeating-linear-gradient(90deg, var(--wb) 0 1.2px, transparent 1.2px 4.6px);
+    repeating-linear-gradient(0deg, var(--wa) 0 1.6px, transparent 1.6px 3.6px),
+    repeating-linear-gradient(90deg, var(--wb) 0 1.6px, transparent 1.6px 4.4px);
   clip-path: var(--mid-skyline);
-  box-shadow: 0 -8px 46px color-mix(in srgb, var(--district) 38%, transparent);
-  animation: flicker 7s steps(2) infinite;
+  box-shadow: 0 -10px 70px color-mix(in srgb, var(--district) 55%, transparent);
+  animation: flicker 6s steps(2) infinite;
 }
 .scene-mid::before {
   content: ''; position: absolute; inset: 0;
-  background: repeating-linear-gradient(26deg, transparent 0 46px, var(--neon) 46px 48px, transparent 48px 110px);
-  opacity: .34; filter: blur(1px); mix-blend-mode: screen;
+  background: repeating-linear-gradient(30deg, transparent 0 36px, var(--neon2) 36px 38px, transparent 38px 88px);
+  opacity: .5; filter: blur(1px); mix-blend-mode: screen;
 }
 .scene-mid::after {
-  content: ''; position: absolute; left: 41%; top: 52%; width: 10%; height: 24%;
+  content: ''; position: absolute; left: 36%; top: 46%; width: 13%; height: 32%;
   background:
-    linear-gradient(115deg, color-mix(in srgb, var(--district) 70%, transparent) 30%, #fff 50%, color-mix(in srgb, var(--magenta) 60%, transparent) 70%);
+    linear-gradient(115deg, color-mix(in srgb, var(--neon3) 60%, transparent) 26%, #fff 49%, color-mix(in srgb, var(--neon2) 60%, transparent) 72%);
   background-size: 300% 100%;
-  box-shadow: 0 0 14px color-mix(in srgb, var(--district) 60%, transparent);
-  opacity: .55; mix-blend-mode: screen;
-  animation: shimmer 5s linear infinite;
+  box-shadow: 0 0 20px color-mix(in srgb, var(--neon3) 65%, transparent), 0 0 60px color-mix(in srgb, var(--neon2) 40%, transparent);
+  opacity: .75; mix-blend-mode: screen;
+  animation: shimmer 4.5s linear infinite;
 }
 .scene-era {
-  position: absolute; left: 0; right: 0; bottom: 30%; height: 36%;
-  background-color: #090f1d;
+  position: absolute; left: 0; right: 0; bottom: 30%; height: 40%;
+  background-color: #02060f;
   background-image:
-    repeating-linear-gradient(0deg, color-mix(in srgb, var(--orange) 26%, transparent) 0 1px, transparent 1px 4px),
-    repeating-linear-gradient(90deg, rgba(120,160,230,.16) 0 1px, transparent 1px 5px);
+    repeating-linear-gradient(0deg, color-mix(in srgb, var(--orange) 46%, transparent) 0 1.2px, transparent 1.2px 4px),
+    repeating-linear-gradient(90deg, color-mix(in srgb, var(--neon2) 26%, transparent) 0 1.2px, transparent 1.2px 4.8px);
   clip-path: var(--era-skyline);
 }
 .scene-era::before {
   content: ''; position: absolute; inset: 0;
-  background: repeating-linear-gradient(90deg, transparent 0 52px, var(--neon) 52px 54px, transparent 54px 128px);
-  opacity: .4; filter: blur(1px); mix-blend-mode: screen;
+  background: repeating-linear-gradient(90deg, transparent 0 44px, var(--neon1) 44px 46px, transparent 46px 110px);
+  opacity: .7; filter: blur(1px); mix-blend-mode: screen;
 }
+.scene-era::after {
+  content: ''; position: absolute; inset: 0;
+  background:
+    radial-gradient(1.2px 1.2px at 8% 30%, var(--neon3) 98%, transparent),
+    radial-gradient(1.4px 1.4px at 22% 50%, var(--neon2) 98%, transparent),
+    radial-gradient(1.2px 1.2px at 38% 20%, var(--yellow) 98%, transparent),
+    radial-gradient(1.4px 1.4px at 55% 62%, var(--neon3) 98%, transparent),
+    radial-gradient(1.2px 1.2px at 71% 26%, var(--neon1) 98%, transparent),
+    radial-gradient(1.4px 1.4px at 87% 44%, var(--yellow) 98%, transparent);
+  background-repeat: repeat; background-size: 110px 50px;
+  opacity: .95; animation: windowflick 2.6s steps(1) infinite;
+}
+.scene-holo {
+  position: absolute; right: 7%; top: 5%; width: 96px; height: 118px;
+  color: var(--neon2);
+  filter: drop-shadow(0 0 6px var(--neon2)) drop-shadow(0 0 18px color-mix(in srgb, var(--neon2) 55%, transparent));
+  mix-blend-mode: screen; opacity: .85;
+  animation: holo 3.6s steps(24) infinite;
+}
+.scene-holo svg { width: 100%; height: 100%; overflow: visible; }
+.scene-holo .holo-line { fill: none; stroke: currentColor; stroke-width: 1.3; }
+.scene-holo .holo-glitch { fill: currentColor; opacity: .55; animation: holo-scan 1.4s ease-in-out infinite; }
+.scene-holo::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: repeating-linear-gradient(180deg, transparent 0 6px, color-mix(in srgb, #000 30%, transparent) 6px 8px);
+  opacity: .35;
+}
+.scene-holo::before {
+  content: '✩ SAMSARA NET ✩'; position: absolute; left: -14px; bottom: -16px;
+  font-size: 8px; letter-spacing: 2px; color: var(--neon2); white-space: nowrap; opacity: .9;
+  text-shadow: 0 0 6px var(--neon2);
+}
+.scene-neon {
+  position: absolute; inset: 0; pointer-events: none; mix-blend-mode: screen;
+}
+.scene-neon .nl { position: absolute; width: 5px; border-radius: 2px; }
+.scene-neon .nl1 { left: 9%; top: 44%; height: 54px; background: var(--neon1); box-shadow: 0 0 12px var(--neon1), 0 0 30px var(--neon1); opacity: 1; animation: blinksub 2.2s steps(1) infinite; }
+.scene-neon .nl2 { left: 26%; top: 30%; height: 40px; background: var(--neon3); box-shadow: 0 0 12px var(--neon3), 0 0 30px var(--neon3); opacity: .95; animation: blinksub 1.7s steps(1) infinite reverse; }
+.scene-neon .nl3 { left: 61%; top: 20%; height: 72px; background: var(--neon2); box-shadow: 0 0 12px var(--neon2), 0 0 30px var(--neon2); opacity: 1; animation: blinksub 1.2s steps(1) infinite; }
+.scene-neon .nl4 { right: 6%; top: 52%; height: 48px; background: var(--yellow); box-shadow: 0 0 12px var(--yellow), 0 0 30px var(--yellow); opacity: .95; animation: blinksub 3s steps(1) infinite reverse; }
 .scene-beacons {
-  position: absolute; left: 0; right: 0; top: 30%; bottom: 30%;
+  position: absolute; left: 0; right: 0; top: 26%; bottom: 26%;
   pointer-events: none;
 }
 .scene-beacons::before, .scene-beacons::after {
-  content: ''; position: absolute; width: 3px; height: 3px; border-radius: 50%;
-  background: var(--red); box-shadow: 0 0 6px var(--red);
-  animation: blink 1.8s steps(1) infinite;
+  content: ''; position: absolute; width: 4px; height: 4px; border-radius: 50%;
+  background: var(--red); box-shadow: 0 0 8px var(--red), 0 0 20px var(--red);
+  animation: blink 1.1s steps(1) infinite;
 }
-.scene-beacons::before { left: 12%; top: 62%; }
-.scene-beacons::after { right: 23%; top: 50%; animation-delay: .9s; }
+.scene-beacons::before { left: 13%; top: 44%; }
+.scene-beacons::after { right: 24%; top: 16%; animation-delay: .55s; }
+.scene-beacons i {
+  content: ''; position: absolute; width: 3px; height: 3px; border-radius: 50%;
+  background: var(--red); box-shadow: 0 0 6px var(--red), 0 0 16px var(--red);
+  animation: blink 1.6s steps(1) infinite;
+}
+.scene-beacons .b1 { left: 34%; top: 12%; animation-delay: .3s; }
+.scene-beacons .b2 { right: 8%; top: 38%; animation-delay: .8s; }
 .scene-traffic {
   position: absolute; inset: 0; pointer-events: none; mix-blend-mode: screen;
 }
 .scene-traffic::before, .scene-traffic::after {
   content: ''; position: absolute; top: 12%;
   background: radial-gradient(3px 1px at 0 0, transparent 0, transparent 100%);
-  animation: streak 9s linear infinite;
+  animation: streak 8s linear infinite;
 }
 .scene-traffic::before {
-  left: -40%; width: 20%; height: 34%;
-  background-image: radial-gradient(2px 1px at 12px 8px, var(--neon) 95%, transparent), radial-gradient(1.5px 1px at 60px 22px, color-mix(in srgb, var(--blue) 80%, #fff) 95%, transparent), radial-gradient(2px 1px at 30px 18px, #fff 95%, transparent);
+  left: -40%; width: 22%; height: 34%;
+  background-image: radial-gradient(2.4px 1.2px at 12px 8px, var(--neon2) 95%, transparent), radial-gradient(1.6px 1px at 60px 22px, var(--neon1) 95%, transparent), radial-gradient(2px 1.2px at 30px 18px, #fff 95%, transparent);
 }
 .scene-traffic::after {
-  left: 40%; width: 24%; height: 26%; top: 26%;
-  background-image: radial-gradient(2px 1px at 14px 6px, color-mix(in srgb, var(--magenta) 90%, #fff) 95%, transparent), radial-gradient(1.5px 1px at 70px 16px, var(--neon) 95%, transparent);
-  animation-duration: 12s; animation-direction: reverse; animation-delay: 2s;
-}
-@keyframes streak {
-  to { left: 130%; }
+  left: 34%; width: 26%; height: 26%; top: 26%;
+  background-image: radial-gradient(2.2px 1.2px at 14px 6px, var(--neon3) 95%, transparent), radial-gradient(1.6px 1px at 70px 16px, var(--neon2) 95%, transparent), radial-gradient(1.8px 1px at 40px 22px, var(--yellow) 95%, transparent);
+  animation-duration: 11s; animation-direction: reverse; animation-delay: 2s;
 }
 .scene-grid {
-  position: absolute; left: -20%; right: -20%; bottom: -10%; height: 46%;
+  position: absolute; left: -20%; right: -20%; bottom: -10%; height: 48%;
   background:
-    repeating-linear-gradient(90deg, color-mix(in srgb, var(--district) 75%, transparent) 0 1px, transparent 1px 34px),
-    repeating-linear-gradient(0deg, color-mix(in srgb, var(--district) 65%, transparent) 0 1px, transparent 1px 18px);
+    repeating-linear-gradient(90deg, color-mix(in srgb, var(--neon2) 85%, transparent) 0 1px, transparent 1px 32px),
+    repeating-linear-gradient(0deg, color-mix(in srgb, var(--neon1) 75%, transparent) 0 1px, transparent 1px 16px);
   transform: perspective(220px) rotateX(62deg);
-  transform-origin: bottom center; opacity: .6;
+  transform-origin: bottom center; opacity: .78;
+}
+.scene-street {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 30%;
+  background:
+    linear-gradient(180deg, transparent, color-mix(in srgb, var(--neon1) 44%, rgba(6,2,16,.85)) 68%),
+    radial-gradient(60% 90% at 30% 100%, color-mix(in srgb, var(--neon2) 38%, transparent) 0%, transparent 70%),
+    radial-gradient(50% 80% at 68% 100%, color-mix(in srgb, var(--neon3) 30%, transparent) 0%, transparent 70%);
+  mix-blend-mode: screen; opacity: .9;
 }
 .scene-rain {
-  position: absolute; inset: 0; opacity: .45;
-  background: repeating-linear-gradient(105deg, transparent 0 12px, rgba(160,220,255,.5) 12px 13px, transparent 13px 26px);
-  animation: rainfall .5s linear infinite;
+  position: absolute; inset: 0; opacity: .55;
+  background: repeating-linear-gradient(105deg, transparent 0 10px, rgba(140,225,255,.65) 10px 11px, transparent 11px 22px);
+  animation: rainfall .45s linear infinite;
 }
-@keyframes rainfall { to { background-position: -26px 40px; } }
+@keyframes rainfall { to { background-position: -24px 36px; } }
 @keyframes shimmer { to { background-position: -300% 0; } }
 @keyframes blink { 50% { opacity: .12; } }
+@keyframes blinksub { 50% { opacity: .22; } }
+@keyframes windowflick { 0%, 100% { opacity: .85; } 46% { opacity: .6; } 50% { opacity: .95; } 53% { opacity: .7; } }
+@keyframes beam {
+  0% { transform: rotate(-40deg); opacity: 0; }
+  12% { opacity: .9; }
+  30% { transform: rotate(-28deg); opacity: .95; }
+  60% { transform: rotate(30deg); opacity: .85; }
+  86% { opacity: .95; }
+  100% { transform: rotate(38deg); opacity: 0; }
+}
+@keyframes holo {
+  0%, 100% { transform: translateX(0); }
+  7% { transform: translateX(-2px); }
+  8% { transform: translateX(2px); }
+  9% { transform: translateX(0); }
+  42% { transform: translateX(0); }
+  52% { transform: translateX(3px); filter: drop-shadow(0 0 14px var(--neon2)) saturate(1.6); }
+  54% { transform: translateX(0); }
+}
+@keyframes holo-scan {
+  0%, 60% { opacity: .4; }
+  65%, 95% { opacity: .8; }
+  100% { opacity: .4; }
+}
 .scene-label { position: absolute; left: 16px; bottom: 12px; text-shadow: 0 2px 10px #000; }
 .scene-district { font-family: var(--display); font-size: 11px; letter-spacing: 4px; color: var(--district); }
 .scene-room { font-family: var(--display); font-size: 22px; letter-spacing: 2px; color: #fff; line-height: 1.1; }

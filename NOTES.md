@@ -58,12 +58,18 @@ battery, and `nc-gameplay.mjs` (WS bot using real world data; see test files):
   now returns spawn objects (not just room ids) so the engine can announce them.
   Logged with `cls: 'amb'` (italic dim in `client/style.css`). Verified via live
   harness (ambient cadence) and a direct engine-session test (respawn announce).
-- **Cityscape rebuilt (more Cyberpunk-style)**: the background scene is now layered
-  (`client/index.html` `.scene-*` depth layers; `client/style.css` custom-prop skyline
-  silhouettes, window grids, neon strips, shimmer billboard, beacons, traffic streaks),
-  with per-district variants selected by `renderScene` setting `#scene[data-district=…]`
-  (citycenter/westbrook/heywood/pacifica/santo). Verified across all districts in
-  headless chromium, including weather (rain) and no console errors.
+- **Cityscape rebuilt (Cyberpunk 2077 style — neon, bright, violent)**: the background
+  scene is now layered (`client/index.html` `.scene-*` depth layers; `client/style.css`
+  custom-prop skyline silhouettes, window grids, neon strips, shimmer billboard,
+  beacons, traffic streaks), with per-district variants selected by `renderScene`
+  setting `#scene[data-district=…]` (citycenter/westbrook/heywood/pacifica/santo).
+  V2 revamp: big low sun (yellow core, orange+magenta bloom) sitting *behind* the far
+  silhouette, magenta/purple district-tinted sky w/ red radial overspill, glitching
+  SAMSARA NET holo-face billboard (inline SVG, `scene-holo`), vertical neon tubes
+  (`scene-neon .nl1..4`), sweeping searchlight (`scene-beam`), flickering window dots
+  (`windowflick`), brighter era/street layers + wet-street neon reflections
+  (`scene-street`), 4 red aviation beacons. Verified across all districts in headless
+  chromium (incl. rain) with no console errors.
 
 ## Notes / quirks
 
