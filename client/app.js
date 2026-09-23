@@ -58,7 +58,15 @@ function cmd (line) {
   if (!line || !line.trim()) return
   send({ t: 'cmd', line })
   S.hist.push(line); S.histIdx = S.hist.length
-  addLog([{ text: '> ' + line, cls: 'sys' }])
+  addLog([{ text: '> ' + prettyCmd(line), cls: 'sys' }])
+}
+
+function prettyCmd (line) {
+  const inv = S.inv?.stacks || []
+  return line.split(/\s+/).map(tok => {
+    for (const it of inv) if (it.uid === tok) return it.name
+    return tok
+  }).join(' ')
 }
 
 /* ================= message handling ================= */
