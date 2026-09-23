@@ -8,6 +8,7 @@ import { getItemDef, allItemDefs, describeStack, makeStack, iconFor } from './it
 import * as P from './player.js'
 import * as C from './combat.js'
 import * as Q from './quests.js'
+import { CLASSES, PERKS, TIER_REQUIREMENTS, perkEffects, classPerks } from './classes.js'
 import { handleCommand } from './commands.js'
 import { ambientLine, npcChatterLine, AMBIENT_MIN, AMBIENT_MAX } from './ambient.js'
 
@@ -114,7 +115,7 @@ export class Game {
     session.token = token
     const hasChar = !!db.getDb().world.players?.[accountId]
     this.send(session, { t: 'auth', ok: true, token, username: account.username, hasChar })
-    this.send(session, { t: 'world', districts: this.districts, rooms: this.roomList, items: this.itemCatalog })
+    this.send(session, { t: 'world', districts: this.districts, rooms: this.roomList, items: this.itemCatalog, classes: CLASSES, perks: PERKS, tierRequirements: TIER_REQUIREMENTS, attrLabels: P.ATTR_LABELS })
     if (hasChar) this.enterGame(session)
     else this.send(session, { t: 'needChar', creation: this.creationPayload() })
   }
@@ -181,6 +182,9 @@ export class Game {
     return {
       lifepaths: P.LIFEPATHS,
       styles: P.STYLES,
+      classes: CLASSES,
+      perks: PERKS,
+      tierRequirements: TIER_REQUIREMENTS,
       attrs: P.ATTRS,
       attrLabels: P.ATTR_LABELS,
       basePoints: P.BASE_POINTS,
@@ -199,6 +203,8 @@ export class Game {
     const name = String(msg.name ?? '').trim()
     if (!/^[A-Za-z0-9_\- ']{2,20}$/.test(name)) return this.send(session, { t: 'error', msg: 'Name must be 2-20 characters.' })
     if (!P.LIFEPATHS[msg.lifepath]) return this.send(session, { t: 'error', msg: 'Pick a lifepath.' })
+    const cls = msg.cls ?? 'solo'
+    if (!CLASSES[cls]) return this.send(session, { t: 'error', msg: 'Pick a class.' })
 
     const attrs = msg.attrs ?? {}
     let pool = 0
@@ -222,7 +228,7 @@ export class Game {
     }
     if (cap > 4) return this.send(session, { t: 'error', msg: `Starting chrome exceeds capacity (${cap}/4).` })
 
-    const player = P.makeNewPlayer(accountId, { name, lifepath: msg.lifepath, style: msg.style, attrs })
+    const player = P.makeNewPlayer(accountId, { name, lifepath: msg.lifepath, style: msg.style, attrs, cls })
     for (const id of picks) {
       const st = makeStack(id)
       player.inv.push(st)
@@ -492,7 +498,7 @@ export class Game {
     const gained = P.addXp(p, xp)
     this.log(session, `${inst.def.name} goes down. +${xp} XP${isBoss ? ' — BOUNTY COMPLETE' : ''}.`, 'xp')
     this.roomLog(p.room, `${inst.def.name} is flatlined by ${p.name}.`, 'combat', session.accountId)
-    for (const lvl of gained) this.log(session, `LEVEL UP — you are now level ${lvl}. Attribute point available (type: up <attr>).`, 'level')
+    for (const lvl of gained) this.log(session, `LEVEL UP — you are now level ${lvl}. Attribute point + perk point available (up <attr> / perks).`, 'level')
 
     // corpse
     const items = []
@@ -510,7 +516,7 @@ export class Game {
     for (const gig of gigs) {
       this.log(session, `GIG COMPLETE — "${gig.title}". +${gig.rewardEddies} eddies, +${gig.rewardXp} XP, +${gig.rep} rep.`, 'gig')
       const lv = P.addXp(p, gig.rewardXp)
-      for (const lvl of lv) this.log(session, `LEVEL UP — you are now level ${lvl}.`, 'level')
+      for (const lvl of lv) this.log(session, `LEVEL UP — you are now level ${lvl}. Attribute point + perk point available.`, 'level')
       this.toast(session, `GIG COMPLETE: ${gig.title}`, 'gig')
     }
     this.pushRoom(session)
@@ -654,11 +660,11 @@ export class Game {
       const outOfCombat = this.world.hostilesInRoom(p.room).length === 0
       const sinceHit = now - (p.lastHitAt || 0)
       if (sinceHit > 7000) {
-        if (p.hp < eff.maxHp) p.hp = Math.min(eff.maxHp, p.hp + Math.max(1, Math.floor(eff.maxHp * 0.03)))
+        if (p.hp < eff.maxHp) p.hp = Math.min(eff.maxHp, p.hp + Math.max(1, Math.floor(eff.maxHp * 0.03 * (1 + (eff.regenHpPct || 0) / 100))))
         if (p.stam < eff.maxStam) p.stam = Math.min(eff.maxStam, p.stam + 6)
       }
       if (eff.hasDeck) {
-        const rate = outOfCombat ? 1 : 0.5
+        const rate = (outOfCombat ? 1 : 0.5) * (1 + (eff.ramRatePct || 0) / 100)
         if ((p.ram ?? 0) < eff.maxRam) p.ram = Math.min(eff.maxRam, (p.ram ?? 0) + rate)
       }
       this.pushState(session)

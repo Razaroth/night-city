@@ -70,7 +70,10 @@ export function playerAttack (p, target, now, eff) {
   }
   const critRoll = Math.random() < clamp01((wep.crit || 0) / 100 + eff.crit / 100 + attr * 0.004)
   const winds = now < (p.buff?.berserkUntil) ? 1.25 : 1
-  const dmg = Math.floor(weaponDamage(p, wep, eff) * winds)
+  let dmg = Math.floor(weaponDamage(p, wep, eff) * winds)
+  dmg = Math.floor(dmg * (1 + (eff.weaponDmgPct || 0) / 100))
+  if ((eff.lowHpDmgPct || 0) && p.hp < eff.maxHp * 0.5) dmg = Math.floor(dmg * (1 + eff.lowHpDmgPct / 100))
+  if ((eff.fullStamDmgPct || 0) && p.stam >= eff.maxStam) dmg = Math.floor(dmg * (1 + eff.fullStamDmgPct / 100))
   const res = applyDamageTo(target, dmg, { dr: target.def.armor, pen: wep.pen + eff.pen, crit: critRoll, defending: target.buff?.defendUntil > now ? true : false })
   return { hit: true, crit: res.crit, dmg: res.taken, desc: `You ${wep.class === 'melee' || wep.class === 'blunt' || wep.class === 'brawling' ? 'strike' : 'fire your'} ${wep.name} at ${target.def.name} for [B]${res.taken}[/B] damage${res.crit ? ' — critical hit!' : ''}.` }
 }
@@ -80,7 +83,7 @@ export function playerQuickhack (p, target, qhDef, now, eff, roomList) {
   if (now < (p.hackAt || 0)) return { cooldown: true }
   if ((p.ram || 0) < qhDef.ram) return { error: `Not enough RAM. ${qhDef.name} needs ${qhDef.ram} RAM.` }
   p.ram -= qhDef.ram
-  p.hackAt = now + 1800
+  p.hackAt = now + Math.floor(1800 * (1 - (eff.hackCdPct || 0) / 100))
   const attr = governingStat(p, 'quickhacking')
   const resist = target.statuses.some(s => s.kind === 'ice') ? 0.3 : 0
   const chance = hitChance(attr, p.level, 0.12 + target.def.level * 0.01, 0.1) - resist
@@ -88,8 +91,9 @@ export function playerQuickhack (p, target, qhDef, now, eff, roomList) {
   if (Math.random() > chance) {
     return { miss: true, desc: `${target.def.name} ICE burps and shrugs off the ${qhDef.name}.` }
   }
-  const dmg = weaponDamage(p, qhDef, eff) + rand(0, 4)
-  const res = applyDamageTo(target, dmg, { dr: target.def.armor * 0.35, ice: eff.ice, dmgKind: 'hack', crit: Math.random() < 0.1 })
+  let dmg = weaponDamage(p, qhDef, eff) + rand(0, 4)
+  if (eff.hackDmgPct) dmg = Math.floor(dmg * (1 + eff.hackDmgPct / 100))
+  const res = applyDamageTo(target, dmg, { dr: target.def.armor * 0.35, ice: eff.ice, dmgKind: 'hack', crit: Math.random() < 0.1 + (eff.hackCrit || 0) / 100 })
   const effects = []
   if (qhDef.burn && target.alive) { target.statuses.push({ kind: 'burn', until: now + 6000, perTick: qhDef.burn.perTick, ticks: qhDef.burn.ticks }); effects.push('a burn') }
   if (qhDef.poison && target.alive) { target.statuses.push({ kind: 'poison', until: now + 9000, perTick: qhDef.poison.perTick, ticks: qhDef.poison.ticks }); effects.push('contagion') }
@@ -110,10 +114,12 @@ export function playerGrenade (p, qhList, roomHostiles, now) {
   if (!qh) return { error: 'No grenade in flight trajectory.' }
   if (now < (p.grenadeAt || 0)) return { cooldown: true }
   p.grenadeAt = now + 1000
+  const eff = computeStats(p)
+  const bonus = 1 + (eff.grenadePct || 0) / 100
   const lines = []
   let stuns = 0
   for (const inst of roomHostiles) {
-    const taken = rand(qh.dmg[0] * 0.8, qh.dmg[1]) - Math.floor(inst.def.armor * 0.25)
+    const taken = Math.floor((rand(qh.dmg[0] * 0.8, qh.dmg[1]) - Math.floor(inst.def.armor * 0.25)) * bonus)
     inst.hp = Math.max(0, inst.hp - taken)
     lines.push(`${inst.def.name} takes [B]${taken}[/B] from the blast.`)
     if (qh.burn) inst.statuses.push({ kind: 'burn', until: now + 5000, perTick: qh.burn.perTick, ticks: qh.burn.ticks })

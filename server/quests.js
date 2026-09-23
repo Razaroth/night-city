@@ -1,3 +1,5 @@
+import { perkEffects } from './classes.js'
+
 export const GIGS = {
   'gig-scavdawgs': {
     id: 'gig-scavdawgs', title: 'Dead Scav-Dogs', fixer: 'wakako',
@@ -62,10 +64,12 @@ export function handleKill (p, npcId, now) {
       rec.completedAt = now
       rec.completed = gigId
       rec.availableAt = now + gig.cooldownSec * 1000
-      p.eddies += gig.rewardEddies
+      const pct = perkEffects(p).eddiesPct ?? 0
+      const paid = Math.round(gig.rewardEddies * (1 + pct / 100))
+      p.eddies += paid
       p.rep += gig.rep
       p.stats.gigs_done = (p.stats.gigs_done || 0) + 1
-      results.push(gig)
+      results.push({ ...gig, rewardEddies: paid })
     }
   }
   return results

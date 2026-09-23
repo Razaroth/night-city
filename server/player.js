@@ -1,5 +1,6 @@
 import crypto from 'node:crypto'
 import { getItemDef, makeStack, maxStack, canStack, describeStack } from './items.js'
+import { CLASSES, perkEffects } from './classes.js'
 
 export const ATTRS = ['body', 'reflexes', 'tech', 'intel', 'cool']
 export const ATTR_LABELS = { body: 'BODY', reflexes: 'REFLEXES', tech: 'TECH', intel: 'INTELLIGENCE', cool: 'COOL' }
@@ -47,6 +48,7 @@ export function xpToNext (level) {
 export function makeNewPlayer (accountId, opts) {
   const lifepath = LIFEPATHS[opts.lifepath]
   const lpBonus = lifepath.attrBonus
+  const cls = CLASSES[opts.cls] ? opts.cls : 'solo'
   const attrs = { body: 3, reflexes: 3, tech: 3, intel: 3, cool: 3 }
   for (const a of ATTRS) {
     const v = opts.attrs[a]
@@ -58,12 +60,15 @@ export function makeNewPlayer (accountId, opts) {
   const p = {
     accountId,
     name: opts.name,
+    cls,
     lifepath: opts.lifepath,
     style: opts.style in STYLES ? opts.style : 'entropism',
     attrs,
     xp: 0,
     level: 1,
     attrPoints: 0,
+    perks: [],
+    perkPoints: 0,
     eddies: lifepath.eddies,
     rep: 0,
     room: lifepath.startRoom,
@@ -118,7 +123,7 @@ export function carriedWeight (p, { exclude = null } = {}) {
 
 export function carryCapacity (p, eff) {
   const s = eff ?? computeStats(p)
-  return s.capacity + 40
+  return s.capacity + 40 + (s.carryBonus || 0)
 }
 
 /* ---------- cyberware aggregation ---------- */
@@ -143,7 +148,19 @@ export function computeStats (p) {
     sandevistan: false,
     berserk: false,
     secondHeart: false,
-    biomonitor: false
+    biomonitor: false,
+    weaponDmgPct: 0,
+    lowHpDmgPct: 0,
+    fullStamDmgPct: 0,
+    grenadePct: 0,
+    hackDmgPct: 0,
+    hackCrit: 0,
+    hackCdPct: 0,
+    healPct: 0,
+    eddiesPct: 0,
+    regenHpPct: 0,
+    ramRatePct: 0,
+    carryBonus: 0
   }
   for (const st of Object.values(p.cyberware)) {
     const d = getItemDef(st?.id)
@@ -165,6 +182,31 @@ export function computeStats (p) {
     if (d.slot === 'deck' && d.effect === 'ram') eff.hasDeck = true
   }
   if (eff.hasDeck) eff.maxRam += eff.ramBonus
+  // class perks
+  const pk = perkEffects(p)
+  eff.dodge += pk.dodge ?? 0
+  eff.crit += pk.crit ?? 0
+  eff.dr += pk.dr ?? 0
+  eff.maxHp += pk.maxHp ?? 0
+  eff.maxStam += pk.maxStam ?? 0
+  eff.maxRam += pk.maxRam ?? 0
+  eff.capacity += pk.capacity ?? 0
+  eff.ice += pk.ice ?? 0
+  eff.pen += pk.pen ?? 0
+  eff.humanity += pk.humanity ?? 0
+  eff.haste += pk.haste ?? 0
+  eff.weaponDmgPct = pk.weaponDmgPct ?? 0
+  eff.lowHpDmgPct = pk.lowHpDmgPct ?? 0
+  eff.fullStamDmgPct = pk.fullStamDmgPct ?? 0
+  eff.grenadePct = pk.grenadePct ?? 0
+  eff.hackDmgPct = pk.hackDmgPct ?? 0
+  eff.hackCrit = pk.hackCrit ?? 0
+  eff.hackCdPct = pk.hackCdPct ?? 0
+  eff.healPct = pk.healPct ?? 0
+  eff.eddiesPct = pk.eddiesPct ?? 0
+  eff.regenHpPct = pk.regenHpPct ?? 0
+  eff.ramRatePct = pk.ramRatePct ?? 0
+  eff.carryBonus = pk.carryBonus ?? 0
   // apparel
   for (const st of Object.values(p.equip)) {
     const d = getItemDef(st?.id)
@@ -262,6 +304,7 @@ export function addXp (p, amount) {
     p.xp -= xpToNext(p.level)
     p.level += 1
     p.attrPoints = (p.attrPoints || 0) + 1
+    p.perkPoints = (p.perkPoints || 0) + 1
     const eff = computeStats(p)
     p.hp = eff.maxHp
     p.stam = eff.maxStam
@@ -274,11 +317,15 @@ export function stateForClient (p) {
   const eff = computeStats(p)
   return {
     name: p.name,
+    cls: p.cls ?? 'solo',
+    className: CLASSES[p.cls]?.name ?? 'Solo',
     lifepath: p.lifepath,
     lifepathName: LIFEPATHS[p.lifepath]?.name ?? '—',
     style: p.style,
     level: p.level,
     attrPoints: p.attrPoints ?? 0,
+    perkPoints: p.perkPoints ?? 0,
+    perks: p.perks ?? [],
     xp: p.xp,
     xpToNext: xpToNext(p.level),
     eddies: p.eddies,
@@ -305,7 +352,7 @@ export function stateForClient (p) {
   }
 }
 
-const PERSISTED = ['name', 'lifepath', 'style', 'attrs', 'xp', 'level', 'attrPoints', 'eddies', 'rep', 'room', 'hp', 'stam', 'inv', 'equip', 'cyberware', 'quickhacks', 'created_at', 'played_sec', 'stats', 'flags', 'quests']
+const PERSISTED = ['name', 'cls', 'lifepath', 'style', 'attrs', 'xp', 'level', 'attrPoints', 'perks', 'perkPoints', 'eddies', 'rep', 'room', 'hp', 'stam', 'inv', 'equip', 'cyberware', 'quickhacks', 'created_at', 'played_sec', 'stats', 'flags', 'quests']
 
 export function serializePlayer (p) {
   const out = {}
@@ -322,6 +369,10 @@ export function hydratePlayer (saved, accountId) {
   p.stats ??= { kills: 0, deaths: 0, gigs_done: 0, hacks: 0 }
   p.flags ??= {}
   p.quests ??= {}
+  p.attrs ??= { body: 3, reflexes: 3, tech: 3, intel: 3, cool: 3 }
+  p.cls ??= 'solo'
+  p.perks ??= []
+  p.perkPoints ??= 0
   p.played_sec ??= 0
   p.attrPoints ??= 0
   const eff = computeStats(p)

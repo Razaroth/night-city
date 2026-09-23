@@ -2,6 +2,7 @@ import { getItemDef, describeStack, allItemDefs } from './items.js'
 import * as P from './player.js'
 import * as C from './combat.js'
 import * as Q from './quests.js'
+import { CLASSES, PERKS, TIER_REQUIREMENTS, classPerks } from './classes.js'
 import { rooms, districts, HUB_ROOMS, EXIT_NAMES, npcDefs } from './world.js'
 
 const DIRS = { n: 'n', s: 's', e: 'e', w: 'w', ne: 'ne', nw: 'nw', se: 'se', sw: 'sw', up: 'up', down: 'down' }
@@ -49,6 +50,7 @@ export function handleCommand (game, session, line) {
     case 'jobs': case 'gigs': case 'job': return cmdJobs(game, session)
     case 'accept': case 'gig': return cmdAccept(game, session, rest, now)
     case 'up': case 'raise': return cmdUp(game, session, rest)
+    case 'perk': case 'perks': case 'tree': return cmdPerks(game, session, rest)
     case 'travel': case 'fasttravel': case 'ft': return cmdTravel(game, session, rest, now)
     case 'talk': case 'speak': return cmdTalk(game, session, rest)
     case 'map': return cmdMap(game, session)
@@ -102,6 +104,7 @@ function cmdHelp (game, session) {
     { text: 'GEAR       equip <item>, unequip <slot>, use <item>, drop <item> [qty]', cls: 'sys' },
     { text: 'TRADE      shop, buy <item> [qty], sell <item> [qty], install <implant>', cls: 'sys' },
     { text: 'JOBS       jobs (at a fixer), accept <gigId>, up <attr> (spend level point)', cls: 'sys' },
+    { text: 'CLASS      perks (view tree), perk <name> (spend a point)', cls: 'sys' },
     { text: 'Buttons on the right panel do all of this too. Stay chrome, choom.', cls: 'good' }
   ]
   game.logLines(session, lines)
@@ -163,7 +166,7 @@ function cmdWho (game, session) {
     if (!s.player) continue
     n++
     const mark = s.accountId === session.accountId ? ' (you)' : ''
-    lines.push({ text: `${s.player.name}${mark} — Lv${s.player.level} ${P.LIFEPATHS[s.player.lifepath]?.name ?? ''} @ ${rooms[s.player.room]?.name}`, cls: 'who' })
+    lines.push({ text: `${s.player.name}${mark} — Lv${s.player.level} ${CLASSES[s.player.cls]?.name ?? ''} ${P.LIFEPATHS[s.player.lifepath]?.name ?? ''} @ ${rooms[s.player.room]?.name}`, cls: 'who' })
   }
   lines.push({ text: `${n} runner${n === 1 ? '' : 's'} in Night City.`, cls: 'sys' })
   game.logLines(session, lines)
@@ -174,12 +177,12 @@ function cmdStats (game, session) {
   const s = P.stateForClient(p)
   const a = s.attrs
   const lines = [
-    { text: `◈ ${p.name} — ${s.lifepathName} • Level ${s.level} (${s.xp}/${s.xpToNext} XP)`, cls: 'level' },
+    { text: `◈ ${p.name} — ${s.className} • ${s.lifepathName} • Level ${s.level} (${s.xp}/${s.xpToNext} XP)`, cls: 'level' },
     { text: `HP ${s.hp}/${s.maxHp}  STAM ${s.stam}/${s.maxStam}  RAM ${s.ram}/${s.maxRam}  ARMOR ${s.dr}`, cls: 'good' },
     { text: `BODY ${a.body}  REFLEXES ${a.reflexes}  TECH ${a.tech}  INT ${a.intel}  COOL ${a.cool}`, cls: 'sys' },
     { text: `Eddies ${s.eddies} • Street Cred ${s.rep} • Kills ${s.kills} • Deaths ${s.deaths}`, cls: 'sys' },
     { text: `Chrome ${s.capacityUsed}/${s.capacity} capacity • Humanity ${s.humanity}% • Weight ${s.weight}/${s.carryCap}kg`, cls: 'sys' },
-    { text: `Attribute points to spend: ${p.attrPoints ?? 0} (type: up <body|reflexes|tech|intel|cool>)`, cls: p.attrPoints ? 'good' : 'sys' }
+    { text: `Attribute points: ${p.attrPoints ?? 0} (up <attr>). Perk points: ${p.perkPoints ?? 0} (perks).`, cls: (p.attrPoints || p.perkPoints) ? 'good' : 'sys' }
   ]
   game.logLines(session, lines)
 }
@@ -258,7 +261,11 @@ function cmdUse (game, session, query) {
   if (d.category !== 'consumables') return game.log(session, `You can't use ${d.name} like that.`, 'bad')
   const eff = P.computeStats(p)
   const parts = []
-  if (d.heal) { p.hp = Math.min(eff.maxHp, p.hp + d.heal); parts.push(`+${d.heal} HP`) }
+  if (d.heal) {
+    const h = d.heal + (eff.healPct ? Math.floor(d.heal * eff.healPct / 100) : 0)
+    p.hp = Math.min(eff.maxHp, p.hp + h)
+    parts.push(`+${h} HP`)
+  }
   if (d.stamina) { p.stam = Math.min(eff.maxStam, p.stam + d.stamina); parts.push(`+${d.stamina} stamina`) }
   if (d.ram) { p.ram = Math.min(eff.maxRam, (p.ram ?? 0) + d.ram); parts.push(`+${d.ram} RAM`) }
   P.removeFromInv(p, f.stack.uid, 1)
@@ -525,6 +532,57 @@ function cmdUp (game, session, attr) {
   game.log(session, `${P.ATTR_LABELS[attr]} raised to ${p.attrs[attr]}. ${P.ATTR_FLAVOR[attr]}`, 'level')
   game.pushState(session)
   game.pushInv(session)
+}
+
+function cmdPerks (game, session, query) {
+  const p = session.player
+  if (query) return cmdPerk(game, session, query)
+  const cls = CLASSES[p.cls] ?? CLASSES.solo
+  const owned = new Set(p.perks ?? [])
+  const tree = classPerks(cls.id)
+  const lines = [{ text: `◈ ${cls.name.toUpperCase()} — CLASS PERK TREE (${owned.size}/${tree.length} learned • ${p.perkPoints ?? 0} point${p.perkPoints === 1 ? '' : 's'})`, cls: 'level' }]
+  for (const pr of tree) {
+    const got = owned.has(pr.id)
+    const tierGateOk = owned.size >= (TIER_REQUIREMENTS[pr.tier] ?? 0)
+    const gateOk = (p.attrs[pr.attr] ?? 0) >= pr.attrVal
+    const can = (p.perkPoints ?? 0) > 0 && !got && tierGateOk && gateOk
+    let note = ''
+    if (!got) {
+      note = !gateOk ? ` needs ${P.ATTR_LABELS[pr.attr]} ${pr.attrVal}` : !tierGateOk ? ` learn ${TIER_REQUIREMENTS[pr.tier]} perks for T${pr.tier}` : ''
+    }
+    lines.push({ text: `${got ? '[X]' : can ? '[ ]' : '[·]'} T${pr.tier} ${pr.name} — ${pr.desc}${got ? '' : note ? ` (${note})` : ' (1 point)'}`, cls: got ? 'good' : can ? 'level' : 'sys' })
+  }
+  lines.push({ text: 'Type: perk <name> to spend a point.', cls: 'sys' })
+  game.logLines(session, lines)
+}
+
+function cmdPerk (game, session, query) {
+  const p = session.player
+  const q = (query || '').toLowerCase()
+  if (!q) return cmdPerks(game, session, '')
+  const cls = CLASSES[p.cls] ?? CLASSES.solo
+  const pr = classPerks(cls.id).find(x => x.id === q || x.id.includes(q) || x.name.toLowerCase() === q || x.name.toLowerCase().startsWith(q))
+  if (!pr) return game.log(session, `No "${query}" perk in the ${cls.name} tree.`, 'bad')
+  const owned = new Set(p.perks ?? [])
+  if (owned.has(pr.id)) return game.log(session, `${pr.name} already learned.`, 'bad')
+  if ((p.perkPoints ?? 0) <= 0) return game.log(session, 'No perk points available. Level up to earn one.', 'bad')
+  if ((p.attrs[pr.attr] ?? 0) < pr.attrVal) {
+    return game.log(session, `${pr.name} requires ${P.ATTR_LABELS[pr.attr]} ${pr.attrVal}. Your ${P.ATTR_LABELS[pr.attr]} is ${p.attrs[pr.attr]}.`, 'bad')
+  }
+  if (pr.tier > 1 && owned.size < (TIER_REQUIREMENTS[pr.tier] ?? 0)) {
+    return game.log(session, `T${pr.tier} perks unlock after learning ${TIER_REQUIREMENTS[pr.tier]} ${cls.name} perks.`, 'bad')
+  }
+  p.perks = [...owned, pr.id]
+  p.perkPoints -= 1
+  const eff = P.computeStats(p)
+  p.hp = eff.maxHp
+  p.stam = eff.maxStam
+  p.ram = eff.maxRam
+  game.log(session, `PERK LEARNED — ${pr.name}. ${pr.desc}`, 'level')
+  game.log(session, `${p.perkPoints ?? 0} perk point${p.perkPoints === 1 ? '' : 's'} left. Type perks to view the tree.`, 'good')
+  game.pushState(session)
+  game.pushInv(session)
+  db.queueSave()
 }
 
 function cmdTravel (game, session, dest, now) {

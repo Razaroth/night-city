@@ -15,6 +15,8 @@ const S = {
   world: { districts: {}, rooms: [], items: [] },
   roomIndex: {},
   itemIndex: {},
+  classes: {},
+  classPerkIndex: {},
   creation: null,
   char: null,
   inv: null,
@@ -23,7 +25,7 @@ const S = {
   shop: null,
   hist: [],
   histIdx: -1,
-  draft: { name: '', lifepath: 'streetkid', style: 'entropism', attrs: { body: 3, reflexes: 3, tech: 3, intel: 3, cool: 3 }, cyberware: [] }
+  draft: { name: '', lifepath: 'streetkid', cls: 'solo', style: 'entropism', attrs: { body: 3, reflexes: 3, tech: 3, intel: 3, cool: 3 }, cyberware: [] }
 }
 
 const DIST_ORDER = ['watson', 'westbrook', 'citycenter', 'heywood', 'pacifica', 'santo', 'badlands']
@@ -83,13 +85,16 @@ function handle (msg) {
       for (const r of msg.rooms) S.roomIndex[r.id] = r
       S.itemIndex = {}
       for (const it of msg.items) S.itemIndex[it.id] = it
+      S.classes = msg.classes || {}
+      S.classPerkIndex = msg.perks || {}
+      S.tierRequirements = msg.tierRequirements || { 2: 2, 3: 4 }
       break
     }
     case 'needChar': S.creation = msg.creation; showScreen('creation'); renderCreation(); break
     case 'charCreated': toast('Runner on file: ' + msg.name, 'good'); break
     case 'entered': onEntered(msg); break
     case 'room': S.room = msg; onRoom(msg); break
-    case 'state': S.char = msg.state; renderHud(); renderVitals(); renderAttrs(); renderQuickbar(); openCombat(); break
+    case 'state': S.char = msg.state; renderHud(); renderVitals(); renderAttrs(); renderQuickbar(); openCombat(); refreshPerks(); break
     case 'inv': S.inv = msg; renderInventory(); renderEquipment(); renderQuickhacks(); renderQuickbar(); break
     case 'jobs': S.jobs = msg; renderJobs(); renderActions(); break
     case 'shop': S.shop = msg; openShop(); break
@@ -345,6 +350,20 @@ function renderCreation () {
     lp.appendChild(d)
   }
 
+const cp = $('#class-picker')
+  cp.innerHTML = ''
+  const classList = c.classes ? Object.values(c.classes) : []
+  for (const cl of classList) {
+    const d = document.createElement('div')
+    d.className = 'lp-card' + (S.draft.cls === cl.id ? ' active' : '')
+    const attrs = (cl.attrs || []).map(a => c.attrLabels?.[a] || a.toUpperCase()).join(' / ')
+    d.innerHTML = `<h4 style="color:${cl.color}">${esc(cl.name.toUpperCase())}</h4>
+      <p>${esc(cl.desc)}</p>
+      <p class="bonus">KEYS: ${esc(attrs)}</p>`
+    d.onclick = () => { S.draft.cls = cl.id; renderCreation() }
+    cp.appendChild(d)
+  }
+
   // attrs
   const used = Object.values(S.draft.attrs).reduce((a, v) => a + (v - 3), 0)
   const left = c.basePoints - used
@@ -409,7 +428,7 @@ $('#create-btn').onclick = () => {
   const used = Object.values(S.draft.attrs).reduce((a, v) => a + (v - 3), 0)
   if (used > c.basePoints) return err('Too many attribute points spent.')
   err('')
-  send({ t: 'charCreate', name, lifepath: S.draft.lifepath, style: S.draft.style, attrs: S.draft.attrs, cyberware: S.draft.cyberware })
+  send({ t: 'charCreate', name, lifepath: S.draft.lifepath, cls: S.draft.cls, style: S.draft.style, attrs: S.draft.attrs, cyberware: S.draft.cyberware })
 }
 
 /* ================= HUD / vitals ================= */
@@ -417,7 +436,7 @@ function renderHud () {
   const s = S.char
   if (!s) return
   $('#hud-name').textContent = s.name
-  $('#hud-lp').textContent = s.lifepathName.toUpperCase()
+  $('#hud-lp').textContent = (s.className || 'SOLO').toUpperCase() + ' • ' + s.lifepathName.toUpperCase()
   $('#hud-level').textContent = 'LV ' + s.level
   $('#hud-eddies').textContent = s.eddies
   $('#hud-rep').textContent = s.rep
@@ -458,9 +477,12 @@ function renderAttrs () {
   if (s.attrPoints > 0) {
     html += '<div class="spend"><button id="spend-btn">SPEND ' + s.attrPoints + ' POINT(S)</button></div>'
   }
+  html += `<div class="spend"><span class="perkp">PERK</span>${s.perkPoints || 0}<button id="perk-btn" class="mini">OPEN TREE</button></div>`
   $('#attrs').innerHTML = html
   const b = $('#spend-btn')
   if (b) b.onclick = () => { const a = prompt('Raise which attribute? (body/reflexes/tech/intel/cool)', 'body'); if (a) cmd('up ' + a.trim()) }
+  const pb = $('#perk-btn')
+  if (pb) pb.onclick = () => openPerks()
 }
 
 /* ================= scene ================= */
@@ -667,9 +689,12 @@ function renderQuickbar () {
   btns.push('<button class="qbtn" data-cmd="stats">STATS</button>')
   btns.push('<button class="qbtn" data-cmd="inv">INV</button>')
   btns.push('<button class="qbtn" data-cmd="jobs">JOBS</button>')
+  btns.push('<button class="qbtn perk2" id="qperk-btn">PERKS</button>')
   btns.push('<button class="qbtn" data-cmd="help">HELP</button>')
   $('#quickbar').innerHTML = btns.join('')
   bindCmdButtons($('#quickbar'))
+  const qp = $('#qperk-btn')
+  if (qp) qp.onclick = () => openPerks()
 }
 
 /* ================= shop ================= */
@@ -691,6 +716,45 @@ function openShop () {
   $('#shopmodal').classList.remove('hidden')
 }
 $('#shop-close').onclick = () => $('#shopmodal').classList.add('hidden')
+
+/* ================= perks ================= */
+function openPerks () {
+  if (!S.char) return
+  $('#perksmodal').classList.remove('hidden')
+  renderPerks()
+}
+function renderPerks () {
+  const s = S.char
+  if (!s) return
+  const cls = S.classes[s.cls] || { id: 'solo', name: 'SOLO', color: '#ff5c78' }
+  const tree = Object.values(S.classPerkIndex).filter(p => p.cls === cls.id).sort((a, b) => (a.tier - b.tier) || a.name.localeCompare(b.name))
+  const owned = new Set(s.perks || [])
+  const pts = s.perkPoints || 0
+  $('#perks-title').textContent = cls.name.toUpperCase() + ' — CLASS PERKS'
+  $('#perks-head').innerHTML = `<span style="color:${cls.color}">◈ ${esc(cls.tagline || cls.name)}</span><em>${owned.size}/${tree.length} learned • ${pts} point${pts === 1 ? '' : 's'}</em>`
+  $('#perks-list').innerHTML = tree.map(pr => {
+    const got = owned.has(pr.id)
+    const gateOk = (s.attrs[pr.attr] || 0) >= pr.attrVal
+    const tierGateOk = owned.size >= (S.tierRequirements[pr.tier] || 0)
+    const can = !got && pts > 0 && gateOk && tierGateOk
+    const note = !gateOk ? ` needs ${(S.world.attrLabels && S.world.attrLabels[pr.attr]) || pr.attr.toUpperCase()} ${pr.attrVal}` : !tierGateOk ? ` learn ${S.tierRequirements[pr.tier]} perks for T${pr.tier}` : ''
+    return `<div class="perk-row ${got ? 'got' : gateOk && tierGateOk ? 'open' : 'locked'}" data-tier="${pr.tier}">
+      <div class="pk-tier">T${pr.tier}</div>
+      <div class="pk-info"><b>${esc(pr.name)}</b><span>${esc(pr.desc)}</span><small>${got ? 'LEARNED' : note || ('gate ' + ((S.world.attrLabels && S.world.attrLabels[pr.attr]) || pr.attr.toUpperCase()) + ' ' + pr.attrVal + ' • 1 point')}</small></div>
+      ${can ? `<button class="qbtn" data-perk="${esc(pr.name)}">LEARN</button>` : ''}
+    </div>`
+  }).join('') || '<div class="empty-note">No perks yet.</div>'
+  $('#perks-list').querySelectorAll('[data-perk]').forEach(b => b.onclick = () => {
+    cmd('perk ' + b.dataset.perk)
+    setTimeout(refreshPerks, 350)
+  })
+}
+function refreshPerks () {
+  if (!S.char) return
+  const el = $('#perksmodal')
+  if (el && !el.classList.contains('hidden')) renderPerks()
+}
+$('#perks-close').onclick = () => $('#perksmodal').classList.add('hidden')
 
 /* ================= log / toast ================= */
 function addLog (lines) {

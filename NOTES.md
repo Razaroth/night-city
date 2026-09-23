@@ -30,6 +30,27 @@ battery, and `nc-gameplay.mjs` (WS bot using real world data; see test files):
 - NPCs respawn: hostiles 90s, bosses 600s (`server/world.js` respawnSec). Re-running live tests
   repeatedly will hit freshly-dead NPCs — tests must `waitNpc` (already handled in nc-gameplay.mjs).
 
+## Classes + perk trees (2026-09-23)
+
+- Five CP2077-style classes chosen at creation (orthogonal to lifepath): **Solo**, **Netrunner**,
+  **Techie**, **Rockerboy**, **Nomad** — defined in `server/classes.js` (CLASSES + PERKS).
+- **Perk economy**: +1 perk point per level-up (alongside the existing +1 attribute point in
+  `player.js addXp`). Perks are single-rank, gated by an attribute minimum (`attr`/`attrVal`) and
+  a tier gate — T2 needs 2 class perks owned, T3 needs 4 (`TIER_REQUIREMENTS`).
+- Effects fold into `computeStats` via `perkEffects(p)` (dodge/crit/dr/maxHp/maxStam/maxRam/capacity/
+  ice/pen/humanity/haste) plus percentage hooks used by combat/quests/regen:
+  weaponDmgPct (+ lowHpDmgPct / fullStamDmgPct), hackDmgPct/hackCrit/hackCdPct, grenadePct,
+  healPct, eddiesPct, regenHpPct, ramRatePct, carryBonus.
+- Commands: `perks` (view your tree) and `perk <name>` (spend a point); `stats`/`who` show class.
+- Gig eddies bonus is computed in `quests.js handleKill` and returned as a shallow copy so the
+  shared GIGS def is never mutated.
+- Existing saves get `cls:'solo'`, empty perks, 0 points via `hydratePlayer`.
+- Client: class picker on the creation screen, HUD shows `CLASS • LIFEPATH`, a **PERKS** modal
+  (quickbar button + left-panel OPEN TREE) rendered from world payload (`classes`/`perks`/
+  `tierRequirements`); LEARN buttons call `perk <name>`.
+- Verified unit (node) + headless chromium: creation cards, charCreate w/ cls, stats line,
+  tree gating text, spend-with-no-points rejection, modal rows, zero page errors.
+
 ## Resolved issues (2026-09-22)
 
 - **`up <attr>` crash**: spending an attribute point from a bare dir (no args)
