@@ -1,52 +1,52 @@
 {
   "solo": {
-    "file": "File:A U.S. Soldier with Alpha Company, 412th Support Battalion, 12th Combat Aviation Brigade aims at a target with an M16A2 rifle during marksmanship training at the Oberdachstetten Range Complex in Bavaria 130320-D-OE523-305.jpg",
-    "artist": "Luis Viegas",
-    "credit": "http://www.defenseimagery.mil/imageRetrieve.action?guid=5b2095152af6191007510c931aa3557dd02817a4&amp;t=2",
-    "license": "Public domain",
+    "file": "class-solo.jpg",
+    "artist": "User-provided",
+    "credit": "Slice 1 of 5 (left column) of image_4e0010f0.jpg",
+    "license": "User's own image",
     "licenseUrl": "",
-    "source": "https://commons.wikimedia.org/wiki/File:A_U.S._Soldier_with_Alpha_Company,_412th_Support_Battalion,_12th_Combat_Aviation_Brigade_aims_at_a_target_with_an_M16A2_rifle_during_marksmanship_training_at_the_Oberdachstetten_Range_Complex_in_Bavaria_130320-D-OE523-305.jpg",
-    "width": 3264,
-    "height": 1840
+    "source": "local",
+    "width": 282,
+    "height": 768
   },
   "netrunner": {
-    "file": "File:Hacker typing on a Linux laptop full of stickers.jpg",
-    "artist": "User:Kowalski7cc",
-    "credit": "Special:PermaLink/698735294#Thank you for your photos from Linux Day Milano 2022!",
-    "license": "CC0",
-    "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
-    "source": "https://commons.wikimedia.org/wiki/File:Hacker_typing_on_a_Linux_laptop_full_of_stickers.jpg",
-    "width": 6000,
-    "height": 4000
+    "file": "class-netrunner.jpg",
+    "artist": "User-provided",
+    "credit": "Slice 2 of 5 of image_4e0010f0.jpg",
+    "license": "User's own image",
+    "licenseUrl": "",
+    "source": "local",
+    "width": 282,
+    "height": 768
   },
   "techie": {
-    "file": "File:DFC 4703 A mechanic works on a motorcycle engine on the workshop floor focused on repairing the bike amid tools and parts.jpg",
-    "artist": "PattayaPatrol",
-    "credit": "Flickr",
-    "license": "CC BY-SA 4.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-    "source": "https://commons.wikimedia.org/wiki/File:DFC_4703_A_mechanic_works_on_a_motorcycle_engine_on_the_workshop_floor_focused_on_repairing_the_bike_amid_tools_and_parts.jpg",
-    "width": 5568,
-    "height": 3712
+    "file": "class-techie.jpg",
+    "artist": "User-provided",
+    "credit": "Slice 3 of 5 (center column) of image_4e0010f0.jpg",
+    "license": "User's own image",
+    "licenseUrl": "",
+    "source": "local",
+    "width": 282,
+    "height": 768
   },
   "rockerboy": {
-    "file": "File:Guitarist on stage with blue and red lights (Unsplash).jpg",
-    "artist": "William White wrwhite3",
-    "credit": "https://unsplash.com/photos/NDGzkMIasJQ Image at the Wayback Machine Gallery at the Wayback Machine",
-    "license": "CC0",
-    "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
-    "source": "https://commons.wikimedia.org/wiki/File:Guitarist_on_stage_with_blue_and_red_lights_(Unsplash).jpg",
-    "width": 5472,
-    "height": 3648
+    "file": "class-rockerboy.jpg",
+    "artist": "User-provided",
+    "credit": "Slice 4 of 5 of image_4e0010f0.jpg",
+    "license": "User's own image",
+    "licenseUrl": "",
+    "source": "local",
+    "width": 282,
+    "height": 768
   },
   "nomad": {
-    "file": "File:Moto Rider in the Dunes (49991273068).jpg",
-    "artist": "BLMUtah",
-    "credit": "Moto Rider in the Dunes",
-    "license": "Public domain",
+    "file": "class-nomad.jpg",
+    "artist": "User-provided",
+    "credit": "Slice 5 of 5 (right column) of image_4e0010f0.jpg",
+    "license": "User's own image",
     "licenseUrl": "",
-    "source": "https://commons.wikimedia.org/wiki/File:Moto_Rider_in_the_Dunes_(49991273068).jpg",
-    "width": 6000,
-    "height": 4000
+    "source": "local",
+    "width": 282,
+    "height": 768
   }
 }

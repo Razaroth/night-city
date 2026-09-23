@@ -849,14 +849,14 @@ function renderSheet () {
 }
 function sheetCredit (cls) {
   const C = {
-    solo: { a: 'Luis Viegas (US Army)', l: 'Public domain', f: 'A U.S. Soldier with Alpha Company, 412th Support Battalion, 12th Combat Aviation Brigade aims at a target with an M16A2 rifle during marksmanship training at the Oberdachstetten Range Complex in Bavaria 130320-D-OE523-305.jpg' },
-    netrunner: { a: 'User:Kowalski7cc', l: 'CC0', f: 'Hacker typing on a Linux laptop full of stickers.jpg' },
-    techie: { a: 'PattayaPatrol', l: 'CC BY-SA 4.0', f: 'DFC 4703 A mechanic works on a motorcycle engine on the workshop floor focused on repairing the bike amid tools and parts.jpg' },
-    rockerboy: { a: 'William White', l: 'CC0', f: 'Guitarist on stage with blue and red lights (Unsplash).jpg' },
-    nomad: { a: 'Bureau of Land Management Utah', l: 'Public domain', f: 'Moto Rider in the Dunes (49991273068).jpg' }
+    solo: { a: 'User-provided', l: "User's own image", n: 'class-solo.jpg', s: 'Slice 1 of 5' },
+    netrunner: { a: 'User-provided', l: "User's own image", n: 'class-netrunner.jpg', s: 'Slice 2 of 5' },
+    techie: { a: 'User-provided', l: "User's own image", n: 'class-techie.jpg', s: 'Slice 3 of 5' },
+    rockerboy: { a: 'User-provided', l: "User's own image", n: 'class-rockerboy.jpg', s: 'Slice 4 of 5' },
+    nomad: { a: 'User-provided', l: "User's own image", n: 'class-nomad.jpg', s: 'Slice 5 of 5' }
   }
   const c = C[cls] || C.solo
-  return `Art: ${c.a} — ${c.l} — <a href="https://commons.wikimedia.org/wiki/File:${encodeURIComponent(c.f)}" target="_blank" rel="noopener">${c.f}</a> (Wikimedia Commons, free license)`
+  return `Art: ${c.a} (${c.s}) — ${c.l} — ${c.n}`
 }
 function refreshSheet () { if ($('#sheetmodal') && !$('#sheetmodal').classList.contains('hidden')) renderSheet() }
 $('#sheet-close').onclick = () => $('#sheetmodal').classList.add('hidden')
