@@ -51,6 +51,22 @@ battery, and `nc-gameplay.mjs` (WS bot using real world data; see test files):
 - Verified unit (node) + headless chromium: creation cards, charCreate w/ cls, stats line,
   tree gating text, spend-with-no-points rejection, modal rows, zero page errors.
 
+## Character sheet (2026-09-23)
+
+- **SHEET** button (quickbar) + **CHAR DATA** button (left attrs panel) opens a full
+  character sheet modal (`client/app.js` `openSheet`/`renderSheet`): class art + class name
+  overlay, identity (class/lifepath/style), HP/STAM/RAM/XP bars, the 5 attributes, merit rows
+  (level/xp/eddies/rep/armor/crit/dodge/chrome/humanity/kills/deaths/gigs/hacks/weight),
+  loadout (weapon + chest piece incl. dmg/armor), installed chrome (with humanity cost),
+  owned quickhacks, owned perks with a shortcut to the perk tree, and an image-attribution
+  credit line. Pure client-side from the existing `state`/`inv` payloads, so it live-refreshes.
+- `stateForClient` gained `gigs_done` + `hacks` for the sheet.
+- **Class art** (`client/img/class-<cls>.jpg`) are real free-license images from Wikimedia
+  Commons (no AI art): Solo=Osaka nighttime, Netrunner=PCB macro, Techie=locomotive fitting
+  shop (PD), Rockerboy=live band under lights, Nomad=Nevada Hwy 50 sunset. Attribution lives
+  in `client/img/CREDITS.json` and is shown bottom of the sheet; server MIME map now includes
+  `.jpg/.jpeg`.
+
 ## Resolved issues (2026-09-22)
 
 - **`up <attr>` crash**: spending an attribute point from a bare dir (no args)

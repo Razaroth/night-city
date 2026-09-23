@@ -226,6 +226,29 @@ input { font-family: var(--mono); }
 .perk-row .pk-info small { font-size: 10px; color: var(--yellow); margin-top: 2px; }
 .perk-row .qbtn { margin: 0; white-space: nowrap; }
 
+/* character sheet modal */
+.sheet-card { width: 880px; }
+.sheet-body { display: flex; gap: 18px; padding: 16px; overflow-y: auto; min-height: 0; }
+.sheet-img-wrap { flex: 0 0 300px; position: relative; align-self: flex-start; }
+.sheet-img-wrap img { width: 100%; height: 420px; object-fit: cover; display: block; border: 1px solid var(--panel-edge); filter: saturate(.85) contrast(1.05); }
+.sheet-clsname { position: absolute; left: 8px; bottom: 8px; font-family: var(--display); letter-spacing: 3px; font-size: 16px; color: var(--cyan); border: 1px solid var(--cyan); background: rgba(6,10,24,.85); padding: 4px 10px; text-shadow: 0 0 8px currentColor; }
+.sheet-info { flex: 1; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.sheet-idrow { border-bottom: 1px solid var(--panel-edge); padding-bottom: 8px; }
+.sheet-idrow span { font-family: var(--display); font-size: 20px; letter-spacing: 2px; color: var(--cyan); }
+.sheet-idrow em { display: block; color: var(--dim); font-size: 10px; letter-spacing: 1px; margin-top: 2px; }
+.sheet-bars { display: flex; flex-direction: column; gap: 6px; }
+.sheet-raw { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.sheet-info h4 { margin: 0 0 6px; font-family: var(--display); color: var(--yellow); font-size: 11px; letter-spacing: 2px; }
+.sheet-attrs .sheet-attr { position: relative; }
+.sheet-attrs .sheet-attr i { position: absolute; left: 0; bottom: 0; height: 2px; background: var(--cyan); opacity: .5; }
+.sheet-mini .ss-line, .sheet-lines .ss-line { display: flex; justify-content: space-between; gap: 8px; font-size: 11px; padding: 2px 0; border-bottom: 1px dashed rgba(120,150,220,.12); }
+.sheet-mini .ss-line span, .sheet-lines .ss-line span { color: var(--dim); }
+.sheet-mini .ss-line b, .sheet-lines .ss-line b { color: var(--cyan); font-weight: 600; }
+.sheet-lines .ss-line b small { color: var(--yellow); font-size: 10px; }
+.sheet-lines a { color: var(--magenta); }
+.sheet-credit { font-size: 9px; color: var(--dim); letter-spacing: .4px; line-height: 1.5; border-top: 1px solid var(--panel-edge); padding-top: 8px; margin: 0; }
+.sheet-credit a { color: var(--cyan); }
+
 /* minimap */
 #minimap svg { width: 100%; height: auto; display: block; }
 #legend { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }

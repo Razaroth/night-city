@@ -347,6 +347,8 @@ export function stateForClient (p) {
     alive: p.alive,
     kills: p.stats.kills,
     deaths: p.stats.deaths,
+    gigs_done: p.stats.gigs_done ?? 0,
+    hacks: p.stats.hacks ?? 0,
     weight: carriedWeight(p),
     carryCap: carryCapacity(p, eff)
   }

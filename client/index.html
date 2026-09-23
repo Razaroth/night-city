@@ -180,6 +180,55 @@
   </div>
 </div>
 
+<!-- ============ CHARACTER SHEET MODAL ============ -->
+<div id="sheetmodal" class="modal hidden">
+  <div class="modal-card sheet-card">
+    <header><h3 id="sheet-title">RUNNER DATAFILE</h3><button id="sheet-close" class="x">✕</button></header>
+    <div class="sheet-body">
+      <div class="sheet-img-wrap">
+        <img id="sheet-img" src="" alt="class art" />
+        <div class="sheet-clsname" id="sheet-clsname">SOLO</div>
+      </div>
+      <div class="sheet-info">
+        <div class="sheet-idrow">
+          <span id="sheet-name">—</span>
+          <em id="sheet-ident">SOLO • STREET KID • ENTROPISM</em>
+        </div>
+        <div class="sheet-bars" id="sheet-bars"></div>
+        <div class="sheet-raw">
+          <div>
+            <h4>ATTRIBUTES</h4>
+            <div id="sheet-attrs" class="sheet-attrs"></div>
+          </div>
+          <div>
+            <h4>MERITS</h4>
+            <div id="sheet-merits" class="sheet-mini"></div>
+          </div>
+        </div>
+        <div class="sheet-raw">
+          <div>
+            <h4>LOADOUT</h4>
+            <div id="sheet-loadout" class="sheet-lines"></div>
+          </div>
+          <div>
+            <h4>CHROME <span id="sheet-chrome-cap"></span></h4>
+            <div id="sheet-chrome" class="sheet-lines"></div>
+          </div>
+        </div>
+        <div>
+          <h4>QUICKHACKS <span id="sheet-qh-count"></span></h4>
+          <div id="sheet-qh" class="sheet-lines"></div>
+        </div>
+        <div>
+          <h4>CLASS PERKS <span id="sheet-perk-count"></span></h4>
+          <div id="sheet-perks" class="sheet-lines"></div>
+        </div>
+        <p class="sheet-credit" id="sheet-credit"></p>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div id="toasts"></div>
 <div id="deathveil" class="hidden"><div class="death-text">FLATLINED</div><div class="death-sub" id="death-sub"></div></div>
 <div id="respawnfx" class="hidden">

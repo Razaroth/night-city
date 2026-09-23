@@ -94,8 +94,8 @@ function handle (msg) {
     case 'charCreated': toast('Runner on file: ' + msg.name, 'good'); break
     case 'entered': onEntered(msg); break
     case 'room': S.room = msg; onRoom(msg); break
-    case 'state': S.char = msg.state; renderHud(); renderVitals(); renderAttrs(); renderQuickbar(); openCombat(); refreshPerks(); break
-    case 'inv': S.inv = msg; renderInventory(); renderEquipment(); renderQuickhacks(); renderQuickbar(); break
+    case 'state': S.char = msg.state; renderHud(); renderVitals(); renderAttrs(); renderQuickbar(); openCombat(); refreshPerks(); refreshSheet(); break
+    case 'inv': S.inv = msg; renderInventory(); renderEquipment(); renderQuickhacks(); renderQuickbar(); refreshSheet(); break
     case 'jobs': S.jobs = msg; renderJobs(); renderActions(); break
     case 'shop': S.shop = msg; openShop(); break
     case 'log': addLog(msg.lines); break
@@ -478,11 +478,14 @@ function renderAttrs () {
     html += '<div class="spend"><button id="spend-btn">SPEND ' + s.attrPoints + ' POINT(S)</button></div>'
   }
   html += `<div class="spend"><span class="perkp">PERK</span>${s.perkPoints || 0}<button id="perk-btn" class="mini">OPEN TREE</button></div>`
+  html += '<div class="spend"><button id="sheet-btn">CHAR DATA</button></div>'
   $('#attrs').innerHTML = html
   const b = $('#spend-btn')
   if (b) b.onclick = () => { const a = prompt('Raise which attribute? (body/reflexes/tech/intel/cool)', 'body'); if (a) cmd('up ' + a.trim()) }
   const pb = $('#perk-btn')
   if (pb) pb.onclick = () => openPerks()
+  const sb = $('#sheet-btn')
+  if (sb) sb.onclick = () => openSheet()
 }
 
 /* ================= scene ================= */
@@ -687,6 +690,7 @@ function renderQuickbar () {
   btns.push('<button class="qbtn" data-cmd="look">LOOK</button>')
   btns.push('<button class="qbtn" data-cmd="map">MAP</button>')
   btns.push('<button class="qbtn" data-cmd="stats">STATS</button>')
+  btns.push('<button class="qbtn" id="qsheet-btn">SHEET</button>')
   btns.push('<button class="qbtn" data-cmd="inv">INV</button>')
   btns.push('<button class="qbtn" data-cmd="jobs">JOBS</button>')
   btns.push('<button class="qbtn perk2" id="qperk-btn">PERKS</button>')
@@ -695,6 +699,8 @@ function renderQuickbar () {
   bindCmdButtons($('#quickbar'))
   const qp = $('#qperk-btn')
   if (qp) qp.onclick = () => openPerks()
+  const qs = $('#qsheet-btn')
+  if (qs) qs.onclick = () => openSheet()
 }
 
 /* ================= shop ================= */
@@ -755,6 +761,105 @@ function refreshPerks () {
   if (el && !el.classList.contains('hidden')) renderPerks()
 }
 $('#perks-close').onclick = () => $('#perksmodal').classList.add('hidden')
+
+/* ================= character sheet ================= */
+function openSheet () {
+  if (!S.char) return
+  $('#sheetmodal').classList.remove('hidden')
+  renderSheet()
+}
+function sheetLine (label, value, href) {
+  const v = href ? `<a href="${href}" target="_blank" rel="noopener">${value}</a>` : value
+  return `<div class="ss-line"><span>${label}</span><b>${v}</b></div>`
+}
+function renderSheet () {
+  const s = S.char
+  if (!s) return
+  const cls = S.classes[s.cls] || { id: 'solo', name: 'SOLO', color: '#ff5c78', tagline: '' }
+  const labels = { body: 'BODY', reflexes: 'REFLEXES', tech: 'TECH', intel: 'INTELLIGENCE', cool: 'COOL' }
+  $('#sheet-img').src = `img/class-${s.cls || 'solo'}.jpg`
+  const cn = $('#sheet-clsname')
+  cn.textContent = cls.name.toUpperCase()
+  cn.style.color = cls.color
+  cn.style.borderColor = cls.color
+  cn.style.boxShadow = `0 0 18px ${cls.color}44`
+  $('#sheet-name').textContent = s.name.toUpperCase()
+  $('#sheet-ident').textContent = `${cls.name.toUpperCase()} • ${s.lifepathName.toUpperCase()} • ${(s.style || 'entropism').toUpperCase()}`
+  $('#sheet-title').textContent = 'RUNNER DATAFILE — ' + s.name.toUpperCase()
+
+  $('#sheet-bars').innerHTML =
+    bar('hp', s.hp, s.maxHp, 'HEALTH') +
+    bar('stam', s.stam, s.maxStam, 'STAMINA') +
+    (s.maxRam > 0 ? bar('ram', s.ram, s.maxRam, 'RAM') : '') +
+    bar('xp', s.xp, s.xpToNext, 'XP — LEVEL ' + s.level)
+
+  $('#sheet-attrs').innerHTML = Object.entries(s.attrs).map(([k, v]) => {
+    const label = labels[k] || k.toUpperCase()
+    return `<div class="attr-mini sheet-attr"><span>${label}</span><i style="width:${Math.min(100, (v / 20) * 100)}%"></i><b>${v}</b></div>`
+  }).join('')
+
+  const m = S.itemIndex
+  const gear = (slot, label) => {
+    const eq = (S.inv?.equip || {})[slot]
+    const d = eq ? m[eq.id] : null
+    return sheetLine(label, eq ? esc(eq.name) + (d?.dmg ? ` <small>${d.dmg[0]}-${d.dmg[1]}</small>` : d?.armor ? ` <small>+${d.armor} armor</small>` : '') : '— empty —')
+  }
+  const chrome = S.inv?.cyberware || []
+  const qhOwned = S.inv?.quickhacks || []
+
+  $('#sheet-merits').innerHTML =
+    sheetLine('LEVEL', s.level) +
+    sheetLine('XP', `${s.xp} / ${s.xpToNext}`) +
+    sheetLine('EDDIES', s.eddies + '€$') +
+    sheetLine('STREET CRED', s.rep) +
+    sheetLine('ARMOR', s.dr) +
+    sheetLine('CRIT', s.crit + '%') +
+    sheetLine('DODGE', s.dodge + '%') +
+    sheetLine('CHROME', `${s.capacityUsed}/${s.capacity}`) +
+    sheetLine('HUMANITY', s.humanity + '%') +
+    sheetLine('KILLS', s.kills) +
+    sheetLine('FLATLINES', s.deaths) +
+    sheetLine('GIGS DONE', s.gigs_done ?? 0) +
+    sheetLine('HACKS RUN', s.hacks ?? 0) +
+    sheetLine('WEIGHT', `${s.weight}/${s.carryCap}kg`)
+
+  $('#sheet-loadout').innerHTML = gear('hands', 'WEAPON') + gear('chest', 'APRON')
+
+  $('#sheet-chrome-cap').textContent = `${s.capacityUsed}/${s.capacity}`
+  $('#sheet-chrome').innerHTML = chrome.length
+    ? chrome.map(c => sheetLine(c.slot.toUpperCase(), esc(c.name))).join('') + sheetLine('HUMANITY COST', chrome.reduce((a, c) => a + (c.humanity || 0), 0))
+    : '<div class="empty-note">No chrome installed.</div>'
+
+  $('#sheet-qh-count').textContent = qhOwned.length
+  $('#sheet-qh').innerHTML = qhOwned.length
+    ? qhOwned.map(h => sheetLine(`${S.itemIndex[h.id]?.ram ?? '?'} RAM`, esc(h.name))).join('')
+    : '<div class="empty-note">No quickhacks loaded.</div>'
+
+  const perkList = (s.perks || []).map(id => { const d = S.classPerkIndex[id]; return d ? d.name : id })
+  const pts = s.perkPoints || 0
+  $('#sheet-perk-count').textContent = `${perkList.length} learned • ${pts} point${pts === 1 ? '' : 's'}`
+  $('#sheet-perks').innerHTML = perkList.length
+    ? perkList.map(n => sheetLine('✓', esc(n))).join('')
+    : `<div class="empty-note">No perks. Earn points on level-up. <a href="#" id="sheet-to-perks">OPEN TREE</a></div>`
+
+  const k = $('#sheet-to-perks')
+  if (k) k.onclick = (e) => { e.preventDefault(); $('#sheetmodal').classList.add('hidden'); openPerks() }
+
+  $('#sheet-credit').innerHTML = sheetCredit(s.cls)
+}
+function sheetCredit (cls) {
+  const C = {
+    solo: { a: 'AudaCity3371', l: 'CC BY-SA 3.0', f: 'Osaka Lights - panoramio.jpg' },
+    netrunner: { a: 'bengt-re', l: 'CC BY 2.0', f: 'PCB HDR Macro Fisheye (3596077174).jpg' },
+    techie: { a: 'Powerhouse Museum, Sydney', l: 'Public domain', f: 'Workmen in locomotive fitting shop (5570146537).jpg' },
+    rockerboy: { a: 'Shixart1985', l: 'CC BY 2.0', f: 'Local band performs energetic set with electric guitar under vibrant stage lights during evening concert.jpg' },
+    nomad: { a: 'Amine Abassir', l: 'CC BY-SA 4.0', f: 'Nevada Highway 50 Sunset.jpg' }
+  }
+  const c = C[cls] || C.solo
+  return `Art: ${c.a} — ${c.l} — <a href="https://commons.wikimedia.org/wiki/File:${encodeURIComponent(c.f)}" target="_blank" rel="noopener">${c.f}</a> (Wikimedia Commons, free license)`
+}
+function refreshSheet () { if ($('#sheetmodal') && !$('#sheetmodal').classList.contains('hidden')) renderSheet() }
+$('#sheet-close').onclick = () => $('#sheetmodal').classList.add('hidden')
 
 /* ================= log / toast ================= */
 function addLog (lines) {
