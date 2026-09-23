@@ -849,11 +849,11 @@ function renderSheet () {
 }
 function sheetCredit (cls) {
   const C = {
-    solo: { a: 'AudaCity3371', l: 'CC BY-SA 3.0', f: 'Osaka Lights - panoramio.jpg' },
-    netrunner: { a: 'bengt-re', l: 'CC BY 2.0', f: 'PCB HDR Macro Fisheye (3596077174).jpg' },
-    techie: { a: 'Powerhouse Museum, Sydney', l: 'Public domain', f: 'Workmen in locomotive fitting shop (5570146537).jpg' },
-    rockerboy: { a: 'Shixart1985', l: 'CC BY 2.0', f: 'Local band performs energetic set with electric guitar under vibrant stage lights during evening concert.jpg' },
-    nomad: { a: 'Amine Abassir', l: 'CC BY-SA 4.0', f: 'Nevada Highway 50 Sunset.jpg' }
+    solo: { a: 'Luis Viegas (US Army)', l: 'Public domain', f: 'A U.S. Soldier with Alpha Company, 412th Support Battalion, 12th Combat Aviation Brigade aims at a target with an M16A2 rifle during marksmanship training at the Oberdachstetten Range Complex in Bavaria 130320-D-OE523-305.jpg' },
+    netrunner: { a: 'User:Kowalski7cc', l: 'CC0', f: 'Hacker typing on a Linux laptop full of stickers.jpg' },
+    techie: { a: 'PattayaPatrol', l: 'CC BY-SA 4.0', f: 'DFC 4703 A mechanic works on a motorcycle engine on the workshop floor focused on repairing the bike amid tools and parts.jpg' },
+    rockerboy: { a: 'William White', l: 'CC0', f: 'Guitarist on stage with blue and red lights (Unsplash).jpg' },
+    nomad: { a: 'Bureau of Land Management Utah', l: 'Public domain', f: 'Moto Rider in the Dunes (49991273068).jpg' }
   }
   const c = C[cls] || C.solo
   return `Art: ${c.a} — ${c.l} — <a href="https://commons.wikimedia.org/wiki/File:${encodeURIComponent(c.f)}" target="_blank" rel="noopener">${c.f}</a> (Wikimedia Commons, free license)`

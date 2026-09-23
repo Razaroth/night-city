@@ -62,10 +62,13 @@ battery, and `nc-gameplay.mjs` (WS bot using real world data; see test files):
   credit line. Pure client-side from the existing `state`/`inv` payloads, so it live-refreshes.
 - `stateForClient` gained `gigs_done` + `hacks` for the sheet.
 - **Class art** (`client/img/class-<cls>.jpg`) are real free-license images from Wikimedia
-  Commons (no AI art): Solo=Osaka nighttime, Netrunner=PCB macro, Techie=locomotive fitting
-  shop (PD), Rockerboy=live band under lights, Nomad=Nevada Hwy 50 sunset. Attribution lives
-  in `client/img/CREDITS.json` and is shown bottom of the sheet; server MIME map now includes
-  `.jpg/.jpeg`.
+  Commons (no AI art), each shows the class archetype (a person, not a scene): Solo=US Army
+  soldier aiming an M16A2 (Public domain, Luis Viegas), Netrunner=hacker typing on a Linux
+  laptop full of stickers (CC0, User:Kowalski7cc), Techie=mechanic repairing a motorcycle
+  engine (CC BY-SA 4.0, PattayaPatrol), Rockerboy=guitarist under blue/red stage lights
+  (CC0, William White), Nomad=moto rider in the dunes (Public domain, BLM Utah). Attribution
+  lives in `client/img/CREDITS.json` and is shown bottom of the sheet; server MIME map now
+  includes `.jpg/.jpeg`.
 
 ## Resolved issues (2026-09-22)
 

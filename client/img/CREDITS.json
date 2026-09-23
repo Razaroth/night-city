@@ -1,57 +1,52 @@
 {
   "solo": {
-    "file": "File:Osaka Lights - panoramio.jpg",
-    "artist": "<a rel=\"nofollow\" class=\"external text\" href=\"https://web.archive.org/web/20161028075400/http://www.panoramio.com/user/7682195?with_photo_id=91579222\">AudaCity3371</a>",
-    "credit": "<a rel=\"nofollow\" class=\"external free\" href=\"https://web.archive.org/web/20161028075356/http://www.panoramio.com/photo/91579222\">https://web.archive.org/web/20161028075356/http://www.panoramio.com/photo/91579222</a>",
-    "license": "CC BY-SA 3.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-    "source": "https://commons.wikimedia.org/wiki/File:Osaka_Lights_-_panoramio.jpg",
-    "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/cb/Osaka_Lights_-_panoramio.jpg/960px-Osaka_Lights_-_panoramio.jpg",
-    "width": 2200,
-    "height": 1461
-  },
-  "netrunner": {
-    "file": "File:PCB HDR Macro Fisheye (3596077174).jpg",
-    "artist": "<a rel=\"nofollow\" class=\"external text\" href=\"https://www.flickr.com/people/21110936@N05\">bengt-re</a> from Sweden",
-    "credit": "<p><a rel=\"nofollow\" class=\"external text\" href=\"https://www.flickr.com/photos/bengt-re/3596077174/\">PCB HDR Macro Fisheye</a>\n</p>\n<ul><li>Uploaded by <a href=\"//commons.wikimedia.org/wiki/User:Josve05a\" title=\"User:Josve05a\">Josve05a</a></li></ul>",
-    "license": "CC BY 2.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
-    "source": "https://commons.wikimedia.org/wiki/File:PCB_HDR_Macro_Fisheye_(3596077174).jpg",
-    "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/37/PCB_HDR_Macro_Fisheye_%283596077174%29.jpg/960px-PCB_HDR_Macro_Fisheye_%283596077174%29.jpg",
-    "width": 3573,
-    "height": 2556
-  },
-  "techie": {
-    "file": "File:Workmen in locomotive fitting shop (5570146537).jpg",
-    "artist": "<a rel=\"nofollow\" class=\"external text\" href=\"https://www.flickr.com/people/24785917@N03\">Powerhouse Museum</a> from Sydney, Australia",
-    "credit": "<a rel=\"nofollow\" class=\"external text\" href=\"https://www.flickr.com/photos/powerhouse_museum/5570146537/\">Workmen in locomotive fitting shop</a>",
+    "file": "File:A U.S. Soldier with Alpha Company, 412th Support Battalion, 12th Combat Aviation Brigade aims at a target with an M16A2 rifle during marksmanship training at the Oberdachstetten Range Complex in Bavaria 130320-D-OE523-305.jpg",
+    "artist": "Luis Viegas",
+    "credit": "http://www.defenseimagery.mil/imageRetrieve.action?guid=5b2095152af6191007510c931aa3557dd02817a4&amp;t=2",
     "license": "Public domain",
     "licenseUrl": "",
-    "source": "https://commons.wikimedia.org/wiki/File:Workmen_in_locomotive_fitting_shop_(5570146537).jpg",
-    "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/3b/Workmen_in_locomotive_fitting_shop_%285570146537%29.jpg/960px-Workmen_in_locomotive_fitting_shop_%285570146537%29.jpg",
-    "width": 1024,
-    "height": 765
+    "source": "https://commons.wikimedia.org/wiki/File:A_U.S._Soldier_with_Alpha_Company,_412th_Support_Battalion,_12th_Combat_Aviation_Brigade_aims_at_a_target_with_an_M16A2_rifle_during_marksmanship_training_at_the_Oberdachstetten_Range_Complex_in_Bavaria_130320-D-OE523-305.jpg",
+    "width": 3264,
+    "height": 1840
   },
-  "rockerboy": {
-    "file": "File:Local band performs energetic set with electric guitar under vibrant stage lights during evening concert.jpg",
-    "artist": "<a href=\"//commons.wikimedia.org/wiki/User:Shixart1985\" title=\"User:Shixart1985\">Shixart1985</a>",
-    "credit": "<span class=\"int-own-work\" lang=\"en\">Own work</span>",
-    "license": "CC BY 2.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
-    "source": "https://commons.wikimedia.org/wiki/File:Local_band_performs_energetic_set_with_electric_guitar_under_vibrant_stage_lights_during_evening_concert.jpg",
-    "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/2d/Local_band_performs_energetic_set_with_electric_guitar_under_vibrant_stage_lights_during_evening_concert.jpg/960px-Local_band_performs_energetic_set_with_electric_guitar_under_vibrant_stage_lights_during_evening_concert.jpg",
-    "width": 1530,
-    "height": 2300
+  "netrunner": {
+    "file": "File:Hacker typing on a Linux laptop full of stickers.jpg",
+    "artist": "User:Kowalski7cc",
+    "credit": "Special:PermaLink/698735294#Thank you for your photos from Linux Day Milano 2022!",
+    "license": "CC0",
+    "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+    "source": "https://commons.wikimedia.org/wiki/File:Hacker_typing_on_a_Linux_laptop_full_of_stickers.jpg",
+    "width": 6000,
+    "height": 4000
   },
-  "nomad": {
-    "file": "File:Nevada Highway 50 Sunset.jpg",
-    "artist": "<a href=\"//commons.wikimedia.org/w/index.php?title=User:Amine_Abassir&amp;action=edit&amp;redlink=1\" class=\"new\" title=\"User:Amine Abassir (page does not exist)\">Amine Abassir</a>",
-    "credit": "<span class=\"int-own-work\" lang=\"en\">Own work</span>",
+  "techie": {
+    "file": "File:DFC 4703 A mechanic works on a motorcycle engine on the workshop floor focused on repairing the bike amid tools and parts.jpg",
+    "artist": "PattayaPatrol",
+    "credit": "Flickr",
     "license": "CC BY-SA 4.0",
     "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-    "source": "https://commons.wikimedia.org/wiki/File:Nevada_Highway_50_Sunset.jpg",
-    "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f3/Nevada_Highway_50_Sunset.jpg/960px-Nevada_Highway_50_Sunset.jpg",
-    "width": 8067,
-    "height": 5378
+    "source": "https://commons.wikimedia.org/wiki/File:DFC_4703_A_mechanic_works_on_a_motorcycle_engine_on_the_workshop_floor_focused_on_repairing_the_bike_amid_tools_and_parts.jpg",
+    "width": 5568,
+    "height": 3712
+  },
+  "rockerboy": {
+    "file": "File:Guitarist on stage with blue and red lights (Unsplash).jpg",
+    "artist": "William White wrwhite3",
+    "credit": "https://unsplash.com/photos/NDGzkMIasJQ Image at the Wayback Machine Gallery at the Wayback Machine",
+    "license": "CC0",
+    "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+    "source": "https://commons.wikimedia.org/wiki/File:Guitarist_on_stage_with_blue_and_red_lights_(Unsplash).jpg",
+    "width": 5472,
+    "height": 3648
+  },
+  "nomad": {
+    "file": "File:Moto Rider in the Dunes (49991273068).jpg",
+    "artist": "BLMUtah",
+    "credit": "Moto Rider in the Dunes",
+    "license": "Public domain",
+    "licenseUrl": "",
+    "source": "https://commons.wikimedia.org/wiki/File:Moto_Rider_in_the_Dunes_(49991273068).jpg",
+    "width": 6000,
+    "height": 4000
   }
 }
