@@ -849,11 +849,11 @@ function renderSheet () {
 }
 function sheetCredit (cls) {
   const C = {
-    solo: { a: 'User-provided', l: "User's own image", n: 'class-solo.jpg', s: 'Slice 1 of 5' },
-    netrunner: { a: 'User-provided', l: "User's own image", n: 'class-netrunner.jpg', s: 'Slice 2 of 5' },
-    techie: { a: 'User-provided', l: "User's own image", n: 'class-techie.jpg', s: 'Slice 3 of 5' },
-    rockerboy: { a: 'User-provided', l: "User's own image", n: 'class-rockerboy.jpg', s: 'Slice 4 of 5' },
-    nomad: { a: 'User-provided', l: "User's own image", n: 'class-nomad.jpg', s: 'Slice 5 of 5' }
+    solo: { a: 'User-provided', l: "User's own image", n: 'class-solo.jpg', s: 'SOLO panel (bottom-left)' },
+    netrunner: { a: 'User-provided', l: "User's own image", n: 'class-netrunner.jpg', s: 'NETRUNNER panel (top-center)' },
+    techie: { a: 'User-provided', l: "User's own image", n: 'class-techie.jpg', s: 'TECHIE panel (top-left)' },
+    rockerboy: { a: 'User-provided', l: "User's own image", n: 'class-rockerboy.jpg', s: 'ROCKERBOY panel (bottom-right)' },
+    nomad: { a: 'User-provided', l: "User's own image", n: 'class-nomad.jpg', s: 'NOMAD panel (top-right)' }
   }
   const c = C[cls] || C.solo
   return `Art: ${c.a} (${c.s}) — ${c.l} — ${c.n}`

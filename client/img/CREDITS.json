@@ -2,51 +2,51 @@
   "solo": {
     "file": "class-solo.jpg",
     "artist": "User-provided",
-    "credit": "Slice 1 of 5 (left column) of image_4e0010f0.jpg",
+    "credit": "Crop of the figure labeled SOLO (bottom-left, name tag 'Batie (30s)') from image_4e0010f0.jpg",
     "license": "User's own image",
     "licenseUrl": "",
     "source": "local",
-    "width": 282,
-    "height": 768
+    "width": 300,
+    "height": 290
   },
   "netrunner": {
     "file": "class-netrunner.jpg",
     "artist": "User-provided",
-    "credit": "Slice 2 of 5 of image_4e0010f0.jpg",
+    "credit": "Crop of the figure labeled NETRUNNER (top-center, name tag 'Jacked into system (30s)') from image_4e0010f0.jpg",
     "license": "User's own image",
     "licenseUrl": "",
     "source": "local",
-    "width": 282,
-    "height": 768
+    "width": 300,
+    "height": 320
   },
   "techie": {
     "file": "class-techie.jpg",
     "artist": "User-provided",
-    "credit": "Slice 3 of 5 (center column) of image_4e0010f0.jpg",
+    "credit": "Crop of the figure labeled TECHIE (top-left, name tag 'Techie (20s)') from image_4e0010f0.jpg",
     "license": "User's own image",
     "licenseUrl": "",
     "source": "local",
-    "width": 282,
-    "height": 768
+    "width": 300,
+    "height": 320
   },
   "rockerboy": {
     "file": "class-rockerboy.jpg",
     "artist": "User-provided",
-    "credit": "Slice 4 of 5 of image_4e0010f0.jpg",
+    "credit": "Crop of the figure labeled ROCKERBOY (bottom-right, name tag 'Rockerboy (30s)') from image_4e0010f0.jpg",
     "license": "User's own image",
     "licenseUrl": "",
     "source": "local",
-    "width": 282,
-    "height": 768
+    "width": 300,
+    "height": 290
   },
   "nomad": {
     "file": "class-nomad.jpg",
     "artist": "User-provided",
-    "credit": "Slice 5 of 5 (right column) of image_4e0010f0.jpg",
+    "credit": "Crop of the figure labeled NOMAD (top-right, name tag 'Nomad (40s)') from image_4e0010f0.jpg",
     "license": "User's own image",
     "licenseUrl": "",
     "source": "local",
-    "width": 282,
-    "height": 768
+    "width": 300,
+    "height": 320
   }
 }

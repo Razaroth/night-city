@@ -61,9 +61,10 @@ battery, and `nc-gameplay.mjs` (WS bot using real world data; see test files):
   owned quickhacks, owned perks with a shortcut to the perk tree, and an image-attribution
   credit line. Pure client-side from the existing `state`/`inv` payloads, so it live-refreshes.
 - `stateForClient` gained `gigs_done` + `hacks` for the sheet.
-- **Class art** (`client/img/class-<cls>.jpg`) are five equal vertical slices of a single
-  user-supplied character illustration, assigned left-to-right as Solo, Netrunner, Techie,
-  Rockerboy, Nomad. The source file is user-provided (`image_4e0010f0.jpg`, 1408x768), so it
+- **Class art** (`client/img/class-<cls>.jpg`) are portrait crops of a user-supplied character
+  illustration (`image_4e0010f0.jpg`, 1408x768), each cropped around the figure labeled with
+  its class name underneath: top row has TECHIE (left), NETRUNNER (center), NOMAD (right);
+  bottom row has SOLO (left), ROCKERBOY (right). The source file is user-provided, so it
   replaces the earlier free-license Wikimedia photos. Attribution lives in
   `client/img/CREDITS.json` and is shown bottom of the sheet; server MIME map now
   includes `.jpg/.jpeg`.
