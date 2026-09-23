@@ -64,12 +64,12 @@ battery, and `nc-gameplay.mjs` (WS bot using real world data; see test files):
   beacons, traffic streaks), with per-district variants selected by `renderScene`
   setting `#scene[data-district=…]` (citycenter/westbrook/heywood/pacifica/santo).
   V2 revamp: big low sun (yellow core, orange+magenta bloom) sitting *behind* the far
-  silhouette, magenta/purple district-tinted sky w/ red radial overspill, glitching
-  SAMSARA NET holo-face billboard (inline SVG, `scene-holo`), vertical neon tubes
-  (`scene-neon .nl1..4`), sweeping searchlight (`scene-beam`), flickering window dots
-  (`windowflick`), brighter era/street layers + wet-street neon reflections
-  (`scene-street`), 4 red aviation beacons. Verified across all districts in headless
-  chromium (incl. rain) with no console errors.
+  silhouette, magenta/purple district-tinted sky w/ red radial overspill, sweeping
+  searchlight (`scene-beam`), flickering window dots (`windowflick`), brighter
+  era/street layers + wet-street neon reflections (`scene-street`), 4 red aviation
+  beacons. Removed after review: the SAMSARA NET holo-face billboard (`.scene-holo`)
+  and the vertical neon sign tubes (`.scene-neon .nl1..4`). Verified across all
+  districts in headless chromium (incl. rain) with no console errors.
 
 ## Notes / quirks
 
