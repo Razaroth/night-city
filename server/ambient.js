@@ -8,14 +8,16 @@ const CATEGORY_LINES = {
   street: [
     'A souped-up Delamain cab hydroplanes past, beeping at pedestrians.',
     'Gunfire crackles a few blocks off. Nobody flinches.',
-    'A fixer whispers a job into a ripperdoc\'s ear. Nobody strokes his hand.',
+    'A fixer whispers a job into a ripperdoc\'s ear. The price is a favour.',
     'Corpo media drones circle the intersection, harvesting faces.',
     'A drone hawks 3D weed from a broken vending cart.',
     'The air-holoscreen blinks between ads for cheap chrome and cheaper funerals.',
     'Somebody screams at their agent. The agent is not taking it well.',
     'Rain and neon stream off a passing bucket truck.',
-    'A braindance ad glitches into static, screaming put, then snaps back.',
-    'Kids chase a rusted delivery drone down the block, howling.'
+    'A braindance ad glitches into static, screaming static, then snaps back.',
+    'Kids chase a rusted delivery drone down the block, howling.',
+    'A street preacher hollers about the coming storm while data rains off the towers.',
+    'Two women shoulders-check a scavenger in silence. No eddies change hands.'
   ],
   gangden: [
     'Gangers rack weapons and argue over territory in clipped cyberslang.',
@@ -25,7 +27,9 @@ const CATEGORY_LINES = {
     'The smell of synthfuel and cheap stims coat the walls.',
     'Two gangers scuffle over a spilled crate of black-market trauma kits.',
     'A drone the size of a fist hovers near the stash, blinking red.',
-    'Cold looks follow you, calculate, and move on.'
+    'Cold looks follow you, calculate, and move on.',
+    'Graffiti overlaps so deep the oldest tag has become a different colour.',
+    'A sentry turret tracks you a half-degree, then decides breakfast can wait.'
   ],
   clinic: [
     'The ripperdoc wipes a scalpel on a stained towel, looking at it like an old friend.',
@@ -34,7 +38,8 @@ const CATEGORY_LINES = {
     'Somewhere behind the curtain, a chipjack chatters a flatline rhythm.',
     'A vitals monitor beeps in a cadence that sounds almost like morse.',
     'Blood gets squeegeed off the floor. Business is good.',
-    'A vendor of used eyes tries to upsell the person next to you.'
+    'A vendor of used eyes tries to upsell the person next to you.',
+    'A nurse files her nails with a surgical grade in one hand, a soldering iron in the other.'
   ],
   industrial: [
     'A foundry exhales a cloud of orange smoke downtown that turns silver in the rain.',
@@ -43,7 +48,8 @@ const CATEGORY_LINES = {
     'Static discharges from a cracked transformer. The pavement smells of ozone.',
     'Automated welders spurt blue light behind a fence of corrugated steel.',
     'A forklift reverses, beeping like a wounded bird, and the workers ignore it.',
-    'Conveyor loads of scrap groan past on buried rails.'
+    'Conveyor loads of scrap groan past on buried rails.',
+    'A foreman bellows at a dock that has been on fire since before the union left.'
   ],
   ruin: [
     'Cracked concrete and collapsed signage. The city is reclaiming its own teeth.',
@@ -52,16 +58,18 @@ const CATEGORY_LINES = {
     'A holo-ad for a mall that died a decade ago still flickers stubbornly.',
     'Somewhere in the rubble a fusion cell whines on empty.',
     'Graffiti claims this penthouse. Feral dogs back the claim.',
-    'The dirt here has a chemistry all its own. Old blood, newer moss.'
+    'The dirt here has a chemistry all its own. Old blood, newer moss.',
+    'A jacked satellite dish turns one slow circle, hunting for a signal that died.'
   ],
   wasteland: [
     'Dust devils wander the flats, carrying silt and static.',
     'A rusted wind turbine stutters in the distance, counting time.',
     'The sky is a bruised steel color that never quite lets in the light.',
     'Off-roaders kick up rooster tails of ochre grit on a far ridge.',
-    'Puzzle of flare smoke: someone above is dead, below is angry.',
+    'Flare smoke smears the horizon: someone up there is calling for a ride no one will answer.',
     'An automated water tower moans as it fills, then forgets why.',
-    'Ravens circle a swaybacked trailer with professional patience.'
+    'Ravens circle a swaybacked trailer with professional patience.',
+    'Painted on a gas station door in four languages: no fuel, no water, no mercy.'
   ],
   market: [
     'Vendors hawk counterfeit implants and real noodles with equal passion.',
@@ -70,15 +78,17 @@ const CATEGORY_LINES = {
     'A street doctor tattoos serial numbers on his customers\' jaws.',
     'Someone trades a cortex monitor for a bag of real coffee.',
     'The holo-bazaar shimmer glitches, and six vendors double in number briefly.',
-    'A kid runs a skeleton of an early-model Kiroshi on a string.'
+    'A kid runs a skeleton of an early-model Kiroshi on a string.',
+    'A stall owner bets a tourist that the next rain will be pink. It always is.'
   ],
   plaza: [
     'A towering corpo ad blinks in slow, patient rhythm over the square.',
     'Slick-suited types cross paths, avoiding each other\'s optics.',
-    'A fountain of some legendary Corpruiser purrs pointlessly in the center.',
-    'Assistant drones wheel past, chirping about the weather in shoes.',
+    'A fountain of some legendary corp founder purrs pointlessly in the center.',
+    'Assistant drones wheel past, chirping about the weather in weather-app voices.',
     'A media crew films a press conference that will never matter.',
-    'The pavement emits a soft direction hum. No one enters the corpo towers.'
+    'The pavement emits a soft direction hum. No one enters the corpo towers.',
+    'A concierge opens a door for a man who will not remember this city by morning.'
   ],
   bar: [
     'The jukebox cycles through twenty-year-old synthwaif, and nobody complains.',
@@ -87,7 +97,8 @@ const CATEGORY_LINES = {
     'A pool table argument is settled by a round of drinks. No, by a round of shots.',
     'Somebody\'s agent pops an ad for a soul-free taxi ride, mid-toast.',
     'Boots scrape sawdust that has seen wetter secrets than blood.',
-    'A regular thanks the bartender by name, and means it.'
+    'A regular thanks the bartender by name, and means it.',
+    'Two veteran mercs count their share of a run before the other one arrives.'
   ],
   corpo: [
     'Glass towers scrape the rain. The tenants never get wet.',
@@ -96,7 +107,8 @@ const CATEGORY_LINES = {
     'Premium airjets carve slow circles over the pinnacle, dripping light.',
     'The lobby\'s AI greets you by threat level, then by name.',
     'A cleanser bot polishes a floor that has never known a footprint.',
-    'Somewhere up there, a board is deciding a city with a fond farewell.'
+    'Somewhere up there, a board is deciding a city\'s future over brunch.',
+    'A courier hand-delivers a folder that will end three careers by sunset.'
   ],
   apartment: [
     'A neighbour\'s subwoofer bleeds through the wall in a dull heartbeat.',
@@ -105,7 +117,8 @@ const CATEGORY_LINES = {
     'Microwave dinners and muted screams of a rented braindance through the walls.',
     'Emergency lighting flickers, counts the breath, and decides not to fail.',
     'A leak dribbles down the stairwell like a suspense timer.',
-    'The recycling chute gurgles and burps out a charger.'
+    'The recycling chute gurgles and burps out a charger.',
+    'A janitor drone replays a song that was a hit before the building opened.'
   ],
   club: [
     'Bass hits your sternum. The lights haven\'t decided what year they\'re in.',
@@ -138,7 +151,7 @@ const DISTRICT_LINES = {
 
 const DANGER_LINES = [
   'A distant siren Doppler-fades. Then a second one, slower to give up.',
-  'Gunfire pops somewhere npc-adjacent and self-important.',
+  'Gunfire pops somewhere nearby and self-important before it matters.',
   'Someone\'s drone drops a flare that colours the rooftops red, then fades.',
   'An AV sweeps overhead, spotlight cutting through the neon like a scalpel.',
   'A wounded howl rolls through the streets. You hold your breath with the buildings.'
@@ -150,7 +163,11 @@ const CHATTER = [
   'stares at a holo-slate for a beat too long.',
   'laughs at a joke only they could have heard.',
   'scans the street twice before stepping out of a doorway.',
-  'trades eddies for a throwaway burner with a vendor, no words exchanged.'
+  'trades eddies for a throwaway burner with a vendor, no words exchanged.',
+  'complains to a companion about the rain ruining a fresh alley-shine job.',
+  'taps an old pocket watch and scowls.',
+  'slowly shakes their head at a message on their agent.',
+  'flicks a cigarette stub into a drain and watches it spark.'
 ]
 
 export function ambientLine (room) {

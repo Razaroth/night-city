@@ -325,12 +325,13 @@ function renderActions () {
 
   for (const n of hostiles) {
     const cls = n.danger === 'boss' ? 'npc-row hostile boss' : 'npc-row hostile'
+    const qh = S.inv?.quickhacks?.[0]?.id
     html += `<div class="${cls}">
       <div class="nname">${esc(n.name)}<small>${esc(n.faction)}${n.stunned ? ' • STUNNED' : ''}${n.burning ? ' • BURNING' : ''}</small>
         <div class="hpbar"><i style="width:${n.hpPct ?? 100}%"></i></div></div>
       <div class="npc-btns">
         <button data-cmd="attack ${esc(n.id)}">ATK</button>
-        <button data-cmd="hack short-circuit ${esc(n.id)}">HACK</button>
+        <button data-cmd="${qh ? `hack ${qh} ${esc(n.id)}` : 'attack ' + esc(n.id)}" ${qh ? '' : 'disabled'} title="${qh ? '' : 'Need a quickhack + deck'}">HACK</button>
         <button data-cmd="look ${esc(n.id)}">SCAN</button>
       </div></div>`
   }
@@ -493,7 +494,8 @@ function renderQuickbar () {
     for (const h of hostiles.slice(0, 3)) btns.push(`<button class="qbtn hot" data-cmd="attack ${esc(h.id)}">⚔ ${esc(h.name)}</button>`)
     btns.push('<button class="qbtn hot" data-cmd="defend">DEFEND</button>')
     btns.push('<button class="qbtn hot" data-cmd="dodge">DODGE</button>')
-    if ((S.inv?.stacks || []).some(i => i.category === 'grenades')) btns.push('<button class="qbtn hot" data-cmd="grenade frag">GRENADE</button>')
+    const ownedGrenade = (S.inv?.stacks || []).find(i => i.category === 'grenades')
+    if (ownedGrenade) btns.push(`<button class="qbtn hot" data-cmd="grenade ${esc(ownedGrenade.id)}">GRENADE</button>`)
   }
   if (room.corpse) btns.push('<button class="qbtn gig" data-cmd="take">LOOT CORPSE</button>')
   btns.push('<button class="qbtn" data-cmd="look">LOOK</button>')

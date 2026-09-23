@@ -573,11 +573,12 @@ export class Game {
   tickAmbient (now, spawnedRooms) {
     // announce respawns to players who are in that room
     for (const sp of spawnedRooms) {
-      const insts = this.world.allInRoom(sp.roomId)
       const players = this.playerSessions(sp.roomId)
       if (!players.length) continue
       const line = sp.def.kind === 'hostile'
-        ? `${sp.def.name} shambles back into the area, nursing a fresh grudge.`
+        ? (sp.def.danger === 'boss'
+            ? `${sp.def.name} pulls themselves out of the wreckage, sockets glowing. The area holds its breath.`
+            : `${sp.def.name} shambles back into the area, nursing a fresh grudge.`)
         : `${sp.def.name} returns to their post.`
       this.roomLog(sp.roomId, line, 'amb')
     }

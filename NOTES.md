@@ -67,9 +67,17 @@ battery, and `nc-gameplay.mjs` (WS bot using real world data; see test files):
 
 ## Notes / quirks
 
-- **Attribute double-add**: `up <attr>` consumed the point but BODY only incremented
-  once on a fresh char in one run — re-checked on the next run it was +1 as expected.
-  No repro; likely a stale-view artifact.
+- **Attribute double-add (RESOLVED — root cause found)**: `makeNewPlayer` in
+  `server/player.js` did `attrs[a] = 3 + v`, treating the create-form value as a
+  *bonus on top of* the base 3, while the engine's charCreate validation and the
+  client both treat `v` as the *absolute* attribute value. Fix: assign the value
+  directly (clamped to `ATTR_MIN..ATTR_MAX_CREATE`), then add the lifepath bonus.
+  Verdict: not `up <attr>` (that path was always +1); creation was inflating every
+  attribute by exactly +3 (pool 8 became pool ~24). Verified live: `{body:9}`
+  now creates body 9 (+streetkid cool bonus), pool 7. **Save-migration**: Razaroth
+  was created under the bug; its attrs were re-derived (stored−3, cool also −1)
+  to the intended build `{body5,reflexes5,tech4,intel4,cool6}` (pool 8) and the
+  save patched in place.
 - **Heal budget**: a new streetkid carries 2× bounce-back (40 HP each) + 3× stimpack
   (25 each) = 155 HP. The 4-fight loop (2 tyger + 2 scav) can out-drain that on bad
   RNG; the harness stocks 3 extra stimpacks (96€$ each at Rostovic) and heals in-fight

@@ -49,9 +49,9 @@ export function makeNewPlayer (accountId, opts) {
   const lpBonus = lifepath.attrBonus
   const attrs = { body: 3, reflexes: 3, tech: 3, intel: 3, cool: 3 }
   for (const a of ATTRS) {
-    const v = opts.attrs[a] ?? 0
+    const v = opts.attrs[a]
     if (typeof v !== 'number') continue
-    attrs[a] = Math.min(ATTR_MAX_CREATE, attrs[a] + v)
+    attrs[a] = Math.max(ATTR_MIN, Math.min(ATTR_MAX_CREATE, v))
   }
   attrs[lpBonus] = Math.min(ATTR_MAX_CREATE, attrs[lpBonus] + lifepath.attrBonusVal)
 
