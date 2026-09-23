@@ -35,11 +35,6 @@ input { font-family: var(--mono); }
 ::-webkit-scrollbar-thumb { background: #2c4868; border-radius: 0; }
 ::-webkit-scrollbar-thumb:hover { background: #3d5f8a; }
 
-#scanlines {
-  position: fixed; inset: 0; z-index: 9998; pointer-events: none;
-  background: repeating-linear-gradient(0deg, rgba(0,0,0,0.08) 0 1px, transparent 1px 3px);
-  mix-blend-mode: multiply; opacity: .3;
-}
 #vignette {
   position: fixed; inset: 0; z-index: 9997; pointer-events: none;
   background: radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,.42) 100%);
