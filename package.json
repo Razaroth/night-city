@@ -1,0 +1,17 @@
+{
+  "name": "night-city",
+  "version": "0.1.0",
+  "description": "NIGHT CITY — a shareable cyberpunk MUD MMORPG. Text world, neon UI, run it on your own machine.",
+  "type": "module",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}

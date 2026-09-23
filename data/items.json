@@ -1,0 +1,385 @@
+{
+  "weapons": {
+    "fists": {
+      "id": "fists", "name": "Bare fists", "slot": "hands", "class": "brawling",
+      "skill": "body", "skillName": "Brawling",
+      "dmg": [3, 7], "speed": 650, "crit": 4, "pen": 0, "range": "near",
+      "value": 0, "weight": 0,
+      "desc": "The only self-defense the free market won't tax."
+    },
+    "unity": {
+      "id": "unity", "name": "Unity pistol", "slot": "hands", "class": "power",
+      "skill": "reflexes", "skillName": "Handguns",
+      "dmg": [6, 13], "speed": 900, "crit": 5, "pen": 0.15, "range": "mid",
+      "value": 250, "weight": 1.2,
+      "desc": "Budget-priced, endlessly reliable. The thug-workhorse of Watson."
+    },
+    "lexington": {
+      "id": "lexington", "name": "Lexington Defender", "slot": "hands", "class": "power",
+      "skill": "reflexes", "skillName": "Handguns",
+      "dmg": [9, 17], "speed": 750, "crit": 8, "pen": 0.2, "range": "mid",
+      "value": 620, "weight": 1.4,
+      "desc": "Militech sidearm. Carried by cops, hated by everyone else."
+    },
+    "kongou": {
+      "id": "kongou", "name": "Kongou pistol", "slot": "hands", "class": "power",
+      "skill": "reflexes", "skillName": "Handguns",
+      "dmg": [12, 22], "speed": 700, "crit": 12, "pen": 0.25, "range": "mid",
+      "value": 1400, "weight": 1.1,
+      "desc": "A chrome-plated Arasaka antique. The most prestigious gun in Night City."
+    },
+    "fenrir": {
+      "id": "fenrir", "name": "Fenrir SMG", "slot": "hands", "class": "power",
+      "skill": "reflexes", "skillName": "SMG",
+      "dmg": [5, 9], "speed": 420, "crit": 6, "pen": 0.2, "range": "mid",
+      "value": 780, "weight": 2.6,
+      "desc": "Legendary submachine gun, modded to tear through targets. The bite: holes in your torso."
+    },
+    "carnage": {
+      "id": "carnage", "name": "Carnage pump shotgun", "slot": "hands", "class": "power",
+      "skill": "reflexes", "skillName": "Shotguns",
+      "dmg": [14, 30], "speed": 1600, "crit": 10, "pen": 0.35, "range": "near",
+      "value": 1100, "weight": 4.2,
+      "desc": "Power-charged riot shotgun. Unstoppable violence at close quarters."
+    },
+    "copperhead": {
+      "id": "copperhead", "name": "Copperhead assault rifle", "slot": "hands", "class": "power",
+      "skill": "reflexes", "skillName": "Rifles",
+      "dmg": [8, 14], "speed": 550, "crit": 7, "pen": 0.3, "range": "far",
+      "value": 860, "weight": 3.8,
+      "desc": "Militech's modular rifle platform, rescued from countless gang wars."
+    },
+    "achilles": {
+      "id": "achilles", "name": "Achilles smart rifle", "slot": "hands", "class": "smart",
+      "skill": "intelligence", "skillName": "Smart Weapons",
+      "dmg": [10, 18], "speed": 500, "crit": 6, "pen": 0.3, "range": "far",
+      "value": 1900, "weight": 3.6,
+      "desc": "Technocracy precision rifle. Requires a Smart Link to aim."
+    },
+    "shingen": {
+      "id": "shingen", "name": "Shingen Mark V", "slot": "hands", "class": "smart",
+      "skill": "intelligence", "skillName": "Smart Weapons",
+      "dmg": [13, 22], "speed": 520, "crit": 11, "pen": 0.3, "range": "far",
+      "value": 2600, "weight": 3.2,
+      "desc": "Arasaka smart SMG. The bullets write your name in the air first."
+    },
+    "ashura": {
+      "id": "ashura", "name": "Ashura sniper rifle", "slot": "hands", "class": "power",
+      "skill": "reflexes", "skillName": "Sniper",
+      "dmg": [26, 45], "speed": 3000, "crit": 15, "pen": 0.55, "range": "far",
+      "value": 2200, "weight": 5.4,
+      "desc": "Arasaka smart sniper. One round, one choom, one less problem."
+    },
+    "satori": {
+      "id": "satori", "name": "Satori katana", "slot": "hands", "class": "melee",
+      "skill": "reflexes", "skillName": "Blades",
+      "dmg": [10, 19], "speed": 700, "crit": 18, "pen": 0.3, "range": "near",
+      "value": 1600, "weight": 1.8,
+      "desc": "A legendary blade. Samurai spirit sold to the highest bidder, then stolen."
+    },
+    "thermal-katana": {
+      "id": "thermal-katana", "name": "Thermal katana", "slot": "hands", "class": "melee",
+      "skill": "reflexes", "skillName": "Blades",
+      "dmg": [12, 22], "speed": 780, "crit": 16, "pen": 0.3, "range": "near",
+      "value": 2100, "weight": 2.0,
+      "desc": "Kiryu blade. Singes the air and your targets. Smells like guilt."
+    },
+    "machete": {
+      "id": "machete", "name": "Cement machete", "slot": "hands", "class": "melee",
+      "skill": "reflexes", "skillName": "Blades",
+      "dmg": [8, 15], "speed": 900, "crit": 10, "pen": 0.1, "range": "near",
+      "value": 300, "weight": 2.4,
+      "desc": "Rusty, chipped Valen-rummage. It still opens cans. And people."
+    },
+    "bat": {
+      "id": "bat", "name": "Baseball bat", "slot": "hands", "class": "blunt",
+      "skill": "body", "skillName": "Brawling",
+      "dmg": [8, 13], "speed": 880, "crit": 7, "pen": 0.05, "range": "near",
+      "value": 150, "weight": 1.9,
+      "desc": "Standard Ashford home-run stick. Nails optional, intent mandatory."
+    },
+    "mantis-blades": {
+      "id": "mantis-blades", "name": "Mantis Blades", "slot": "arms", "class": "melee",
+      "skill": "reflexes", "skillName": "Blades",
+      "dmg": [16, 30], "speed": 640, "crit": 22, "pen": 0.5, "range": "near",
+      "value": 4200, "weight": 1.4, "cyberware": true,
+      "desc": "Retractable forearm blades. Installed: yes. Legal: debatable. Cool: absolute."
+    },
+    "gorilla-arms": {
+      "id": "gorilla-arms", "name": "Gorilla Arms", "slot": "arms", "class": "brawling",
+      "skill": "body", "skillName": "Brawling",
+      "dmg": [14, 26], "speed": 700, "crit": 12, "pen": 0.2, "range": "near",
+      "value": 3800, "weight": 3.0, "cyberware": true,
+      "desc": "Hydraulic knuckle-busters. Punching through doors is a passive ability."
+    },
+    "projectile-launcher": {
+      "id": "projectile-launcher", "name": "Projectile Launcher", "slot": "arms", "class": "power",
+      "skill": "intelligence", "skillName": "Projectiles",
+      "dmg": [16, 28], "speed": 1500, "crit": 9, "pen": 0.3, "range": "far",
+      "value": 4600, "weight": 2.6, "cyberware": true,
+      "desc": "Arm-mounted grenade launcher. A wrist-mounted 'why not' with real estate value."
+    }
+  },
+
+  "cyberware": {
+    "cyberdeck-archer": {
+      "id": "cyberdeck-archer", "name": "Archer Netrunner Deck", "type": "cyberware",
+      "slot": "deck", "capacity": 2, "humanity": -4, "value": 2400, "weight": 0,
+      "effect": "ram", "effectValue": 4,
+      "desc": "Your braincase's new tenant. Enables quickhacking and paints the Net in RGB."
+    },
+    "smart-link": {
+      "id": "smart-link", "name": "Smart Link", "type": "cyberware",
+      "slot": "hands", "capacity": 1, "humanity": -2, "value": 900, "weight": 0,
+      "effect": "smart",
+      "desc": "Palm implant that talks to smart weapons. Fingers become WiFi antennas."
+    },
+    "subdermal-armor": {
+      "id": "subdermal-armor", "name": "Subdermal Armor", "type": "cyberware",
+      "slot": "dermal", "capacity": 3, "humanity": -3, "value": 1500, "weight": 1.0,
+      "effect": "dr", "effectValue": 8,
+      "desc": "Laminate weave fused beneath the skin. Kevlar-pajamas for the paranoid."
+    },
+    "reflex-tuner": {
+      "id": "reflex-tuner", "name": "Reflex Tuner", "type": "cyberware",
+      "slot": "nervous", "capacity": 2, "humanity": -2, "value": 1400, "weight": 0,
+      "effect": "crit", "effectValue": 12,
+      "desc": "Synth nerves that see the world in crisp slow-motion. Caffeine withdrawn."
+    },
+    "gyro-torso": {
+      "id": "gyro-torso", "name": "Gyroscopic Torso Implant", "type": "cyberware",
+      "slot": "torso", "capacity": 3, "humanity": -3, "value": 1200, "weight": 1.4,
+      "effect": "dodge", "effectValue": 12,
+      "desc": "Balances your mass like a fighter jet. You no longer stumble. Ever."
+    },
+    "micro-rotors": {
+      "id": "micro-rotors", "name": "Micro-Rotors", "type": "cyberware",
+      "slot": "legs", "capacity": 2, "humanity": -2, "value": 1300, "weight": 0.6,
+      "effect": "hastreg", "effectValue": 15,
+      "desc": "Pogo-sticks for your knee joints. Sprinting looks like teleporting."
+    },
+    "chrome-compressor": {
+      "id": "chrome-compressor", "name": "Chrome Compressor", "type": "cyberware",
+      "slot": "torso", "capacity": 0, "humanity": -1, "value": 800, "weight": 0.8,
+      "effect": "capacity", "effectValue": 6,
+      "desc": "Nano-packaging that lets you shove more chrome into a human-shaped container."
+    },
+    "self-ice": {
+      "id": "self-ice", "name": "Self-ICE", "type": "cyberware",
+      "slot": "nervous", "capacity": 2, "humanity": -2, "value": 1700, "weight": 0,
+      "effect": "ice", "effectValue": 25,
+      "desc": "Warns you when netrunners are poking your brainmeat and burns their fingers."
+    },
+    "sandevistan": {
+      "id": "sandevistan", "name": "Sandevistan", "type": "cyberware",
+      "slot": "nervous", "capacity": 3, "humanity": -4, "value": 3100, "weight": 0,
+      "effect": "sandevistan",
+      "desc": "Slows the world to a crawl. Everyone else is drowning; you're just swimming."
+    },
+    "berserk": {
+      "id": "berserk", "name": "Berserk OS", "type": "cyberware",
+      "slot": "nervous", "capacity": 2, "humanity": -3, "value": 2400, "weight": 0,
+      "effect": "berserk",
+      "desc": "Floods system with combat chrome. Consequences: your therapist's bill."
+    },
+    "kirenzikov": {
+      "id": "kirenzikov", "name": "Kerenzikov", "type": "cyberware",
+      "slot": "nervous", "capacity": 3, "humanity": -3, "value": 2200, "weight": 0,
+      "effect": "hastreg", "effectValue": 25,
+      "desc": "Makes the world slow when you focus. Your hands never got the memo."
+    },
+    "cyber-eyes": {
+      "id": "cyber-eyes", "name": "Cyberware Eyes", "type": "cyberware",
+      "slot": "eyes", "capacity": 2, "humanity": -2, "value": 700, "weight": 0,
+      "effect": "crit", "effectValue": 8,
+      "desc": "Kiroshi optics. Zoom, HUD integration, and a cruel pinprick-red glow."
+    },
+    "second-heart": {
+      "id": "second-heart", "name": "Second Heart", "type": "cyberware",
+      "slot": "torso", "capacity": 4, "humanity": -3, "value": 3200, "weight": 1.2,
+      "effect": "secondheart",
+      "desc": "A backup cardiac pump. Dying is so embarrassing once."
+    },
+    "bio-monitor": {
+      "id": "bio-monitor", "name": "Biomonitor", "type": "cyberware",
+      "slot": "torso", "capacity": 1, "humanity": -1, "value": 600, "weight": 0.2,
+      "effect": "biomonitor",
+      "desc": "Auto-injects meds when your vitals drop. Takes 'self-care' literally."
+    },
+    "synth-lungs": {
+      "id": "synth-lungs", "name": "Synth Lungs", "type": "cyberware",
+      "slot": "torso", "capacity": 1, "humanity": -1, "value": 500, "weight": 0.4,
+      "effect": "resistance", "effectValue": 3,
+      "desc": "Filtered air, piped in sweetness. City smog becomes an optional garnish."
+    },
+    "ballistic-processor": {
+      "id": "ballistic-processor", "name": "Ballistic Processor", "type": "cyberware",
+      "slot": "arms", "capacity": 3, "humanity": -2, "value": 2800, "weight": 0.8,
+      "effect": "pen", "effectValue": 0.25,
+      "desc": "Smart micro-shrapnel cartridge in the forearms. Physics is a suggestion."
+    }
+  },
+
+  "quickhacks": {
+    "overheat": {
+      "id": "overheat", "name": "Quickhack: Overheat", "type": "quickhack", "class": "quickhack",
+      "skill": "intelligence", "skillName": "Quickhacking",
+      "ram": 3, "dmg": [14, 24], "burn": { "perTick": 3, "ticks": 3 },
+      "value": 420, "weight": 0,
+      "desc": "Raises a target's internal temp to 'melted motherboard.' Causes burns."
+    },
+    "short-circuit": {
+      "id": "short-circuit", "name": "Quickhack: Short Circuit", "type": "quickhack", "class": "quickhack",
+      "skill": "intelligence", "skillName": "Quickhacking",
+      "ram": 4, "dmg": [18, 30], "stunChance": 0.35,
+      "value": 700, "weight": 0,
+      "desc": "Electric kiss from the grid. Chance to lock up a target's chrome."
+    },
+    "contagion": {
+      "id": "contagion", "name": "Quickhack: Contagion", "type": "quickhack", "class": "quickhack",
+      "skill": "intelligence", "skillName": "Quickhacking",
+      "ram": 5, "dmg": [6, 10], "poison": { "perTick": 5, "ticks": 5 },
+      "value": 900, "weight": 0,
+      "desc": "Selective DNA-bomb. Targets feel pinkeye, Ebola, and regret at once."
+    },
+    "cyberware-malfunction": {
+      "id": "cyberware-malfunction", "name": "Quickhack: Cyberware Malfunction", "type": "quickhack", "class": "quickhack",
+      "skill": "intelligence", "skillName": "Quickhacking",
+      "ram": 5, "dmg": [10, 18], "chromeBreak": 1,
+      "value": 1100, "weight": 0,
+      "desc": "Forces target chrome to seize mid-fight. Their own gear becomes the enemy."
+    },
+    "memory-wipe": {
+      "id": "memory-wipe", "name": "Quickhack: Memory Wipe", "type": "quickhack", "class": "quickhack",
+      "skill": "intelligence", "skillName": "Quickhacking",
+      "ram": 6, "stunChance": 1, "dmg": [4, 8],
+      "value": 1500, "weight": 0,
+      "desc": "Target forgets they were fighting. Or walking. Or conscious."
+    }
+  },
+
+  "grenades": {
+    "frag": {
+      "id": "frag", "name": "Frag grenade", "type": "grenade", "class": "grenade",
+      "dmg": [16, 26], "range": "near", "stacks": 1,
+      "value": 220, "weight": 0.5,
+      "desc": "Classic pineapple-and-bits. Unscrew cap, lob, hold thumbs."
+    },
+    "incendiary": {
+      "id": "incendiary", "name": "Incendiary grenade", "type": "grenade", "class": "grenade",
+      "dmg": [10, 18], "burn": { "perTick": 4, "ticks": 3 }, "stacks": 1,
+      "value": 280, "weight": 0.5,
+      "desc": "Fahrenheit has a fan club, and it likes to cluster-bomb."
+    },
+    "emp": {
+      "id": "emp", "name": "EMP grenade", "type": "grenade", "class": "grenade",
+      "dmg": [8, 14], "stunChance": 0.5, "stacks": 1,
+      "value": 350, "weight": 0.6,
+      "desc": "The microwave of last resorts. Cooks chrome, not people. Mostly."
+    }
+  },
+
+  "consumables": {
+    "bounce-back": {
+      "id": "bounce-back", "name": "Bounce Back", "type": "consumable",
+      "heal": 40, "stacks": 10, "value": 120, "weight": 0.2,
+      "desc": "Emergency med-gel. Packs a hell of a bounce back." 
+    },
+    "maxdoc": {
+      "id": "maxdoc", "name": "MaxDoc Mk.3", "type": "consumable",
+      "heal": 90, "stacks": 10, "value": 260, "weight": 0.3,
+      "desc": "Full-spectrum trauma response in a canister."
+    },
+    "stimpack": {
+      "id": "stimpack", "name": "Stimpack", "type": "consumable",
+      "heal": 25, "stacks": 15, "value": 60, "weight": 0.15,
+      "desc": "Military-grade pep talk for your circulatory system."
+    },
+    "buff-out": {
+      "id": "buff-out", "name": "Buffout", "type": "consumable",
+      "stamina": 30, "stacks": 10, "value": 90, "weight": 0.2,
+      "desc": "Creatine, spiked with something structurally unsound."
+    },
+    "synth-coffee": {
+      "id": "synth-coffee", "name": "Synth-coffee", "type": "consumable",
+      "ram": 2, "stacks": 10, "value": 15, "weight": 0.3,
+      "desc": "Tastes like a dying appliance but charges RAM like a diva charger."
+    },
+    "burrito": {
+      "id": "burrito", "name": "Career Choice burrito", "type": "consumable",
+      "heal": 15, "ram": 2, "stacks": 20, "value": 20, "weight": 0.4,
+      "desc": "Soylent Green burrito. The 'career choice' is not explaining what's inside."
+    }
+  },
+
+  "apparel": {
+    "jacket-clean": {
+      "id": "jacket-clean", "name": "Corpo-stripped leather jacket", "type": "apparel",
+      "armor": 5, "value": 400, "weight": 1.8,
+      "desc": "A jacket that says 'I sold my soul slowly, on installment plans.'"
+    },
+    "jacket-street": {
+      "id": "jacket-street", "name": "Padded street jacket", "type": "apparel",
+      "armor": 6, "value": 320, "weight": 2.2,
+      "desc": "Fashionably bullet-resistant. The patch says you survived a bad idea."
+    },
+    "jacket-nomad": {
+      "id": "jacket-nomad", "name": "Snake-skin biker jacket", "type": "apparel",
+      "armor": 6, "value": 500, "weight": 2.0,
+      "desc": "Real snake. Worn off the open road, sold in the city, mourned by no one."
+    },
+    "vest-kevlar": {
+      "id": "vest-kevlar", "name": "Kevlar vest", "type": "apparel",
+      "armor": 9, "value": 900, "weight": 3.2,
+      "desc": "Certified Level IV. The 'IV' is the number of times you'll be thankful."
+    },
+    "netrunner-vest": {
+      "id": "netrunner-vest", "name": "Netrunner vest", "type": "apparel",
+      "armor": 7, "value": 1100, "weight": 2.4,
+      "desc": "Militech 'Arch' weave. Ram-enhancing microfila inside the collar."
+    },
+    "armor-jacket": {
+      "id": "armor-jacket", "name": "Militech armor jacket", "type": "apparel",
+      "armor": 12, "value": 1600, "weight": 3.6,
+      "desc": "Combat armor with airport-lounge pretensions."
+    },
+    "exo-jacket": {
+      "id": "exo-jacket", "name": "Exo-jacket", "type": "apparel",
+      "armor": 15, "value": 2400, "weight": 4.4,
+      "desc": "Half tank, half trenchcoat. The neighborhood's new earthquake source."
+    },
+    "streetwear-top": {
+      "id": "streetwear-top", "name": "Streetwear scan-tee", "type": "apparel",
+      "armor": 3, "value": 60, "weight": 0.5,
+      "desc": "The logo is a trauma-team toy ad. You wear it ironically."
+    }
+  },
+
+  "junk": {
+    "data-shard": {
+      "id": "data-shard", "name": "Data shard", "type": "junk",
+      "value": 45, "weight": 0.1, "stacks": 99,
+      "desc": "Contains someone's playlist, manifesto, or shopping list. Sells fine."
+    },
+    "relic-chip": {
+      "id": "relic-chip", "name": "Relic chip", "type": "junk",
+      "value": 1200, "weight": 0.3,
+      "desc": "A de-encrypted personality archive. Hot property. HOT property."
+    },
+    "rare-chip": {
+      "id": "rare-chip", "name": "Prototype shard", "type": "junk",
+      "value": 400, "weight": 0.2,
+      "desc": "Logged as 'research,' reads like a confession. Worth a lot to the right buyer."
+    },
+    "ammo-box": {
+      "id": "ammo-box", "name": "Scavenged ammo crate", "type": "junk",
+      "value": 80, "weight": 2.0, "stacks": 20,
+      "desc": "Half-empty, all DANGER. Familiar to any teeth-gritting scav."
+    },
+    "kleenex": {
+      "id": "kleenex", "name": "NCPD evidence bag", "type": "junk",
+      "value": 130, "weight": 0.8,
+      "desc": "Somebody's worst Tuesday, unmarked and resaleable."
+    }
+  }
+}

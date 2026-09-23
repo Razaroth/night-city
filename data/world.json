@@ -1,0 +1,252 @@
+{
+  "districts": {
+    "watson": { "name": "Watson", "color": "#29f2c3", "blurb": "Cramped megabuildings, noodle markets, and the smell of ozone where Maelstrom huddles." },
+    "westbrook": { "name": "Westbrook", "color": "#d14ae2", "blurb": "Neon clubs, corpo pride, and the Afterlife where legends get buried in cheap booze." },
+    "citycenter": { "name": "City Center", "color": "#ffd24a", "blurb": "Glass towers that scrape the sky and prices that scrape your soul." },
+    "heywood": { "name": "Heywood", "color": "#ff8a4a", "blurb": "Barrio heat, shotgun sermons, and Valentino turf you don't wander into twice." },
+    "pacifica": { "name": "Pacifica", "color": "#4ae7ff", "blurb": "Abandoned resorts and truce-less alleys. The city's bleeding edge, literally." },
+    "santo": { "name": "Santo Domingo", "color": "#8eff4a", "blurb": "Heavy industrial grime. The sound of factories, shotguns, and 6th Street bombas." },
+    "badlands": { "name": "Badlands", "color": "#e0b06a", "blurb": "Open desert, dead towns, and the yowl of nomad engines under a full moon." }
+  },
+  "rooms": {
+    "megabuilding-h10": {
+      "id": "megabuilding-h10", "name": "Megabuilding H10 — Apartment", "district": "watson", "category": "apartment",
+      "desc": "Your shoebox in the sky. A synth-leather couch retracts from the wall, a cracked window looks out over Watson's neon soup, and the fridge hums a note of sad B-flat. Someone wrote 'WAKE THE F**K UP' in the condensation on the bathroom mirror.",
+      "exits": { "s": "watson-streets" }
+    },
+    "watson-streets": {
+      "id": "watson-streets", "name": "Watson — Shibobu Street", "district": "watson", "category": "street",
+      "desc": "Crowded connective tissue of Watson. Hologram ads babble over ramen carts, a braindance kiosk hisses static, and a wetsuit-streaked copter grumbles by overhead. Everything has a price sticker, including the air.",
+      "exits": { "n": "megabuilding-h10", "e": "kabuki-market", "w": "little-china", "ne": "ripperdoc-watson", "se": "warehouse-district", "sw": "northside" }
+    },
+    "kabuki-market": {
+      "id": "kabuki-market", "name": "Kabuki Market", "district": "watson", "category": "market",
+      "desc": "A neon flea-circus. Vendors hawk bootleg braindances, chrome connections, and noodles older than your childhood. The air smells of soy grease and bad decisions. Gangoons lean on crates, watching everyone and no one.",
+      "exits": { "w": "watson-streets", "n": "little-china" },
+      "npcs": ["weapons-rostovic", "food-cart", "tyger-1", "tyger-2", "wakako"]
+    },
+    "little-china": {
+      "id": "little-china", "name": "Watson — Little China", "district": "watson", "category": "street",
+      "desc": "Lanterns, wire-wrapped shutters, and a noodle stall doing brisk business at 3 AM. A Maelstrom skimmer is half-parked on the sidewalk, its engine ticking like a stopped clock. Someone got gel-tagged 'UNFAIR PRICE' on a vending machine.",
+      "exits": { "e": "watson-streets", "s": "kabuki-market", "w": "northside" }
+    },
+    "northside": {
+      "id": "northside", "name": "Watson — Northside", "district": "watson", "category": "industrial",
+      "desc": "Industrial rooftops and shuttered docks. This is where Maelstrom coils around the rusted ribs of the city. Every shadow holds a trashed drone; every drone might hold a surprise.",
+      "exits": { "e": "watson-streets", "ne": "maelstrom-den" }
+    },
+    "warehouse-district": {
+      "id": "warehouse-district", "name": "Watson — Warehouse District", "district": "watson", "category": "industrial",
+      "desc": "A row of dented container-warehouses. One has a fresh SIGURD SECURITY wax seal, another has a door swung open, dripping light. The kind of place cargo goes missing from, and people go missing in.",
+      "exits": { "nw": "watson-streets", "s": "scav-den" },
+      "objects": [{ "id": "crate-a", "name": "scav crater", "kind": "container", "desc": "A crate with a busted lock, spilling synth-spray cans." }]
+    },
+    "maelstrom-den": {
+      "id": "maelstrom-den", "name": "Maelstrom Den", "district": "watson", "category": "gangden", "danger": true,
+      "desc": "A gutted factory floor painted in strobe-light graffiti. Maelstrom chromeheads twitch around a holo-rig, wired to the shop. The air smells of coolant and metal-grind. You are not welcome.",
+      "exits": { "sw": "northside" },
+      "npcs": ["maelstrom-1", "maelstrom-2", "maelstrom-boss"]
+    },
+    "scav-den": {
+      "id": "scav-den", "name": "Scav Hideout", "district": "watson", "category": "gangden", "danger": true,
+      "desc": "A yanked-open shipping container lined with stolen chrome and opias. Knives in the wall gaps, an operating table with a drip bag, and the smell of pasteurization gone wrong. Scavs squint at you like inventory.",
+      "exits": { "n": "warehouse-district" },
+      "npcs": ["scav-1", "scav-2"]
+    },
+    "ripperdoc-watson": {
+      "id": "ripperdoc-watson", "name": "Ripperdoc — Watson", "district": "watson", "category": "clinic",
+      "desc": "A sunken clinic with a proper barber chair and a monitor full of vitals you don't have. The ripper's gloves are on something alive or recently alive. They nod at you the way surgeons nod.",
+      "exits": { "sw": "watson-streets" },
+      "npcs": ["ripper-watson"]
+    },
+    "japantown": {
+      "id": "japantown", "name": "Westbrook — Japantown", "district": "westbrook", "category": "street",
+      "desc": "Westbrook's neon prayer mat. Geisha drones holo-dance above izakaya lanterns while Tyger Claws watch from alley mouths. Overstimulation is the city's official religion here.",
+      "exits": { "n": "watson-streets", "e": "charter-hill", "ne": "cloud-bar" }
+    },
+    "charter-hill": {
+      "id": "charter-hill", "name": "Westbrook — Charter Hill", "district": "westbrook", "category": "street",
+      "desc": "Charter Hill's glass condos stare down at you like disappointed elders. Security drones streak the pavement, keeping the streets 'family-safe,' which is to say, empty of anything fun.",
+      "exits": { "w": "japantown", "s": "north-oak" }
+    },
+    "north-oak": {
+      "id": "north-oak", "name": "Westbrook — North Oak", "district": "westbrook", "category": "plaza",
+      "desc": "Manicured and sterile above the city's underbelly. Private pools, racecars, and the unshakeable suspicion that everyone here knows a netrunner who knows you.",
+      "exits": { "n": "charter-hill", "s": "afterlife-bar" }
+    },
+    "cloud-bar": {
+      "id": "cloud-bar", "name": "Cloud — Dollhouse", "district": "westbrook", "category": "club",
+      "desc": "Pink light, perfume-tinted fog, and dolls who remember things you didn't say. The vending wall is stocked with premium chrome and better ghosts. Drinks are twice the price and worth half.",
+      "exits": { "sw": "japantown" },
+      "npcs": ["cloud-barkeep"]
+    },
+    "afterlife-bar": {
+      "id": "afterlife-bar", "name": "The Afterlife", "district": "westbrook", "category": "bar",
+      "desc": "Legendary merc dive carved out of a morgue. Every booth is a monument to somebody's final run, and Rogue's seat at the bar is the only throne in Night City that means anything.",
+      "exits": { "n": "north-oak", "e": "citycenter-streets" },
+      "npcs": ["rog", "afterlife-barkeep"]
+    },
+    "ripperdoc-westbrook": {
+      "id": "ripperdoc-westbrook", "name": "Ripperdoc — Westbrook", "district": "westbrook", "category": "clinic",
+      "desc": "A glass mezzanine clinic with gentlemen's-club lighting. Cosmetic-chrome is the specialty: teeth, eyes, and the kind of implants that get you out of traffic stops.",
+      "exits": { "s": "japantown" },
+      "npcs": ["ripper-westbrook"]
+    },
+    "citycenter-streets": {
+      "id": "citycenter-streets", "name": "City Center — Delugium Street", "district": "citycenter", "category": "street",
+      "desc": "The aorta of Corporate Plaza. Walkers drift past ninety-foot holo-ads selling cleanliness, sleep, and revolution as package deals. Every step is photographed and monetized.",
+      "exits": { "w": "afterlife-bar", "n": "downtown", "s": "emblers-hotel" }
+    },
+    "downtown": {
+      "id": "downtown", "name": "City Center — Downtown", "district": "citycenter", "category": "plaza",
+      "desc": "Corpo ants in thousand-eddie suits hurry between towers. A street preacher on a soapbox shouts about the Machine. A concession bot sells 'Authentic Poverty Experience' bobbleheads.",
+      "exits": { "s": "citycenter-streets", "e": "corpo-plaza", "ne": "arasaka-waterfront" }
+    },
+    "corpo-plaza": {
+      "id": "corpo-plaza", "name": "Corpo Plaza", "district": "citycenter", "category": "corpo",
+      "desc": "Drone-lit marble and fifty-meter glass. The Arasaka obelisk sulks against the skyline. Guards with mirror faces watch you the way accountants audit: completely, and without feeling.",
+      "exits": { "w": "downtown", "s": "arasaka-waterfront" },
+      "npcs": ["corpo-minion"]
+    },
+    "arasaka-waterfront": {
+      "id": "arasaka-waterfront", "name": "Arasaka Waterfront", "district": "citycenter", "category": "corpo",
+      "desc": "Loading docks under corporate surveillance, where crates of prototype chrome change hands and cameras never blink. A ferry hums against the pier, carrying the authorized and the almost-caught.",
+      "exits": { "n": "corpo-plaza", "sw": "downtown" },
+      "npcs": ["arasaka-sec-1", "arasaka-sec-2"]
+    },
+    "emblers-hotel": {
+      "id": "emblers-hotel", "name": "Embers", "district": "citycenter", "category": "bar",
+      "desc": "A rooftop bar that smells of orchids and insider trading. Below, the whole of Night City shimmers like a wound. Drinks are brought by drones; secrets are brought by you.",
+      "exits": { "n": "citycenter-streets" },
+      "npcs": ["restaurant-barkeep"]
+    },
+    "ripperdoc-citycenter": {
+      "id": "ripperdoc-citycenter", "name": "Ripperdoc — City Center", "district": "citycenter", "category": "clinic",
+      "desc": "A sterile, premium suite with a branding team and a compliance screen. The ripper here is six franchised verbs and a laser. It'll cost you the expensive kind of silence.",
+      "exits": { "s": "citycenter-streets" },
+      "npcs": ["ripper-citycenter"]
+    },
+    "wellsprings": {
+      "id": "wellsprings", "name": "Heywood — Wellsprings", "district": "heywood", "category": "street",
+      "desc": "Green-lit walkways and wall murals of dead saints. Vendors trade in pre-war mezcal and vintage Valentino tees. The static of a far-off radio sings in Spanish between gunshots and sales pitches.",
+      "exits": { "n": "the-glen", "ne": "heywood-streets" }
+    },
+    "the-glen": {
+      "id": "the-glen", "name": "Heywood — The Glen", "district": "heywood", "category": "street",
+      "desc": "The Glen: murals, murk, and the press of old money and older grudges. A shotgun's pump or a burrito wrapper — one of those drops on every corner.",
+      "exits": { "n": "citycenter-streets", "s": "wellsprings", "e": "vista-del-rey", "w": "stadium" },
+      "npcs": ["food-cart", "padre"]
+    },
+    "vista-del-rey": {
+      "id": "vista-del-rey", "name": "Heywood — Vista Del Rey", "district": "heywood", "category": "street",
+      "desc": "Terraced housing that spectacularly fails to see a king or a view, but sees plenty of Valentino tail-light interviews. A cyberpsycho warning has been stenciled on the last working bus stop.",
+      "exits": { "w": "the-glen", "n": "valentinos-den" }
+    },
+    "valentinos-den": {
+      "id": "valentinos-den", "name": "Valentino Compound", "district": "heywood", "category": "gangden", "danger": true,
+      "desc": "Tight streets and open windows with telltale curtain-tugs. Rosary-tatted Valentinos stalk between bikes and incense bowls. The only way to leave smoothly is to have never been printed on an entry log.",
+      "exits": { "s": "vista-del-rey" },
+      "npcs": ["valentino-1", "valentino-2", "valentino-boss"]
+    },
+    "stadium": {
+      "id": "stadium", "name": "Heywood — Grand Imperial Mall", "district": "heywood", "category": "market",
+      "desc": "A stadium repurposed into Night City's biggest flea market. Stalls curve like rows of a concrete shark's mouth, selling butcher-blade chrome, bootleg fails, and hope at half price.",
+      "exits": { "e": "the-glen" },
+      "npcs": ["apparel-vendor", "netrunner-vendor"]
+    },
+    "ripperdoc-heywood": {
+      "id": "ripperdoc-heywood", "name": "Ripperdoc — Heywood", "district": "heywood", "category": "clinic",
+      "desc": "A converted botanica with saints on one wall and scalpels on the other. The ripper suspends judgment for a price, and blessed steel goes in clean.",
+      "exits": { "s": "the-glen" },
+      "npcs": ["ripper-heywood"]
+    },
+    "heywood-streets": {
+      "id": "heywood-streets", "name": "Heywood — Arroyo Overpass", "district": "heywood", "category": "street",
+      "desc": "An overpass where the city's exhaust meets the barrio's soul. Brakes hiss, radios salsa, and below the guard rail the wreckage of a hopper smolders politely.",
+      "exits": { "w": "wellsprings", "e": "rancho-coronado" }
+    },
+    "coastview": {
+      "id": "coastview", "name": "Pacifica — Coastview", "district": "pacifica", "category": "street",
+      "desc": "Swept-clean sidewalks leading to shuttered hotels. A wetsuit-clad fixer posts job QR codes on a lamppost. Faint surf drowns out the sounds of the city's neglect.",
+      "exits": { "n": "pacifica-streets", "e": "abandoned-resort" }
+    },
+    "pacifica-streets": {
+      "id": "pacifica-streets", "name": "Pacifica — Afterlife Gate", "district": "pacifica", "category": "street",
+      "desc": "The neon ends here. The grid peters out into palm trees and parking structure skeletons. Everything's been stripped for chrome, then stripped for the stripping.",
+      "exits": { "s": "coastview", "sw": "west-wind-estate", "e": "badlands-crossroads" },
+      "npcs": ["ripper-pacifica"]
+    },
+    "west-wind-estate": {
+      "id": "west-wind-estate", "name": "Pacifica — West Wind Estate", "district": "pacifica", "category": "ruin",
+      "desc": "An unfinished housing estate frozen mid-collapse. Wind rakes through rebar and half-walls of graffiti. Sometimes the graffiti moves.",
+      "exits": { "ne": "pacifica-streets" }
+    },
+    "abandoned-resort": {
+      "id": "abandoned-resort", "name": "Pacifica — Abandoned Resort", "district": "pacifica", "category": "ruin", "danger": true,
+      "desc": "A skeletal beach resort. A swimming pool has become a cistern of black water, and something with too many lenses pads around the penthouse. The last tourist left a decade ago. Something else stayed.",
+      "exits": { "w": "coastview", "up": "cyberpsycho-den" }
+    },
+    "cyberpsycho-den": {
+      "id": "cyberpsycho-den", "name": "Pacifica — Penthouse Nest", "district": "pacifica", "category": "gangden", "danger": true,
+      "desc": "The resort's penthouse, now a cyberpsycho's nest. Chrome splayed like a melted chandelier, and a figure in ruins breathing in time with the flickering lights. Its eyes track you with predatory patience.",
+      "exits": { "down": "abandoned-resort" },
+      "npcs": ["cyberpsycho"]
+    },
+    "arroyo": {
+      "id": "arroyo", "name": "Santo Domingo — Arroyo", "district": "santo", "category": "street",
+      "desc": "Streets that taste like diesel and dry heat. Noodle trucks park between transport depots, and the skyline is a chorus of steel mills and party lights from the wrong end of town.",
+      "exits": { "w": "heywood-streets", "e": "rancho-coronado", "n": "santo-streets" }
+    },
+    "rancho-coronado": {
+      "id": "rancho-coronado", "name": "Santo Domingo — Rancho Coronado", "district": "santo", "category": "street",
+      "desc": "Worker blocks stacked like dominoes, drying laundry strung over balconies like victory banners. A 6th Street bombazo is scratching on a nearby roof, spinning protest records.",
+      "exits": { "e": "santo-streets", "w": "arroyo" }
+    },
+    "santo-streets": {
+      "id": "santo-streets", "name": "Santo Domingo — Refinery Row", "district": "santo", "category": "industrial",
+      "desc": "Refinery plumbing weeps steam into the streetlights. Buses thundering past, workers in yellow vests, and the distant clank of an assembly line folding steel like origami.",
+      "exits": { "s": "arroyo", "w": "rancho-coronado", "n": "6th-street-den" },
+      "npcs": ["el-capitan"]
+    },
+    "6th-street-den": {
+      "id": "6th-street-den", "name": "6th Street Firebase", "district": "santo", "category": "gangden", "danger": true,
+      "desc": "A fortified vet-barf where 6th Street runs drills and laments the good old days of manual guns. Ammo crates double as furniture. An American flag, threadbare, flies above an inspirational bombicide poster.",
+      "exits": { "s": "santo-streets" },
+      "npcs": ["sixthstreet-1", "sixthstreet-2", "sixthstreet-boss"]
+    },
+    "ripperdoc-santo": {
+      "id": "ripperdoc-santo", "name": "Ripperdoc — Santo Domingo", "district": "santo", "category": "clinic",
+      "desc": "A converted machine-shop that still smells of cutting oil. The ripper's chair is bolted to a lifting platform. No nonsense, no sedation — just steel and honesty.",
+      "exits": { "se": "santo-streets" },
+      "npcs": ["ripper-santo"]
+    },
+    "badlands-crossroads": {
+      "id": "badlands-crossroads", "name": "Badlands — Crossroads", "district": "badlands", "category": "wasteland",
+      "desc": "A cracked highway interchange with a decommissioned gas station kept alive by generator and spite. Dust devils roller-skate between the pumps. The city hums behind you like a neon migraine.",
+      "exits": { "w": "pacifica-streets", "e": "nomad-camp", "se": "dead-waste" }
+    },
+    "nomad-camp": {
+      "id": "nomad-camp", "name": "Badlands — Nomad Camp", "district": "badlands", "category": "tent",
+      "desc": "A convoy of armored haulers circled in the dust. Nomads cook over open copper, kids tag the air with drones, and the horizon hums with the road's endless invitation.",
+      "exits": { "w": "badlands-crossroads", "n": "raider-flats" },
+      "npcs": ["dakota", "food-cart"]
+    },
+    "raider-flats": {
+      "id": "raider-flats", "name": "Badlands — Raider Flats", "district": "badlands", "category": "wasteland", "danger": true,
+      "desc": "A scrub-flat of burned vehicles and rusted horse trailers. Nomad raiders in bolt-scrap armor are stripping a wrecked van. They hear your engine before they see you, and they're already smiling.",
+      "exits": { "s": "nomad-camp" },
+      "npcs": ["raider-1", "raider-2"]
+    },
+    "dead-waste": {
+      "id": "dead-waste", "name": "Badlands — Dead Waste", "district": "badlands", "category": "wasteland",
+      "desc": "A dump of melted cargo containers and spent batteries. Toxic haze shimmers off the sand. Fashionable purple sunsets do not wash away what this place smells like.",
+      "exits": { "nw": "badlands-crossroads" },
+      "objects": [{ "id": "toxic-crate", "name": "spilled crate", "kind": "container", "desc": "A crate that's been cracked open and rain-buffed. Something glints inside." }]
+    },
+    "quarantine": {
+      "id": "quarantine", "name": "Badlands — Quarantine Station", "district": "badlands", "category": "ruin",
+      "desc": "An old bio-quarantine station, doors sealed, stamps peeling. Someone's left a cooler of cold synth-beer out front, which in the Badlands is either a trap or a public service.",
+      "exits": { "nw": "badlands-crossroads" }
+    }
+  }
+}

@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>NIGHT CITY — a cyberpunk MUD</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<div id="scanlines"></div>
+<div id="vignette"></div>
+
+<!-- ============ AUTH ============ -->
+<section id="auth" class="screen">
+  <div class="auth-bg"></div>
+  <div class="auth-card">
+    <h1 class="logo">NIGHT<span>CITY</span></h1>
+    <p class="tagline">A CYBERPUNK MUD // <span id="onlinecount">connecting…</span></p>
+    <div class="auth-tabs">
+      <button class="tab active" data-tab="login">JACK IN</button>
+      <button class="tab" data-tab="register">NEW RUNNER</button>
+    </div>
+    <form id="authform" autocomplete="off">
+      <label>HANDLE <input id="auth-user" maxlength="16" placeholder="V" required /></label>
+      <label>PASSPHRASE <input id="auth-pass" type="password" maxlength="64" placeholder="••••••" required /></label>
+      <button type="submit" class="neon-btn" id="auth-submit">JACK IN</button>
+    </form>
+    <p class="err" id="auth-err"></p>
+    <p class="fine">No account? Switch to NEW RUNNER. Progress saves to the host's machine.</p>
+  </div>
+</section>
+
+<!-- ============ CHARACTER CREATION ============ -->
+<section id="creation" class="screen hidden">
+  <div class="create-wrap">
+    <header class="create-head">
+      <h2>MAKE YOUR RUNNER</h2>
+      <p>Night City doesn't care who you were. It cares what you're chrome'd to do.</p>
+    </header>
+
+    <div class="create-grid">
+      <div class="create-col">
+        <div class="panel">
+          <h3>IDENTITY</h3>
+          <label class="fld">CALLSIGN <input id="c-name" maxlength="20" placeholder="e.g. Vincent, Vex, Duke" /></label>
+          <div class="fld">
+            <span>STYLE</span>
+            <div id="style-picker" class="chips"></div>
+          </div>
+        </div>
+        <div class="panel">
+          <h3>LIFEPATH</h3>
+          <div id="lifepath-picker" class="lp-grid"></div>
+        </div>
+      </div>
+
+      <div class="create-col">
+        <div class="panel">
+          <h3>ATTRIBUTES <span class="pts">POINTS LEFT: <b id="attr-pts">8</b></span></h3>
+          <div id="attr-list"></div>
+        </div>
+        <div class="panel">
+          <h3>STARTING CHROME <span class="pts">CAPACITY: <b id="chrome-cap">0</b>/4 • PICK ≤3</span></h3>
+          <div id="chrome-list" class="chrome-grid"></div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="create-foot">
+      <p id="create-err" class="err"></p>
+      <button id="create-btn" class="neon-btn big">JACK IN TO NIGHT CITY</button>
+    </footer>
+  </div>
+</section>
+
+<!-- ============ GAME ============ -->
+<section id="game" class="screen hidden">
+  <header id="hud">
+    <div class="hud-left">
+      <span class="hud-logo">NIGHT<span>CITY</span></span>
+    </div>
+    <div class="hud-char">
+      <b id="hud-name">—</b>
+      <span id="hud-lp" class="pill">—</span>
+      <span id="hud-level" class="pill">LV 1</span>
+    </div>
+    <div class="hud-right">
+      <span class="hud-stat" title="Eddies">€$ <b id="hud-eddies">0</b></span>
+      <span class="hud-stat" title="Street Cred">REP <b id="hud-rep">0</b></span>
+      <span class="hud-stat" id="hud-clock">--:--</span>
+      <span class="hud-stat" id="hud-online">0 online</span>
+    </div>
+  </header>
+
+  <div id="gamebody">
+    <aside id="left">
+      <div class="panel">
+        <h3>VITALS</h3>
+        <div id="vitals"></div>
+      </div>
+      <div class="panel">
+        <h3>DISTRICT MAP</h3>
+        <div id="minimap"></div>
+        <div id="legend"></div>
+      </div>
+      <div class="panel">
+        <h3>ATTRIBUTES</h3>
+        <div id="attrs"></div>
+      </div>
+    </aside>
+
+    <main id="center">
+      <div id="scene">
+        <div class="scene-sky"></div>
+        <div class="scene-sun"></div>
+        <div class="scene-far"></div>
+        <div class="scene-mid"></div>
+        <div class="scene-era"></div>
+        <div class="scene-beacons"></div>
+        <div class="scene-traffic"></div>
+        <div class="scene-rain"></div>
+        <div class="scene-grid"></div>
+        <div class="scene-label">
+          <div class="scene-district" id="scene-district">—</div>
+          <div class="scene-room" id="scene-room">—</div>
+          <div class="scene-weather" id="scene-weather"></div>
+        </div>
+      </div>
+      <div id="log"></div>
+      <div id="quickbar"></div>
+      <form id="cmdform" autocomplete="off">
+        <span class="prompt">&gt;</span>
+        <input id="cmdinput" placeholder="type a command… (help)" autocomplete="off" spellcheck="false" />
+        <button type="submit">SEND</button>
+      </form>
+    </main>
+
+    <aside id="right">
+      <div class="panel">
+        <h3>AREA</h3>
+        <div id="actions"></div>
+      </div>
+      <div class="panel">
+        <h3>EQUIPMENT</h3>
+        <div id="equipment"></div>
+      </div>
+      <div class="panel">
+        <h3>INVENTORY <span class="pts" id="inv-weight"></span></h3>
+        <div id="inventory"></div>
+      </div>
+      <div class="panel">
+        <h3>QUICKHACKS</h3>
+        <div id="quickhacks"></div>
+      </div>
+      <div class="panel">
+        <h3>JOBS</h3>
+        <div id="jobs"></div>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<!-- ============ SHOP MODAL ============ -->
+<div id="shopmodal" class="modal hidden">
+  <div class="modal-card">
+    <header><h3 id="shop-title">SHOP</h3><button id="shop-close" class="x">✕</button></header>
+    <div class="modal-cols">
+      <div><h4>FOR SALE</h4><div id="shop-buy" class="shop-list"></div></div>
+      <div><h4>YOUR KIT (SELL)</h4><div id="shop-sell" class="shop-list"></div></div>
+    </div>
+  </div>
+</div>
+
+<div id="toasts"></div>
+<div id="deathveil" class="hidden"><div class="death-text">FLATLINED</div><div class="death-sub" id="death-sub"></div></div>
+
+<script src="app.js"></script>
+</body>
+</html>

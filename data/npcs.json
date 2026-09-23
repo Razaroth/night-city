@@ -1,0 +1,328 @@
+{
+  "weapons-rostovic": {
+    "id": "weapons-rostovic", "name": "Clementine 'Cleo' Rostovic", "kind": "vendor", "faction": "Neutral",
+    "shop": { "sells": ["weapons", "grenades", "consumables"], "buyMul": 0.5, "sellMul": 1.6 },
+    "desc": "A rail-thin arms dealer with a welded smile and a sales pitch for every caliber.",
+    "dialog": [
+      "Choom, you look like you lost a fight to a door. Let's fix your hand game.",
+      "Everything here is certified pre-murdered.",
+      "Buy a second gun. Trust me. Backups save lives, and lives save backups."
+    ]
+  },
+  "apparel-vendor": {
+    "id": "apparel-vendor", "name": "Marcos 'Bolt' Encina", "kind": "vendor", "faction": "Neutral",
+    "shop": { "sells": ["apparel", "junk"], "buyMul": 0.4, "sellMul": 1.5 },
+    "desc": "A showman of secondhand threads, holding up a jacket like it changes your life.",
+    "dialog": [
+      "Style is armor. Armor is style. This is science.",
+      "Wear this and the scanners won't even gank you. Much.",
+      "Bold of you to dress like that. Bold."
+    ]
+  },
+  "netrunner-vendor": {
+    "id": "netrunner-vendor", "name": "'Ghost' Nguyen", "kind": "vendor", "faction": "Neutral",
+    "shop": { "sells": ["quickhacks", "cyberware"], "buyMul": 0.55, "sellMul": 1.5 },
+    "desc": "A netrunner layered in black and sheathed in chrome hands. Their queue name is @ghost_and_darker.",
+    "dialog": [
+      "Memory wipes are cute until they're permanent. Runtime error. Boss-man now?",
+      "Quickhacks don't kill. The recoil of the law does.",
+      "Buy a deck. The Net is shouting today and you're not listening."
+    ]
+  },
+  "food-cart": {
+    "id": "food-cart", "name": "Noodle cart vendor", "kind": "vendor", "faction": "Neutral",
+    "shop": { "sells": ["consumables", "junk"], "buyMul": 0.3, "sellMul": 1.2 },
+    "desc": "A beaming vendor ladling synth-broth into styrofoam under a flickering lamp.",
+    "dialog": [
+      "Noodles young, noodles fresh, noodles scream subtly.",
+      "Eat. The chrome doesn't forgive on empty.",
+      "Hot soup for a cold city! Soy-sauce and umbilical regret!"
+    ]
+  },
+  "afterlife-barkeep": {
+    "id": "afterlife-barkeep", "name": "Jackie 'Jackhammer' Paris", "kind": "vendor", "faction": "Neutral",
+    "shop": { "sells": ["consumables"], "buyMul": 0.4, "sellMul": 1.3 },
+    "desc": "A mountain of a bartender with a voice like gravel in a blender.",
+    "dialog": [
+      "Any of the ones who died here are still better company than you. Drinks?",
+      "First round's on the house if you've got a story that ends with \"and then I walked.\"",
+      "Name a drink, choom. It's probably got a war story."
+    ]
+  },
+  "cloud-barkeep": {
+    "id": "cloud-barkeep", "name": "Vex Tain", "kind": "vendor", "faction": "Neutral",
+    "shop": { "sells": ["consumables"], "buyMul": 0.5, "sellMul": 1.4 },
+    "desc": "A doll-masked bartender pouring azure cocktails under pink fog.",
+    "dialog": [
+      "You in the market for a good mood? I sell them by the glass.",
+      "Watch the ceiling mirrors. The manager catches everything, surprisingly.",
+      "A cloud bar tab is the best memory eraser in town."
+    ]
+  },
+  "restaurant-barkeep": {
+    "id": "restaurant-barkeep", "name": "Hotel Embers sommelier", "kind": "vendor", "faction": "Neutral",
+    "shop": { "sells": ["consumables"], "buyMul": 0.6, "sellMul": 1.6 },
+    "desc": "An impeccable humanoid bartender with a voice like a mint condition shard.",
+    "dialog": [
+      "Would you prefer our industrial-grade or our artisanal industrial-grade?",
+      "The view is complimentary. The rooftop, regrettably, is not.",
+      "Policy dictates that I recommend syrups in moderation."
+    ]
+  },
+  "ripper-watson": {
+    "id": "ripper-watson", "name": "Ripper Vee", "kind": "ripper", "faction": "Neutral",
+    "shop": { "sells": ["cyberware", "consumables"], "buyMul": 0.5, "sellMul": 1.4 },
+    "desc": "A heavyset ripperdoc with gentle hands and a strict no-sedation policy.",
+    "dialog": [
+      "Sit. This will only hurt in the places that build character.",
+      "Mantis Blades are a statement. Gorilla Arms are a thesis.",
+      "Whatever you install, remember: chrome don't grieve. You will."
+    ]
+  },
+  "ripper-westbrook": {
+    "id": "ripper-westbrook", "name": "Ripper Marta", "kind": "ripper", "faction": "Neutral",
+    "shop": { "sells": ["cyberware", "consumables"], "buyMul": 0.55, "sellMul": 1.5 },
+    "desc": "A stylish ripper whose every implant includes a 3-second art piece.",
+    "dialog": [
+      "I do cosmetic chrome with structural benefits.",
+      "This eye sees in 40k. It also judges you in 40k.",
+      "Excess metal is a personality. Let's build yours."
+    ]
+  },
+  "ripper-citycenter": {
+    "id": "ripper-citycenter", "name": "Ripper Surya", "kind": "ripper", "faction": "Neutral",
+    "shop": { "sells": ["cyberware", "consumables"], "buyMul": 0.7, "sellMul": 1.7 },
+    "desc": "A whisper-quiet ripper in surgical-clean glass, pricing everything in american values.",
+    "dialog": [
+      "Efficiency is my anesthetic. Ice sold separately.",
+      "This arm arrives with a compliance certificate and regret.",
+      "Corporate chrome: billed to your soul, on a 60-month plan."
+    ]
+  },
+  "ripper-heywood": {
+    "id": "ripper-heywood", "name": "Ripper Abuelito", "kind": "ripper", "faction": "Neutral",
+    "shop": { "sells": ["cyberware", "consumables"], "buyMul": 0.45, "sellMul": 1.3 },
+    "desc": "A grey goat-bearded ripper who blesses every implant before it goes in.",
+    "dialog": [
+      "I bless the steel. God deals with the consequences.",
+      "Chrome is armor for the body and tax for the soul.",
+      "Sit. My hands are old, but old hands don't shake."
+    ]
+  },
+  "ripper-pacifica": {
+    "id": "ripper-pacifica", "name": "Ripper Hitomi", "kind": "ripper", "faction": "Neutral",
+    "shop": { "sells": ["cyberware", "consumables"], "buyMul": 0.5, "sellMul": 1.5 },
+    "desc": "A wiry ripper working out of the ruins, trading in favors and barter.",
+    "dialog": [
+      "In Pacifica we trade in favors, chrome, and silence.",
+      "That implant is military-grade. Here it's dinner grade.",
+      "I don't ask where it came from. It doesn't ask where you're going."
+    ]
+  },
+  "ripper-santo": {
+    "id": "ripper-santo", "name": "Ripper 'Jax' Okafor", "kind": "ripper", "faction": "Neutral",
+    "shop": { "sells": ["cyberware", "consumables"], "buyMul": 0.5, "sellMul": 1.4 },
+    "desc": "A terse ex-factory medic with a smoking habit and a biometric implant printer.",
+    "dialog": [
+      "Don't run while on this table. I've seen it end badly for the running.",
+      "Factory steel. Like the factory, it works until it doesn't.",
+      "Pay in eddies, pay in favors, pay in silence. Pick one."
+    ]
+  },
+  "street-security": {
+    "id": "street-security", "name": "NCPD Security Drone", "kind": "neutral", "faction": "NCPD",
+    "desc": "A bloated security drone with an antiseptic voice and a scanner that never blinks.",
+    "dialog": [
+      "BEEP. CITIZEN DETECTED. MALADAPTIVE STATUS: PENDING. HAVE A NICE DAY.",
+      "COMPLIANCE NOTED. HOLD STILL FOR OPTIONAL INSIGHT."
+    ]
+  },
+  "corpo-minion": {
+    "id": "corpo-minion", "name": "Corporate stooge", "kind": "neutral", "faction": "Arasaka",
+    "desc": "A flawless face with a flex-interface on their forearm and a payroll biome that runs deeper than their pulse.",
+    "dialog": [
+      "If it's not in the contract, it's not a commitment.",
+      "Oh, you're an external. Charming.",
+      "Do you have an appointment? No? Then you have a problem."
+    ]
+  },
+  "tyger-1": {
+    "id": "tyger-1", "name": "Tyger Claw thug", "kind": "hostile", "faction": "Tyger Claws", "level": 2,
+    "stats": { "body": 5, "reflexes": 6, "tech": 2, "intel": 3, "cool": 4 }, "weapon": "unity", "armor": 3, "maxhp": 55,
+    "eddies": [25, 70],
+    "loot": [{ "id": "unity", "chance": 0.25, "qty": [1, 1] }, { "id": "data-shard", "chance": 0.4, "qty": [1, 2] }],
+    "desc": "A Tyger Claw in ceremonial wraps, tapping a katana hilt like a nervous tic."
+  },
+  "tyger-2": {
+    "id": "tyger-2", "name": "Tyger Claw enforcer", "kind": "hostile", "faction": "Tyger Claws", "level": 3,
+    "stats": { "body": 6, "reflexes": 7, "tech": 3, "intel": 4, "cool": 5 }, "weapon": "machete", "armor": 5, "maxhp": 75,
+    "eddies": [40, 90],
+    "loot": [{ "id": "machete", "chance": 0.5, "qty": [1, 1] }, { "id": "data-shard", "chance": 0.5, "qty": [1, 3] }],
+    "desc": "A wide-shouldered claw with serrated wrist-blades and a smile that sharpens them."
+  },
+  "maelstrom-1": {
+    "id": "maelstrom-1", "name": "Maelstrom chromehead", "kind": "hostile", "faction": "Maelstrom", "level": 3,
+    "stats": { "body": 7, "reflexes": 4, "tech": 5, "intel": 3, "cool": 6 }, "weapon": "bat", "armor": 6, "maxhp": 80,
+    "eddies": [30, 80],
+    "loot": [{ "id": "bat", "chance": 0.5, "qty": [1, 1] }, { "id": "data-shard", "chance": 0.3, "qty": [1, 2] }],
+    "desc": "A chromehead with a solder-beaded mask, twitching to a beat only their mantis rig can hear."
+  },
+  "maelstrom-2": {
+    "id": "maelstrom-2", "name": "Maelstrom rigger", "kind": "hostile", "faction": "Maelstrom", "level": 4,
+    "stats": { "body": 6, "reflexes": 6, "tech": 7, "intel": 5, "cool": 5 }, "weapon": "fenrir", "armor": 7, "maxhp": 95,
+    "eddies": [45, 110],
+    "loot": [{ "id": "fenrir", "chance": 0.35, "qty": [1, 1] }, { "id": "data-shard", "chance": 0.5, "qty": [1, 3] }],
+    "desc": "A rigger with a drone leashing from their right eye, fingers already drawing in the air."
+  },
+  "maelstrom-boss": {
+    "id": "maelstrom-boss", "name": "Maelstrom boss 'Fang'", "kind": "hostile", "faction": "Maelstrom", "level": 6,
+    "stats": { "body": 9, "reflexes": 6, "tech": 6, "intel": 4, "cool": 8 }, "weapon": "carnage", "armor": 12, "maxhp": 180,
+    "eddies": [150, 320],
+    "loot": [{ "id": "carnage", "chance": 1, "qty": [1, 1] }, { "id": "data-shard", "chance": 1, "qty": [1, 4] }, { "id": "buff-out", "chance": 0.7, "qty": [1, 2] }],
+    "danger": "boss",
+    "desc": "'Fang' — a hulking chrome sculpture of a man with a welded jaw-grinder where a face used to be. The shotgun is decoration. He is the weapon."
+  },
+  "scav-1": {
+    "id": "scav-1", "name": "Scav cutter", "kind": "hostile", "faction": "Scavengers", "level": 2,
+    "stats": { "body": 5, "reflexes": 5, "tech": 5, "intel": 4, "cool": 3 }, "weapon": "unity", "armor": 2, "maxhp": 50,
+    "eddies": [20, 60],
+    "loot": [{ "id": "unity", "chance": 0.4, "qty": [1, 1] }, { "id": "kleenex", "chance": 0.4, "qty": [1, 1] }],
+    "desc": "A scav wearing a hospital gown under a tactical vest, scalpel-bright eyes sizing up your chrome."
+  },
+  "scav-2": {
+    "id": "scav-2", "name": "Scav butcher", "kind": "hostile", "faction": "Scavengers", "level": 3,
+    "stats": { "body": 7, "reflexes": 4, "tech": 6, "intel": 3, "cool": 4 }, "weapon": "machete", "armor": 4, "maxhp": 75,
+    "eddies": [30, 90],
+    "loot": [{ "id": "machete", "chance": 0.5, "qty": [1, 1] }, { "id": "relic-chip", "chance": 0.15, "qty": [1, 1] }],
+    "desc": "A big scav in a blood-spattered apron, a mono-wire glinting where their smile should be."
+  },
+  "valentino-1": {
+    "id": "valentino-1", "name": "Valentino hermano", "kind": "hostile", "faction": "Valentinos", "level": 3,
+    "stats": { "body": 6, "reflexes": 5, "tech": 2, "intel": 3, "cool": 6 }, "weapon": "lexington", "armor": 5, "maxhp": 65,
+    "eddies": [35, 80],
+    "loot": [{ "id": "lexington", "chance": 0.4, "qty": [1, 1] }, { "id": "data-shard", "chance": 0.4, "qty": [1, 2] }],
+    "desc": "A rosary-knuckled Valentino with an ice-cream grin and a full-auto sense of humor."
+  },
+  "valentino-2": {
+    "id": "valentino-2", "name": "Valentino pistolero", "kind": "hostile", "faction": "Valentinos", "level": 4,
+    "stats": { "body": 6, "reflexes": 8, "tech": 3, "intel": 4, "cool": 7 }, "weapon": "lexington", "armor": 6, "maxhp": 80,
+    "eddies": [45, 120],
+    "loot": [{ "id": "lexington", "chance": 0.5, "qty": [1, 1] }, { "id": "buff-out", "chance": 0.4, "qty": [1, 1] }],
+    "desc": "A lightning-fingered pistolero whose hand never leaves the holster except when it's filling time with holes."
+  },
+  "valentino-boss": {
+    "id": "valentino-boss", "name": "Valentino boss 'El Lazarillo'", "kind": "hostile", "faction": "Valentinos", "level": 7,
+    "stats": { "body": 10, "reflexes": 8, "tech": 4, "intel": 5, "cool": 9 }, "weapon": "kongou", "armor": 14, "maxhp": 210,
+    "eddies": [220, 420],
+    "loot": [{ "id": "kongou", "chance": 1, "qty": [1, 1] }, { "id": "relic-chip", "chance": 0.4, "qty": [1, 1] }, { "id": "maxdoc", "chance": 0.6, "qty": [1, 2] }],
+    "danger": "boss",
+    "desc": "'El Lazarillo' — a name whispered by people who didn't see what's behind those sunglasses. The hand that guides is also the hand that shoots."
+  },
+  "sixthstreet-1": {
+    "id": "sixthstreet-1", "name": "6th Street grunt", "kind": "hostile", "faction": "6th Street", "level": 3,
+    "stats": { "body": 7, "reflexes": 5, "tech": 3, "intel": 3, "cool": 5 }, "weapon": "copperhead", "armor": 6, "maxhp": 75,
+    "eddies": [30, 90],
+    "loot": [{ "id": "copperhead", "chance": 0.4, "qty": [1, 1] }, { "id": "data-shard", "chance": 0.3, "qty": [1, 2] }],
+    "desc": "A flag-stitched grunt with regulation chin-stubble and a neck tattoo that got autocorrected."
+  },
+  "sixthstreet-2": {
+    "id": "sixthstreet-2", "name": "6th Street heavy", "kind": "hostile", "faction": "6th Street", "level": 5,
+    "stats": { "body": 9, "reflexes": 5, "tech": 4, "intel": 4, "cool": 6 }, "weapon": "carnage", "armor": 10, "maxhp": 130,
+    "eddies": [60, 150],
+    "loot": [{ "id": "carnage", "chance": 0.35, "qty": [1, 1] }, { "id": "ammo-box", "chance": 0.6, "qty": [1, 2] }],
+    "desc": "A barricade of muscle wrapped in a civilian-saver vest, shotgun resting on a shoulder the size of a cinderblock."
+  },
+  "sixthstreet-boss": {
+    "id": "sixthstreet-boss", "name": "6th Street boss 'Corporal Grimes'", "kind": "hostile", "faction": "6th Street", "level": 8,
+    "stats": { "body": 11, "reflexes": 7, "tech": 5, "intel": 5, "cool": 8 }, "weapon": "achilles", "armor": 16, "maxhp": 240,
+    "eddies": [300, 550],
+    "loot": [{ "id": "achilles", "chance": 1, "qty": [1, 1] }, { "id": "relic-chip", "chance": 0.5, "qty": [1, 1] }, { "id": "maxdoc", "chance": 0.8, "qty": [1, 3] }],
+    "danger": "boss",
+    "desc": "'Corporal Grimes' — a decorated tactician who never made it past the bottle. The smart-link arm knows the score even when the rest of him forgets."
+  },
+  "arasaka-sec-1": {
+    "id": "arasaka-sec-1", "name": "Arasaka security", "kind": "hostile", "faction": "Arasaka", "level": 5,
+    "stats": { "body": 7, "reflexes": 7, "tech": 5, "intel": 6, "cool": 7 }, "weapon": "lexington", "armor": 10, "maxhp": 110,
+    "eddies": [50, 140],
+    "loot": [{ "id": "lexington", "chance": 0.3, "qty": [1, 1] }, { "id": "ammo-box", "chance": 0.5, "qty": [1, 2] }],
+    "desc": "An Arasaka sec-goon in tactical black, earpiece muttering, trigger finger in the glaring white position."
+  },
+  "arasaka-sec-2": {
+    "id": "arasaka-sec-2", "name": "Arasaka heavy gunship", "kind": "hostile", "faction": "Arasaka", "level": 6,
+    "stats": { "body": 9, "reflexes": 6, "tech": 6, "intel": 6, "cool": 7 }, "weapon": "copperhead", "armor": 13, "maxhp": 150,
+    "eddies": [80, 200],
+    "loot": [{ "id": "copperhead", "chance": 0.35, "qty": [1, 1] }, { "id": "subdermal-armor", "chance": 0.15, "qty": [1, 1] }],
+    "desc": "A boots-and-brass gunship with an aura of invulnerability that is only 40% justified."
+  },
+  "cyberpsycho": {
+    "id": "cyberpsycho", "name": "CYBERPSYCHO 'GLITCH'", "kind": "hostile", "faction": "Cyberpsycho", "danger": "boss",
+    "level": 9, "stats": { "body": 12, "reflexes": 9, "tech": 5, "intel": 6, "cool": 12 },
+    "weapon": "mantis-blades", "armor": 19, "maxhp": 360, "eddies": [500, 900],
+    "loot": [
+      { "id": "mantis-blades", "chance": 1, "qty": [1, 1] },
+      { "id": "relic-chip", "chance": 0.9, "qty": [1, 2] },
+      { "id": "reflex-tuner", "chance": 0.6, "qty": [1, 1] },
+      { "id": "rare-chip", "chance": 1, "qty": [1, 2] }
+    ],
+    "desc": "Chrome wired directly into glitch-junk ducts, eyes strobing like a dying hard drive. It speaks in a voice that is three versions out of date. It has decided you are a bug."
+  },
+  "raider-1": {
+    "id": "raider-1", "name": "Nomad raider", "kind": "hostile", "faction": "Wraiths", "level": 3,
+    "stats": { "body": 6, "reflexes": 6, "tech": 4, "intel": 3, "cool": 5 }, "weapon": "bat", "armor": 4, "maxhp": 70,
+    "eddies": [30, 80],
+    "loot": [{ "id": "bat", "chance": 0.5, "qty": [1, 1] }, { "id": "data-shard", "chance": 0.4, "qty": [1, 2] }],
+    "desc": "A ragged raider holding a wrench and a grudge against whoever's reading this description."
+  },
+  "raider-2": {
+    "id": "raider-2", "name": "Wraith gunslinger", "kind": "hostile", "faction": "Wraiths", "level": 4,
+    "stats": { "body": 5, "reflexes": 8, "tech": 4, "intel": 4, "cool": 6 }, "weapon": "unity", "armor": 5, "maxhp": 85,
+    "eddies": [40, 110],
+    "loot": [{ "id": "unity", "chance": 0.5, "qty": [1, 1] }, { "id": "ammo-box", "chance": 0.5, "qty": [1, 2] }],
+    "desc": "A dust-eaten gunslinger redefining the phrase 'quick on the draw' with strict malice."
+  },
+  "wakako": {
+    "id": "wakako", "name": "Wakako Okada", "kind": "fixer", "faction": "Neutral",
+    "desc": "A sweet-faced, razor-dewmied fixer in Kabuki. She sells secrets, deletes grudges, and smiles in ways that make you check your implants afterwards.",
+    "dialog": [
+      "Konnichiwa... and kombanwa to anyone who crossed my ledger.",
+      "Everything is a transaction. The trick is making the other party think they chose it.",
+      "You look useful. Stay useful. I know people who stay useful."
+    ]
+  },
+  "padre": {
+    "id": "padre", "name": "Sebastian Ibarra", "kind": "fixer", "faction": "Neutral",
+    "desc": "The Valentinos' prelate and fixer. He speaks of absolution and street justice in the same breath, and his love for the barrio is genuine — and armed.",
+    "dialog": [
+      "The streets speak a language city folks forget. I am fluent.",
+      "Blood grants forgiveness. Money grants freedom. Both are paid in advance.",
+      "Dios este contigo. Fasten your seatbelt."
+    ]
+  },
+  "el-capitan": {
+    "id": "el-capitan", "name": "Muamar Reyes", "kind": "fixer", "faction": "Neutral",
+    "desc": "A seasoned fixer who runs Santo Domingo's commercial veins. What he can't move through the city, he buries. What he can't bury, he rides.",
+    "dialog": [
+      "Santo Domingo moves things. I move Santo Domingo.",
+      "Delivery gone missing means somebody's kneecaps gone missing. Solves itself usually.",
+      "Speed. Discretion. One of those is negotiable."
+    ]
+  },
+  "rog": {
+    "id": "rog", "name": "Rogue Amendiares", "kind": "fixer", "faction": "Neutral",
+    "desc": "The most feared fixer in Night City. Silver hair, a scar over one eye, and a hard-won reputation carved in the Afterlife's booth seats.",
+    "dialog": [
+      "Stay alive long enough and every merc ends up here. The good ones end up HERE, at least.",
+      "I don't fix jobs for free, and I don't fix people at all.",
+      "You've got that look. The look that either buys a drink or needs one."
+    ]
+  },
+  "dakota": {
+    "id": "dakota", "name": "Dakota Smith", "kind": "fixer", "faction": "Neutral",
+    "desc": "Nomadic fixer of the Badlands, all dust and patience, who trades in salvage and secrets while her boiler rumbles.",
+    "dialog": [
+      "Out here, eddies are just paper. Trust and fuel move everything.",
+      "Trouble follows chrome that follows no one.",
+      "The raiders got no manners. Fix that, and I'll pay better than the city."
+    ]
+  }
+}
