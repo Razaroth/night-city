@@ -184,6 +184,39 @@
   <div class="rfx-sub">you are breathing again</div>
 </div>
 
+<!-- ============ COMBAT OVERLAY ============ -->
+<div id="combatfx" class="hidden">
+  <div class="cfx-lines"></div>
+  <div class="cfx-panel">
+    <header class="cfx-head">
+      <span class="cfx-title">HOSTILE CONTACT</span>
+      <span class="cfx-clk" id="cfx-clk"></span>
+    </header>
+    <div class="cfx-body">
+      <div class="cfx-you">
+        <div class="cfx-youtag">YOU</div>
+        <div class="cfx-bar">
+          <div class="cfx-lbl"><span>HP</span><b class="cfx-val" id="cfx-hp-txt">-/-</b></div>
+          <div class="cfx-track"><i id="cfx-hp" style="width:100%"></i></div>
+        </div>
+        <div class="cfx-bar">
+          <div class="cfx-lbl"><span>STAM</span><b class="cfx-val" id="cfx-stam-txt">-/-</b></div>
+          <div class="cfx-track"><i id="cfx-stam" style="width:100%"></i></div>
+        </div>
+        <div class="cfx-buffs" id="cfx-buffs">
+          <span data-b="defend">DEFEND</span>
+          <span data-b="dodge">EVADE</span>
+          <span data-b="sandevistan">SANDY</span>
+          <span data-b="berserk">RAGE</span>
+        </div>
+      </div>
+      <div class="cfx-vs">VS</div>
+      <div class="cfx-foes" id="cfx-foes"></div>
+    </div>
+    <footer class="cfx-acts" id="cfx-acts"></footer>
+  </div>
+</div>
+
 <script src="app.js"></script>
 </body>
 </html>

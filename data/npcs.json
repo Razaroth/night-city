@@ -148,14 +148,14 @@
   },
   "tyger-1": {
     "id": "tyger-1", "name": "Tyger Claw thug", "kind": "hostile", "faction": "Tyger Claws", "level": 2,
-    "stats": { "body": 5, "reflexes": 6, "tech": 2, "intel": 3, "cool": 4 }, "weapon": "unity", "armor": 3, "maxhp": 55,
+    "stats": { "body": 5, "reflexes": 6, "tech": 2, "intel": 3, "cool": 4 }, "weapon": "unity", "armor": 3, "maxhp": 48,
     "eddies": [25, 70],
     "loot": [{ "id": "unity", "chance": 0.25, "qty": [1, 1] }, { "id": "data-shard", "chance": 0.4, "qty": [1, 2] }],
     "desc": "A Tyger Claw in ceremonial wraps, tapping a katana hilt like a nervous tic."
   },
   "tyger-2": {
     "id": "tyger-2", "name": "Tyger Claw enforcer", "kind": "hostile", "faction": "Tyger Claws", "level": 3,
-    "stats": { "body": 6, "reflexes": 7, "tech": 3, "intel": 4, "cool": 5 }, "weapon": "machete", "armor": 5, "maxhp": 75,
+    "stats": { "body": 6, "reflexes": 7, "tech": 3, "intel": 4, "cool": 5 }, "weapon": "machete", "armor": 5, "maxhp": 68,
     "eddies": [40, 90],
     "loot": [{ "id": "machete", "chance": 0.5, "qty": [1, 1] }, { "id": "data-shard", "chance": 0.5, "qty": [1, 3] }],
     "desc": "A wide-shouldered claw with serrated wrist-blades and a smile that sharpens them."
@@ -184,21 +184,21 @@
   },
   "scav-1": {
     "id": "scav-1", "name": "Scav cutter", "kind": "hostile", "faction": "Scavengers", "level": 2,
-    "stats": { "body": 5, "reflexes": 5, "tech": 5, "intel": 4, "cool": 3 }, "weapon": "unity", "armor": 2, "maxhp": 50,
+    "stats": { "body": 5, "reflexes": 5, "tech": 5, "intel": 4, "cool": 3 }, "weapon": "unity", "armor": 2, "maxhp": 46,
     "eddies": [20, 60],
     "loot": [{ "id": "unity", "chance": 0.4, "qty": [1, 1] }, { "id": "kleenex", "chance": 0.4, "qty": [1, 1] }],
     "desc": "A scav wearing a hospital gown under a tactical vest, scalpel-bright eyes sizing up your chrome."
   },
   "scav-2": {
     "id": "scav-2", "name": "Scav butcher", "kind": "hostile", "faction": "Scavengers", "level": 3,
-    "stats": { "body": 7, "reflexes": 4, "tech": 6, "intel": 3, "cool": 4 }, "weapon": "machete", "armor": 4, "maxhp": 75,
+    "stats": { "body": 7, "reflexes": 4, "tech": 6, "intel": 3, "cool": 4 }, "weapon": "machete", "armor": 4, "maxhp": 68,
     "eddies": [30, 90],
     "loot": [{ "id": "machete", "chance": 0.5, "qty": [1, 1] }, { "id": "relic-chip", "chance": 0.15, "qty": [1, 1] }],
     "desc": "A big scav in a blood-spattered apron, a mono-wire glinting where their smile should be."
   },
   "valentino-1": {
     "id": "valentino-1", "name": "Valentino hermano", "kind": "hostile", "faction": "Valentinos", "level": 3,
-    "stats": { "body": 6, "reflexes": 5, "tech": 2, "intel": 3, "cool": 6 }, "weapon": "lexington", "armor": 5, "maxhp": 65,
+    "stats": { "body": 6, "reflexes": 5, "tech": 2, "intel": 3, "cool": 6 }, "weapon": "lexington", "armor": 5, "maxhp": 58,
     "eddies": [35, 80],
     "loot": [{ "id": "lexington", "chance": 0.4, "qty": [1, 1] }, { "id": "data-shard", "chance": 0.4, "qty": [1, 2] }],
     "desc": "A rosary-knuckled Valentino with an ice-cream grin and a full-auto sense of humor."
@@ -268,7 +268,7 @@
   },
   "raider-1": {
     "id": "raider-1", "name": "Nomad raider", "kind": "hostile", "faction": "Wraiths", "level": 3,
-    "stats": { "body": 6, "reflexes": 6, "tech": 4, "intel": 3, "cool": 5 }, "weapon": "bat", "armor": 4, "maxhp": 70,
+    "stats": { "body": 6, "reflexes": 6, "tech": 4, "intel": 3, "cool": 5 }, "weapon": "bat", "armor": 4, "maxhp": 62,
     "eddies": [30, 80],
     "loot": [{ "id": "bat", "chance": 0.5, "qty": [1, 1] }, { "id": "data-shard", "chance": 0.4, "qty": [1, 2] }],
     "desc": "A ragged raider holding a wrench and a grudge against whoever's reading this description."

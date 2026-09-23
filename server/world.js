@@ -63,7 +63,7 @@ export class WorldState {
       diedAt: 0,
       respawnAt: 0,
       threat: {},          // playerId -> threat score
-      attackAt: 0,         // next allowed attack time
+      attackAt: def.kind === 'hostile' ? Date.now() + 400 + Math.floor(Math.random() * 1800) : 0,
       statuses: [],        // {kind, until}
       specialAt: 0
     }

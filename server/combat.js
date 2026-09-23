@@ -14,8 +14,8 @@ function governingStat (p, skill) {
   return a[key]
 }
 
-function hitChance (attr, level, evasion, windMod = 0) {
-  let c = 0.6 + 0.025 * attr + 0.012 * level - evasion + windMod
+function hitChance (attr, level, evasion, windMod = 0, base = 0.6) {
+  let c = base + 0.025 * attr + 0.012 * Math.min(6, level) - evasion + windMod
   return Math.max(0.12, Math.min(0.95, c))
 }
 
@@ -132,13 +132,13 @@ export function enemyAttack (inst, target, now) {
   speed = Math.max(300, speed)
   inst.attackAt = now + speed
   const eff = computeStats(target)
-  const evasion = 0.08 + eff.dodge / 100 + (target.buff?.dodgeUntil && now < target.buff.dodgeUntil ? 0.6 : 0)
-  const chance = hitChance((inst.def.stats[governingStat(target, wep.skill)] || 6), inst.def.level, Math.min(0.55, evasion))
+  const evasion = 0.06 + eff.dodge / 100 + (target.buff?.dodgeUntil && now < target.buff.dodgeUntil ? 0.6 : 0)
+  const chance = hitChance((inst.def.stats[governingStat(target, wep.skill)] || 6), inst.def.level, Math.min(0.5, evasion), 0, 0.5)
   target.stam = Math.max(0, target.stam - 1)
   if (Math.random() > chance) {
     return { desc: `${inst.def.name} swings at you — you slip out of the way.` }
   }
-  let dmg = rand(wep.dmg[0], wep.dmg[1]) + Math.floor(inst.def.level * 0.9)
+  let dmg = rand(wep.dmg[0], wep.dmg[1]) + Math.floor(inst.def.level * 0.6)
   if (enraged) dmg = Math.floor(dmg * 1.4)
   const crit = Math.random() < (wep.crit || 0) / 100 + inst.def.level * 0.004
   const res = applyDamageTo(target, dmg, { dr: eff.dr, pen: wep.pen || 0, crit, defending: target.buff?.defendUntil && now < target.buff.defendUntil, defendingPercent: target.buff?.defendUntil && now < target.buff.defendUntil ? 0.4 : 0 })

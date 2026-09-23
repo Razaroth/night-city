@@ -308,6 +308,8 @@ export class Game {
       npcs.push({
         id: inst.id, name: d.name, kind: d.kind, faction: d.faction, danger: d.danger ?? 'neutral',
         desc: d.desc, hpPct: d.kind === 'hostile' ? Math.round(inst.hp / inst.maxhp * 100) : null,
+        hp: d.kind === 'hostile' ? inst.hp : null,
+        maxhp: d.kind === 'hostile' ? inst.maxhp : null,
         stunned: inst.statuses.some(s => s.kind === 'stun' && now < s.until),
         burning: inst.statuses.some(s => s.kind === 'burn' || s.kind === 'poison')
       })

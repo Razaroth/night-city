@@ -83,6 +83,24 @@ battery, and `nc-gameplay.mjs` (WS bot using real world data; see test files):
   in headless chromium: register→create→game→LOGOUT→auth screen, localStorage
   cleared, and a `resume` with the revoked token is rejected
   ("Session expired. Log in again.").
+- **Combat overlay (new)**: while hostiles are present the client shows a big
+  animated HOSTILE CONTACT panel over the play area (`client/index.html`
+  `#combatfx`, styled in `client/style.css`, driven by `openCombat()` in
+  `client/app.js`). Shows player HP/STAM bars + active buffs, per-foe cards with
+  animated HP bar + ATK/HACK/SCAN buttons, and a footer action bar
+  (DEFEND/EVADE/GRENADE/STIM/SCAN wired to `cmd()`). Pulsing red danger frame,
+  scanline sweep, glitch title, foe entrance pop, shake on player damage, and
+  floating combat numbers (-N on you, -N/'✕' on foes). Room payload now carries
+  per-hostile `hp`/`maxhp` so bars update on every push. Verified live in headless
+  chromium: overlay appears in combat, ATK updates bars (tyger 50→34), DEFEND adds
+  buff, no console errors; pixel-confirmed in a screenshot. Difficulty also eased
+  for low-level mobs: enemies now use hit base 0.5 (was 0.6, shared `hitChance`)
+  with reduced level damage scaling (`level*0.6` vs `0.9`), spawn with a staggered
+  initial `attackAt` (400–2200ms random) so rooms don't alpha-strike tick 1, and
+  the weakest hostiles were trimmed (tyger-1 55→48, tyger-2 75→68, scav-1 50→46,
+  scav-2 75→68, valentino-1 65→58, raider-1 70→62). `nc-diff-sim.mjs` measures
+  ~99–100% win vs. single low mobs and ~54% trading straight-up (86% with a
+  stimpack) vs. the 2-tyger Watson fight.
 - **Attribute double-add (RESOLVED — root cause found)**: `makeNewPlayer` in
   `server/player.js` did `attrs[a] = 3 + v`, treating the create-form value as a
   *bonus on top of* the base 3, while the engine's charCreate validation and the

@@ -81,7 +81,7 @@ function handle (msg) {
     case 'charCreated': toast('Runner on file: ' + msg.name, 'good'); break
     case 'entered': onEntered(msg); break
     case 'room': S.room = msg; onRoom(msg); break
-    case 'state': S.char = msg.state; renderHud(); renderVitals(); renderAttrs(); renderQuickbar(); break
+    case 'state': S.char = msg.state; renderHud(); renderVitals(); renderAttrs(); renderQuickbar(); openCombat(); break
     case 'inv': S.inv = msg; renderInventory(); renderEquipment(); renderQuickhacks(); renderQuickbar(); break
     case 'jobs': S.jobs = msg; renderJobs(); renderActions(); break
     case 'shop': S.shop = msg; openShop(); break
@@ -122,6 +122,7 @@ function onLogout () {
   S.creation = null
   if (S.deathTimer) { clearInterval(S.deathTimer); S.deathTimer = null }
   $('#deathveil').classList.add('hidden')
+  $('#combatfx').classList.add('hidden')
   $('#auth-pass').value = ''
   $('#auth-err').textContent = ''
   showScreen('auth')
@@ -136,12 +137,131 @@ function onEntered (msg) {
   $('#deathveil').classList.add('hidden')
 }
 
+/* ================= combat overlay ================= */
+let cfxPrevHp = null
+let cfxPrevFoe = {}
+
+function openCombat () {
+  const hostiles = (S.room?.npcs || []).filter(n => n.kind === 'hostile')
+  const fx = $('#combatfx')
+  if (!hostiles.length || !S.char) {
+    fx.classList.add('hidden')
+    cfxPrevHp = null
+    cfxPrevFoe = {}
+    return
+  }
+  fx.classList.remove('hidden')
+  $('#cfx-clk').textContent = S.room.clock || ''
+  const s = S.char
+  const setBar = (id, val, max) => {
+    const el = $(id)
+    el.style.width = Math.max(0, Math.min(100, max ? (val / max) * 100 : 0)) + '%'
+    return el
+  }
+  setBar('#cfx-hp', s.hp, s.maxHp)
+  $('#cfx-hp-txt').textContent = `${s.hp} / ${s.maxHp}`
+  setBar('#cfx-stam', s.stam, s.maxStam)
+  $('#cfx-stam-txt').textContent = `${s.stam} / ${s.maxStam}`
+  const b = s.buffs || {}
+  for (const [k, el] of [['defend', '#cfx-buffs [data-b="defend"]'], ['dodge', '#cfx-buffs [data-b="dodge"]'], ['sandevistan', '#cfx-buffs [data-b="sandevistan"]'], ['berserk', '#cfx-buffs [data-b="berserk"]']]) {
+    $(el).classList.toggle('on', !!b[k])
+  }
+  // player took damage → float
+  if (cfxPrevHp != null && s.hp < cfxPrevHp) {
+    const d = cfxPrevHp - s.hp
+    const f = $(`#combatfx .cfx-you`)
+    spawnFloat(f, -d, 'theirs')
+    fx.classList.remove('shake'); void fx.offsetWidth; fx.classList.add('shake')
+  }
+  cfxPrevHp = s.hp
+
+  // foes — build/refresh cards in place so HP bars animate
+  const foesEl = $('#cfx-foes')
+  const qh = S.inv?.quickhacks?.[0]
+
+  const existing = {}
+  foesEl.querySelectorAll('.cfx-foe').forEach(c => { existing[c.dataset.foe] = c })
+
+  // remove foes that left
+  for (const id of Object.keys(existing)) {
+    if (!hostiles.some(h => h.id === id)) existing[id].remove()
+  }
+
+  for (const h of hostiles) {
+    let card = existing[h.id]
+    if (!card) {
+      card = document.createElement('div')
+      card.className = 'cfx-foe'
+      card.dataset.foe = h.id
+      card.innerHTML = `<div class="cfx-fname">${esc(h.name).toUpperCase()}<small>${esc(h.faction)}</small></div>
+        <div class="cfx-fbar"><i style="width:${h.hpPct ?? 100}%"></i><b>${h.hp} / ${h.maxhp}</b></div>
+        <div class="cfx-fbtns">
+          <button class="atk" data-cmd="attack ${esc(h.id)}">⚔ ATK</button>
+          <button data-cmd="look ${esc(h.id)}">SCAN</button>
+        </div>`
+      foesEl.appendChild(card)
+      card.querySelector('.cfx-fbtns').innerHTML =
+        `<button class="atk" data-cmd="attack ${esc(h.id)}">⚔ ATK</button>` +
+        (qh ? `<button data-cmd="hack ${esc(qh.id)} ${esc(h.id)}">HACK</button>` : `<button disabled>HACK</button>`) +
+        `<button data-cmd="look ${esc(h.id)}">SCAN</button>`
+      bindCmdButtons(card)
+    }
+    card.classList.toggle('boss', h.danger === 'boss')
+    card.classList.toggle('stunned', !!h.stunned)
+    const bar = card.querySelector('.cfx-fbar i')
+    bar.style.width = (h.hpPct ?? 100) + '%'
+    card.querySelector('.cfx-fbar b').textContent = `${h.hp} / ${h.maxhp}`
+    card.querySelector('.cfx-fname small').textContent =
+      esc(h.faction) + (h.burning ? ' • BURN' : '') + (h.stunned ? ' • STUNNED' : '') +
+      (h.danger === 'boss' ? ' • BOSS' : '')
+  }
+
+  // enemy lost hp → float
+  const now = {}
+  for (const h of hostiles) now[h.id] = h.hp
+  for (const id in cfxPrevFoe) {
+    if (now[id] == null && cfxPrevFoe[id] > 0) {
+      const card = foesEl.querySelector(`[data-foe="${CSS.escape(id)}"]`)
+      if (card) { spawnFloat(card, '✕', 'crit'); card.classList.add('dead') }
+    } else if (now[id] != null && now[id] < cfxPrevFoe[id]) {
+      const card = foesEl.querySelector(`[data-foe="${CSS.escape(id)}"]`)
+      if (card) spawnFloat(card, '-' + (cfxPrevFoe[id] - now[id]), 'mine')
+    }
+  }
+  cfxPrevFoe = now
+
+  const acts = $('#cfx-acts')
+  const gre = (S.inv?.stacks || []).find(i => i.category === 'grenades')
+  const stim = (S.inv?.stacks || []).find(i => i.category === 'consumables' && i.heal)
+  acts.innerHTML =
+    `<button data-cmd="defend">🛡 DEFEND</button>` +
+    `<button data-cmd="dodge">💨 EVADE</button>` +
+    (gre ? `<button data-cmd="grenade ${esc(gre.id)}">💣 GRENADE</button>` : `<button disabled>💣 GRENADE</button>`) +
+    (stim ? `<button data-cmd="use ${esc(stim.uid)}">💉 STIM</button>` : `<button disabled>💉 STIM</button>`) +
+    `<button data-cmd="look">📡 SCAN</button>`
+  bindCmdButtons(acts)
+}
+
+function spawnFloat (anchor, text, cls) {
+  const fx = $('#combatfx')
+  if (!fx || fx.classList.contains('hidden')) return
+  const f = document.createElement('div')
+  f.className = 'cfx-float ' + cls
+  f.textContent = text
+  const r = anchor.getBoundingClientRect()
+  f.style.left = (r.left + r.width / 2 + (Math.random() * 40 - 20)) + 'px'
+  f.style.top = (r.top + 8) + 'px'
+  fx.appendChild(f)
+  setTimeout(() => f.remove(), 950)
+}
+
 function onRoom (msg) {
   $('#deathveil').classList.add('hidden')
   if (S.deathTimer) { clearInterval(S.deathTimer); S.deathTimer = null }
   renderScene(msg)
   renderActions()
   renderMinimap()
+  openCombat()
 }
 
 function onDeath (msg) {
