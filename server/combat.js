@@ -128,8 +128,8 @@ export function enemyAttack (inst, target, now) {
   const wep = getItemDef(inst.def.weapon) || getItemDef('fists')
   if (now < (inst.attackAt || 0)) return null
   const enraged = inst.def.danger === 'boss' && inst.hp < inst.maxhp * 0.4
-  let speed = wep.speed * (enraged ? 0.7 : 1)
-  speed = Math.max(300, speed)
+  let speed = wep.speed * 1.6 * (enraged ? 0.7 : 1)
+  speed = Math.max(500, speed)
   inst.attackAt = now + speed
   const eff = computeStats(target)
   const evasion = 0.06 + eff.dodge / 100 + (target.buff?.dodgeUntil && now < target.buff.dodgeUntil ? 0.6 : 0)
