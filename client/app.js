@@ -318,38 +318,74 @@ function renderBreachGrid (msg) {
       return b
     })
   }
-  // mark used cells + current row/col hint
+
   const lastIdx = [...msg.cells].reverse().find(c => c.used)
   const last = lastIdx ? msg.cells[lastIdx.i] : null
   msg.cells.forEach(cell => {
     const el = breachGrid[cell.i]
     el.classList.toggle('used', cell.used)
   })
-  breachGrid.forEach(el => el.classList.remove('ok'))
-  breachGrid.forEach(el => {
-    const idx = Number(el.dataset.i)
-    const cell = msg.cells[idx]
-    if (cell.used) return
-    const r = Number(el.dataset.r)
-    const c = Number(el.dataset.c)
-    if (!last) {
-      if (r === 0) el.classList.add('ok')
+
+  // which row/column is legal for the NEXT pick: start top row, then alternate
+  let active = { type: 'row', idx: 0 }
+  const n = msg.codes.length
+  if (n > 0) active = (n % 2 === 1) ? { type: 'col', idx: last.c } : { type: 'row', idx: last.r }
+
+  // daemon progress: completed daemons sit at the buffer tail first, then the
+  // current target builds left-to-right. `placed` = how many of the target's
+  // codes are already in the buffer; the next needed code is the one after.
+  const uploadedLen = msg.daemons.reduce((s, d) => s + (d.uploaded ? d.seq.length : 0), 0)
+  const targetIdx = msg.daemons.findIndex(d => !d.uploaded)
+  const daemonInfo = msg.daemons.map((d, k) => {
+    let placed = 0
+    let next = null
+    if (d.uploaded) {
+      placed = d.seq.length
+    } else if (k === targetIdx) {
+      placed = Math.max(0, Math.min(n - uploadedLen, d.seq.length))
+      next = placed < d.seq.length ? d.seq[placed] : null
+    }
+    return { d, placed, next, done: d.uploaded }
+  })
+  const candCodes = new Set()
+  for (const info of daemonInfo) if (info.next) candCodes.add(info.next)
+
+  breachGrid.forEach((el, i) => {
+    el.classList.remove('ok', 'cand', 'off')
+    const cell = msg.cells[i]
+    if (!cell || cell.used) { el.disabled = true; return }
+    const r = Number(el.dataset.r), c = Number(el.dataset.c)
+    const inActive = active.type === 'row' ? r === active.idx : c === active.idx
+    if (!inActive) {
+      el.classList.add('off'); el.disabled = true
     } else {
-      const vertical = msg.codes.length % 2 === 1
-      if (vertical ? c === last.c : r === last.r) el.classList.add('ok')
+      el.disabled = false
+      el.classList.add('ok')
+      if (candCodes.has(cell.v)) el.classList.add('cand')
     }
   })
 
-  // daemon targets
-  $('#breach-daemons').innerHTML = msg.daemons.map((d, k) =>
-    `<div class="bd-item ${d.uploaded ? 'up' : ''}"><span class="bd-label">DAEMON ${k + 1}</span>` +
-    d.seq.map(v => `<i class="bd-code">${esc(v)}</i>`).join('') +
-    (d.uploaded ? '<em class="bd-done">✓ UPLOADED</em>' : '') + '</div>').join('')
+  const instr = active.type === 'row'
+    ? (n === 0 ? 'START HERE — PICK FROM THE TOP ROW' : `PICK ACROSS — SAME ROW ${active.idx + 1}`)
+    : `PICK DOWN — SAME COLUMN ${active.idx + 1}`
+  const instrEl = $('#breach-instr')
+  if (instrEl) instrEl.textContent = instr
 
-  // buffer: slot count vs used
+  $('#breach-daemons').innerHTML = daemonInfo.map((info, k) =>
+    `<div class="bd-item ${info.done ? 'up' : ''}"><span class="bd-label">DAEMON ${k + 1}</span>` +
+    info.d.seq.map((v, s) => {
+      const isNext = !info.done && s === info.placed
+      const consumed = s < info.placed || info.done
+      return `<i class="bd-code${consumed ? ' hit' : ''}${isNext ? ' next' : ''}">${esc(v)}</i>`
+    }).join('') +
+    (info.done ? '<em class="bd-done">✓ UPLOADED</em>' : '') + '</div>').join('')
+
   const buf = $('#breach-buffer')
   let slots = ''
-  for (let i = 0; i < msg.buffer; i++) slots += `<i class="${i < msg.codes.length ? 'full' : ''}"></i>`
+  for (let i = 0; i < msg.buffer; i++) {
+    const val = i < msg.codes.length ? esc(msg.codes[i]) : ''
+    slots += `<i class="${i < msg.codes.length ? 'full' : ''}">${val}</i>`
+  }
   buf.innerHTML = `<span class="buf-lbl">BUFFER</span>${slots}<span class="buf-n">${msg.codes.length}/${msg.buffer}</span>`
 
   updateBreachTimer(msg.tLeft)
