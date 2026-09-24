@@ -71,6 +71,34 @@ export class WorldState {
     return inst
   }
 
+  spawnTemporaryInstance (nid, roomId, def, runId) {
+    const hpScale = Math.pow(1.06, Math.max(0, def.level - 1))
+    const inst = {
+      id: nid,
+      roomId,
+      def,
+      hp: Math.floor(def.maxhp * hpScale),
+      maxhp: Math.floor(def.maxhp * hpScale),
+      alive: true,
+      diedAt: 0,
+      respawnAt: 0,
+      threat: {},
+      attackAt: Date.now() + 700 + Math.floor(Math.random() * 2000),
+      statuses: [],
+      specialAt: 0,
+      attackSpeedMult: 1.25,
+      instanceRunId: runId
+    }
+    this.npcs.set(nid, inst)
+    return inst
+  }
+
+  removeTemporaryInstances (runId) {
+    for (const [id, inst] of this.npcs) {
+      if (inst.instanceRunId === runId) this.npcs.delete(id)
+    }
+  }
+
   instance (nid) {
     return this.npcs.get(nid)
   }
@@ -91,6 +119,7 @@ export class WorldState {
   kill (instance, now) {
     instance.alive = false
     instance.diedAt = now
+    if (instance.instanceRunId) return
     const def = instance.def
     const respawnSec = def.danger === 'boss' ? 600 : (def.kind === 'hostile' ? 90 : 30)
     instance.respawnAt = now + respawnSec * 1000

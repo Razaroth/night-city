@@ -157,7 +157,7 @@ class Sims {
     const roomsWithExits = Object.values(rooms).filter(r => r.exits && Object.keys(r.exits).length)
     const hubs = Object.values(HUB_ROOMS)
     const pool = [...roomsWithExits.map(r => r.id)]
-    const count = 22
+    const count = 8
 
     for (let i = 0; i < count; i++) {
       // biased start: hubs get priority so districts feel lived-in

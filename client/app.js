@@ -95,6 +95,14 @@ function handle (msg) {
     case 'entered': onEntered(msg); break
     case 'room': S.room = msg; onRoom(msg); break
     case 'state': S.char = msg.state; renderHud(); renderVitals(); renderAttrs(); renderQuickbar(); openCombat(); refreshPerks(); refreshSheet(); break
+    case 'combatEnd': {
+      if (S.room && (!msg.roomId || msg.roomId === S.room.id)) {
+        S.room.npcs = (S.room.npcs || []).filter(n => n.kind !== 'hostile')
+        S.room.inCombat = false
+        closeCombat()
+      }
+      break
+    }
     case 'inv': S.inv = msg; renderInventory(); renderEquipment(); renderQuickhacks(); renderQuickbar(); refreshSheet(); break
     case 'jobs': S.jobs = msg; renderJobs(); renderActions(); break
     case 'shop': S.shop = msg; openShop(); break
@@ -159,11 +167,10 @@ function openCombat () {
   const hostiles = (S.room?.npcs || []).filter(n => n.kind === 'hostile')
   const fx = $('#combatfx')
   if (!hostiles.length || !S.char) {
-    fx.classList.add('hidden')
-    cfxPrevHp = null
-    cfxPrevFoe = {}
+    closeCombat()
     return
   }
+  fx.style.display = 'flex'
   fx.classList.remove('hidden')
   $('#cfx-clk').textContent = S.room.clock || ''
   const s = S.char
@@ -214,7 +221,7 @@ function openCombat () {
     }
     card.classList.toggle('boss', h.danger === 'boss')
     card.classList.toggle('stunned', !!h.stunned)
-    const status = (h.burning ? ' • BURN' : '') + (h.stunned ? ' • STUN' : '') + (h.blinded ? ' • BLIND' : '') + (h.weakened ? ' • WEAK' : '') + (h.danger === 'boss' ? ' • BOSS' : '')
+    const status = ` • LV${h.level ?? 1}` + (h.burning ? ' • BURN' : '') + (h.stunned ? ' • STUN' : '') + (h.blinded ? ' • BLIND' : '') + (h.weakened ? ' • WEAK' : '') + (h.danger === 'boss' ? ' • BOSS' : '')
     const hackBtns = hacks.map(q =>
       `<button data-cmd="hack ${esc(q.id)} ${esc(h.id)}" ${hasDeck && ram >= (q.ram || 0) ? '' : 'disabled'} title="${esc(q.name)} (${q.ram || 0} RAM)">${esc(q.name)}</button>`).join('')
     card.innerHTML = `<div class="cfx-fname">${esc(h.name).toUpperCase()}<small>${esc(h.faction)}${status}</small></div>
@@ -247,13 +254,28 @@ function openCombat () {
   const acts = $('#cfx-acts')
   const gre = (S.inv?.stacks || []).find(i => i.category === 'grenades')
   const stim = (S.inv?.stacks || []).find(i => i.category === 'consumables' && i.heal)
+  const fleeBtns = (S.room?.exits || [])
+    .filter(e => !(S.room.specialMission && S.room.inCombat && e.dir === 'e'))
+    .map(e => `<button class="flee" data-cmd="${esc(e.dir)}" title="Leave via ${esc(e.toName)}">FLEE ${esc(e.name.toUpperCase())}</button>`).join('')
   acts.innerHTML =
     `<button data-cmd="defend">🛡 DEFEND</button>` +
-    `<button data-cmd="dodge">💨 EVADE</button>` +
+    `<button data-cmd="dodge" title="Dodge attacks for 2.5 seconds; you stay in this room">💨 DODGE</button>` +
     (gre ? `<button data-cmd="grenade ${esc(gre.id)}">💣 GRENADE</button>` : `<button disabled>💣 GRENADE</button>`) +
     (stim ? `<button data-cmd="use ${esc(stim.uid)}">💉 STIM</button>` : `<button disabled>💉 STIM</button>`) +
-    `<button data-cmd="look">📡 SCAN</button>`
+    `<button data-cmd="look">📡 SCAN</button>` + fleeBtns
   bindCmdButtons(acts)
+}
+
+function closeCombat () {
+  const fx = $('#combatfx')
+  if (!fx) return
+  fx.classList.add('hidden')
+  fx.style.display = 'none'
+  fx.classList.remove('shake')
+  $('#cfx-foes').replaceChildren()
+  $('#cfx-acts').replaceChildren()
+  cfxPrevHp = null
+  cfxPrevFoe = {}
 }
 
 function spawnFloat (anchor, text, cls) {
@@ -417,7 +439,12 @@ function onRoom (msg) {
   renderScene(msg)
   renderActions()
   renderMinimap()
-  openCombat()
+  if ((msg.npcs || []).some(n => n.kind === 'hostile') && S.char) openCombat()
+  else closeCombat()
+  if (!$('#mapmodal').classList.contains('hidden')) {
+    if (msg.specialMission) renderSpecialMissionMap()
+    else closeMap()
+  }
   mapRouteCheck(msg)
 }
 
@@ -638,7 +665,9 @@ function renderScene (room) {
   const d = S.world.districts[room.district]
   document.documentElement.style.setProperty('--district', d?.color || '#4ae7ff')
   $('#scene').dataset.district = room.district
-  $('#scene-district').textContent = (d?.name || room.district).toUpperCase()
+  $('#scene-district').textContent = room.specialMission
+    ? `SPECIAL MISSION • STAGE ${room.specialMission.room}/${room.specialMission.total}`
+    : (d?.name || room.district).toUpperCase()
   $('#scene-room').textContent = room.name
   $('#scene-weather').textContent = (room.clock || '') + '  •  ' + (room.weather || '')
   if (room.clock) $('#hud-clock').textContent = room.clock
@@ -666,7 +695,7 @@ function renderActions () {
     const hackBtns = hacks.map(q =>
       `<button data-cmd="hack ${esc(q.id)} ${esc(n.id)}" ${hasDeck && ram >= (q.ram || 0) ? '' : 'disabled'} title="${esc(q.name)} (${q.ram || 0} RAM)">${esc(q.name)}</button>`).join('')
     html += `<div class="${cls}">
-      <div class="nname">${esc(n.name)}<small>${esc(n.faction)}${status}</small>
+      <div class="nname">${esc(n.name)}<small>${esc(n.faction)} • LV${n.level ?? 1}${status}</small>
         <div class="hpbar"><i style="width:${n.hpPct ?? 100}%"></i></div></div>
       <div class="npc-btns">
         <button data-cmd="attack ${esc(n.id)}">ATK</button>
@@ -726,11 +755,15 @@ function renderEquipment () {
   const inv = S.inv
   if (!inv) return
   const slot = (label, st) => `<div class="eq-slot"><span class="sl">${label}</span><span class="it ${st ? '' : 'empty'}">${st ? esc(st.name) : '— empty —'}</span></div>`
-  const arms = (inv.cyberware || []).find(c => c.slot === 'arms')
+  const chrome = inv.cyberware || []
+  const chromeRows = chrome.length
+    ? chrome.map(c => `<div class="eq-slot chrome-slot"><span class="sl">${esc((c.slot || 'unknown').toUpperCase())}</span><span class="it">${esc(c.name)}<small>CAP ${c.capacity ?? 0} • HUMANITY ${c.humanity ?? 0}</small></span></div>`).join('')
+    : '<div class="empty-note">No chrome installed.</div>'
   $('#equipment').innerHTML =
     slot('HANDS', inv.equip.hands) +
     slot('BODY', inv.equip.chest) +
-    slot('ARMS', arms || null)
+    `<div class="eq-chrome-head">INSTALLED CHROME <span>${chrome.length}</span></div>` +
+    chromeRows
 }
 
 function renderInventory () {
@@ -790,11 +823,22 @@ function renderJobs () {
   const here = j.gigs.filter(g => fixersHere.includes(g.fixer))
   const others = j.gigs.filter(g => !fixersHere.includes(g.fixer))
   let html = ''
-  if (!here.length) html += '<div class="empty-note">Find a fixer for gigs. (Wakako, Padre, Rogue, Dakota, El Capitán)</div>'
-  for (const g of here) html += jobCard(g, true)
-  for (const g of others) html += jobCard(g, false)
+  if (!j.gigs.length) html += '<div class="empty-note">All available gigs are complete. Keep an eye out for new contracts.</div>'
+  else {
+    if (!here.length) html += '<div class="empty-note">Find a fixer for gigs. (Wakako, Padre, Rogue, Dakota, El Capitán)</div>'
+    for (const g of here) html += jobCard(g, true)
+    for (const g of others) html += jobCard(g, false)
+  }
+  if (j.specialMissions?.length) {
+    html += '<div class="special-heading">SPECIAL MISSION</div>'
+    for (const m of j.specialMissions) html += specialMissionCard(m)
+  }
   $('#jobs').innerHTML = html
   $('#jobs').querySelectorAll('[data-gig]').forEach(b => b.onclick = () => cmd('accept ' + b.dataset.gig))
+  $('#jobs').querySelectorAll('[data-special]').forEach(b => b.onclick = () => {
+    const action = b.dataset.special === 'leave' ? 'special leave' : 'special enter ' + b.dataset.special
+    cmd(action)
+  })
 }
 function jobCard (g, fixerHere) {
   const status = g.status === 'active' ? `ACTIVE ${g.prog}/${g.total}` : g.status === 'cooldown' ? 'ON COOLDOWN' : 'AVAILABLE'
@@ -804,6 +848,28 @@ function jobCard (g, fixerHere) {
     <div class="jd">${esc(g.desc)}</div>
     <div class="jm"><span>${status}</span><span>${g.rewardEddies}€$ • ${g.rewardXp}xp • ${g.rep}rep</span></div>
     <button data-gig="${esc(g.id)}" ${can ? '' : 'disabled'}>${can ? 'ACCEPT' : (fixerHere ? status : 'FIXER ELSEWHERE')}</button></div>`
+}
+function specialMissionCard (m) {
+  const status = m.status === 'active'
+    ? `ACTIVE • ROOM ${m.progress.room}/${m.progress.total}`
+    : m.status === 'completed'
+      ? 'COMPLETE • EXTRACT'
+      : m.status === 'cooldown'
+        ? `REBOOT ${Math.ceil(m.cooldownMs / 60000)}m`
+        : m.status === 'needs-contract'
+          ? ((S.char?.level || 1) < m.minLevel ? `LEVEL ${m.minLevel}+ • CONTRACT REQUIRED` : 'CONTRACT REQUIRED • ROGUE')
+        : m.replayOnly
+          ? 'REPLAY • CONTRACT PAID'
+          : `LEVEL ${m.minLevel}+ • AVAILABLE`
+  const canEnter = m.status === 'available' && (S.char?.level || 1) >= m.minLevel
+  const inside = m.status === 'active' || m.status === 'completed'
+  const enabled = canEnter || inside
+  const button = inside ? 'EXTRACT' : canEnter ? (m.replayOnly ? 'REPLAY' : 'JACK IN') : m.status === 'needs-contract' ? ((S.char?.level || 1) < m.minLevel ? 'LEVEL LOCKED' : 'ACCEPT GIG AT ROGUE') : (m.status === 'cooldown' ? 'REBOOTING' : 'LEVEL LOCKED')
+  const command = inside ? 'leave' : m.id
+  return `<div class="job special-job ${inside ? 'active' : ''}"><div class="jt">${esc(m.title)}</div>
+    <div class="jd">${esc(m.desc)}</div>
+    <div class="jm"><span>${status}</span><span>${m.rewardEddies}€$ • ${m.rewardXp}xp • ${m.rewardRep}rep</span></div>
+    <button data-special="${esc(command)}" ${enabled ? '' : 'disabled'}>${button}</button></div>`
 }
 
 /* ================= city map ================= */
@@ -1023,6 +1089,21 @@ function renderMinimap () {
   const cv = $('#minimap')
   const rooms = mapRooms()
   if (!cv || !rooms.length) return
+  const mapBtn = $('#qmap-btn')
+  if (S.room?.specialMission) {
+    cv.style.display = 'none'
+    $('#legend').textContent = 'ISOLATED INSTANCE • ' + S.room.specialMission.room + '/' + S.room.specialMission.total
+    if (mapBtn) {
+      mapBtn.disabled = false
+      mapBtn.textContent = 'MISSION MAP ▦'
+    }
+    return
+  }
+  cv.style.display = ''
+  if (mapBtn) {
+    mapBtn.disabled = false
+    mapBtn.textContent = 'OPEN MAP ▦'
+  }
   const pan = cv.parentElement
   const ps = getComputedStyle(pan)
   const padW = (parseFloat(ps.paddingLeft) || 0) + (parseFloat(ps.paddingRight) || 0)
@@ -1096,9 +1177,18 @@ function mapRouteCheck (msg) {
 }
 
 function openMap () {
+  if (S.room?.specialMission) return openSpecialMissionMap()
   if (!mapRooms().length) return
   const wrap = $('#map-wrap')
   const cv = $('#mapcanvas')
+  $('#mapmodal').classList.remove('mission-map-active')
+  $('#special-map-view').classList.add('hidden')
+  cv.style.display = ''
+  wrap.style.cursor = 'grab'
+  $('#map-title').textContent = 'NIGHT CITY NETWORK ▦'
+  $('#map-hint').style.display = ''
+  $('#map-follow').style.display = ''
+  $('#map-fit').style.display = ''
   const w = wrap.clientWidth || 800, h = wrap.clientHeight || 600
   const rooms = mapRooms()
   MM.cv = cv
@@ -1111,6 +1201,50 @@ function openMap () {
   }).join('')
   MM.walk = S.room?.id || null
   requestMapFrame()
+}
+
+function renderSpecialMissionMap () {
+  const mission = S.room?.specialMission
+  if (!mission) return
+  const fallbackNames = ['Clinic Service Entrance', 'Cold Storage Hall', 'Ghost Signal Core']
+  const rooms = mission.rooms?.length ? mission.rooms : fallbackNames.slice(0, mission.total).map((name, i) => ({
+    name: i === mission.room - 1 ? S.room.name : name,
+    current: i === mission.room - 1,
+    cleared: i < mission.room - 1,
+    locked: i > mission.room || (i === mission.room && S.room.inCombat)
+  }))
+  const canAdvance = mission.canAdvance ?? (mission.room < mission.total && !S.room.inCombat)
+  const nodes = rooms.map((room, i) => {
+    const status = room.current ? 'CURRENT ROOM' : room.cleared ? 'CLEARED' : room.locked ? 'LOCKED' : 'OPEN'
+    const cls = room.current ? 'current' : room.cleared ? 'cleared' : room.locked ? 'locked' : 'open'
+    return `<div class="special-map-node ${cls}"><small>STAGE ${String(i + 1).padStart(2, '0')}</small><b>${esc(room.name)}</b><span>${status}</span></div>`
+  }).join('<div class="special-map-link">›</div>')
+  const action = canAdvance
+    ? '<button class="qbtn" data-special-dir="e">EAST — PUSH DEEPER ▸</button>'
+    : mission.room < mission.total
+      ? '<button class="qbtn" disabled>CLEAR HOSTILES TO UNLOCK EAST</button>'
+      : '<span class="special-map-done">OBJECTIVE ROOM • SECURE THE SHARD</span>'
+  $('#map-title').textContent = mission.title.toUpperCase() + ' // ROUTE'
+  $('#map-hint').style.display = 'none'
+  $('#map-follow').style.display = 'none'
+  $('#map-fit').style.display = 'none'
+  $('#mapmodal').classList.add('mission-map-active')
+  $('#mapcanvas').style.display = 'none'
+  $('#map-tip').classList.add('hidden')
+  $('#map-wrap').style.cursor = 'default'
+  $('#special-map-view').classList.remove('hidden')
+  $('#special-map-view').innerHTML = `<div class="special-map-route">${nodes}</div>
+    <div class="special-map-controls">${action}<button class="qbtn" data-special-cmd="leave">EXTRACT TO NIGHT CITY</button></div>
+    <div class="special-map-note">Clear the current room to open the EAST route. WEST backtracks (or exits from the entrance); extraction abandons this run.</div>`
+  $('#map-legend').innerHTML = `<span class="sm-legend-current">CURRENT</span><span class="sm-legend-clear">CLEARED</span><span class="sm-legend-locked">LOCKED</span>`
+  $('#special-map-view').querySelectorAll('[data-special-dir]').forEach(b => b.onclick = () => cmd(b.dataset.specialDir))
+  $('#special-map-view').querySelectorAll('[data-special-cmd]').forEach(b => b.onclick = () => cmd('special ' + b.dataset.specialCmd))
+}
+
+function openSpecialMissionMap () {
+  if (MM.raf) { cancelAnimationFrame(MM.raf); MM.raf = 0 }
+  renderSpecialMissionMap()
+  $('#mapmodal').classList.remove('hidden')
 }
 function closeMap () {
   $('#mapmodal').classList.add('hidden')
@@ -1218,11 +1352,13 @@ function renderQuickbar () {
     if (ownedGrenade) btns.push(`<button class="qbtn hot" data-cmd="grenade ${esc(ownedGrenade.id)}">GRENADE</button>`)
   }
   if (room.corpse) btns.push('<button class="qbtn gig" data-cmd="take">LOOT CORPSE</button>')
+  if (room.specialMission) btns.push('<button class="qbtn gig" data-cmd="special leave">EXTRACT</button>')
+  else btns.push('<button class="qbtn gig" data-cmd="special">SPECIAL MISSION</button>')
   const ap = (room.objects || []).find(o => o.kind === 'netport')
   if (ap && ap.ready) btns.push('<button class="qbtn gig" data-cmd="breach">BREACH</button>')
   if (ap && !ap.ready) btns.push(`<button class="qbtn" disabled>NET ${ap.cdLeft || 0}s</button>`)
   btns.push('<button class="qbtn" data-cmd="look">LOOK</button>')
-  btns.push('<button class="qbtn" id="qmap-open">MAP ▦</button>')
+  btns.push(`<button class="qbtn" id="qmap-open">${room.specialMission ? 'MISSION MAP ▦' : 'MAP ▦'}</button>`)
   btns.push('<button class="qbtn" data-cmd="stats">STATS</button>')
   btns.push('<button class="qbtn" id="qsheet-btn">SHEET</button>')
   btns.push('<button class="qbtn" data-cmd="inv">INV</button>')
@@ -1356,6 +1492,7 @@ function renderSheet () {
     sheetLine('KILLS', s.kills) +
     sheetLine('FLATLINES', s.deaths) +
     sheetLine('GIGS DONE', s.gigs_done ?? 0) +
+    sheetLine('SPECIAL MISSIONS', s.special_missions ?? 0) +
     sheetLine('HACKS RUN', s.hacks ?? 0) +
     sheetLine('BREACHES', s.breaches ?? 0) +
     sheetLine('WEIGHT', `${s.weight}/${s.carryCap}kg`)

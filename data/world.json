@@ -61,7 +61,8 @@
         "w": "little-china",
         "ne": "ripperdoc-watson",
         "se": "warehouse-district",
-        "sw": "northside"
+        "sw": "northside",
+        "nw": "watson-transit-concourse"
       },
       "x": 60,
       "y": 63
@@ -74,7 +75,8 @@
       "desc": "A neon flea-circus. Vendors hawk bootleg braindances, chrome connections, and noodles older than your childhood. The air smells of soy grease and bad decisions. Gangoons lean on crates, watching everyone and no one.",
       "exits": {
         "w": "watson-streets",
-        "n": "little-china"
+        "n": "little-china",
+        "se": "kabuki-rooftops"
       },
       "npcs": [
         "weapons-rostovic",
@@ -162,8 +164,7 @@
       },
       "npcs": [
         "maelstrom-1",
-        "maelstrom-2",
-        "maelstrom-boss"
+        "maelstrom-2"
       ],
       "objects": [
         {
@@ -218,7 +219,8 @@
       "exits": {
         "n": "watson-streets",
         "e": "charter-hill",
-        "ne": "cloud-bar"
+        "ne": "cloud-bar",
+        "s": "japantown-night-market"
       },
       "x": 70,
       "y": 61
@@ -281,7 +283,8 @@
       "desc": "Legendary merc dive carved out of a morgue. Every booth is a monument to somebody's final run, and Rogue's seat at the bar is the only throne in Night City that means anything.",
       "exits": {
         "n": "north-oak",
-        "e": "citycenter-streets"
+        "e": "citycenter-streets",
+        "se": "afterlife-backroom"
       },
       "npcs": [
         "rog",
@@ -384,7 +387,8 @@
       "desc": "Loading docks under corporate surveillance, where crates of prototype chrome change hands and cameras never blink. A ferry hums against the pier, carrying the authorized and the almost-caught.",
       "exits": {
         "n": "corpo-plaza",
-        "sw": "downtown"
+        "sw": "downtown",
+        "ne": "arasaka-arcology-lobby"
       },
       "npcs": [
         "arasaka-sec-1",
@@ -409,7 +413,8 @@
       "category": "bar",
       "desc": "A rooftop bar that smells of orchids and insider trading. Below, the whole of Night City shimmers like a wound. Drinks are brought by drones; secrets are brought by you.",
       "exits": {
-        "n": "citycenter-streets"
+        "n": "citycenter-streets",
+        "se": "embers-memorial"
       },
       "npcs": [
         "restaurant-barkeep"
@@ -472,7 +477,8 @@
       "desc": "Terraced housing that spectacularly fails to see a king or a view, but sees plenty of Valentino tail-light interviews. A cyberpsycho warning has been stenciled on the last working bus stop.",
       "exits": {
         "w": "the-glen",
-        "n": "valentinos-den"
+        "n": "valentinos-den",
+        "s": "vista-del-rey-market"
       },
       "x": 77,
       "y": 71
@@ -489,8 +495,7 @@
       },
       "npcs": [
         "valentino-1",
-        "valentino-2",
-        "valentino-boss"
+        "valentino-2"
       ],
       "objects": [
         {
@@ -552,7 +557,8 @@
       "desc": "An overpass where the city's exhaust meets the barrio's soul. Brakes hiss, radios salsa, and below the guard rail the wreckage of a hopper smolders politely.",
       "exits": {
         "w": "wellsprings",
-        "e": "rancho-coronado"
+        "e": "rancho-coronado",
+        "s": "arroyo-overpass-underwalk"
       },
       "x": 78,
       "y": 73
@@ -565,7 +571,8 @@
       "desc": "Swept-clean sidewalks leading to shuttered hotels. A wetsuit-clad fixer posts job QR codes on a lamppost. Faint surf drowns out the sounds of the city's neglect.",
       "exits": {
         "n": "pacifica-streets",
-        "e": "abandoned-resort"
+        "e": "abandoned-resort",
+        "sw": "coastview-boardwalk"
       },
       "x": 68,
       "y": 81
@@ -594,7 +601,8 @@
       "category": "ruin",
       "desc": "An unfinished housing estate frozen mid-collapse. Wind rakes through rebar and half-walls of graffiti. Sometimes the graffiti moves.",
       "exits": {
-        "ne": "pacifica-streets"
+        "ne": "pacifica-streets",
+        "nw": "westwind-arcade"
       },
       "objects": [
         {
@@ -614,7 +622,7 @@
       "district": "pacifica",
       "category": "ruin",
       "danger": true,
-      "desc": "A skeletal beach resort. A swimming pool has become a cistern of black water, and something with too many lenses pads around the penthouse. The last tourist left a decade ago. Something else stayed.",
+      "desc": "A skeletal beach resort. A swimming pool has become a cistern of black water. The last tourist left a decade ago; now only static and gulls patrol the halls.",
       "exits": {
         "w": "coastview",
         "up": "cyberpsycho-den"
@@ -625,7 +633,7 @@
           "name": "resort security core",
           "kind": "netport",
           "tier": "hot",
-          "desc": "A drowned server rack in the old security office. Something up in the penthouse breathes into the same subnet you're about to enter."
+          "desc": "A drowned server rack in the old security office, still carrying fragments of the resort's sealed penthouse incident."
         }
       ],
       "x": 71,
@@ -636,14 +644,11 @@
       "name": "Pacifica — Penthouse Nest",
       "district": "pacifica",
       "category": "gangden",
-      "danger": true,
-      "desc": "The resort's penthouse, now a cyberpsycho's nest. Chrome splayed like a melted chandelier, and a figure in ruins breathing in time with the flickering lights. Its eyes track you with predatory patience.",
+      "desc": "The resort's penthouse is sealed behind a warped security shutter. Old chrome scars the walls; the room is quiet now, save for the flickering lights.",
       "exits": {
         "down": "abandoned-resort"
       },
-      "npcs": [
-        "cyberpsycho"
-      ],
+      "npcs": [],
       "x": 71,
       "y": 80
     },
@@ -656,7 +661,8 @@
       "exits": {
         "w": "heywood-streets",
         "e": "rancho-coronado",
-        "n": "santo-streets"
+        "n": "santo-streets",
+        "s": "arroyo-freight-yard"
       },
       "x": 82,
       "y": 74
@@ -683,7 +689,8 @@
       "exits": {
         "s": "arroyo",
         "w": "rancho-coronado",
-        "n": "6th-street-den"
+        "n": "6th-street-den",
+        "ne": "refinery-canalwalk"
       },
       "npcs": [
         "el-capitan"
@@ -712,8 +719,7 @@
       },
       "npcs": [
         "sixthstreet-1",
-        "sixthstreet-2",
-        "sixthstreet-boss"
+        "sixthstreet-2"
       ],
       "objects": [
         {
@@ -751,7 +757,8 @@
       "exits": {
         "w": "pacifica-streets",
         "e": "nomad-camp",
-        "se": "dead-waste"
+        "se": "dead-waste",
+        "n": "red-peak-motel"
       },
       "x": 85,
       "y": 84
@@ -806,7 +813,8 @@
       "category": "wasteland",
       "desc": "A dump of melted cargo containers and spent batteries. Toxic haze shimmers off the sand. Fashionable purple sunsets do not wash away what this place smells like.",
       "exits": {
-        "nw": "badlands-crossroads"
+        "nw": "badlands-crossroads",
+        "e": "dead-waste-outpost"
       },
       "objects": [
         {
@@ -839,6 +847,146 @@
       ],
       "x": 89,
       "y": 88
+    },
+    "watson-transit-concourse": {
+      "id": "watson-transit-concourse",
+      "name": "Watson — Sunken Transit Concourse",
+      "district": "watson",
+      "category": "street",
+      "desc": "A buried transit platform sealed off from the city grid. Train lights still stutter behind the tiled walls, and bootleg vendors have claimed the stairs.",
+      "exits": { "se": "watson-streets" },
+      "x": 59,
+      "y": 62
+    },
+    "kabuki-rooftops": {
+      "id": "kabuki-rooftops",
+      "name": "Kabuki — Rooftop Walk",
+      "district": "watson",
+      "category": "apartment",
+      "desc": "Tin walkways stitch together the rooftops above Kabuki. Noodle steam climbs past neon laundry lines while market noise echoes up from the alley.",
+      "exits": { "nw": "kabuki-market" },
+      "x": 64,
+      "y": 64
+    },
+    "japantown-night-market": {
+      "id": "japantown-night-market",
+      "name": "Westbrook — Lantern Night Market",
+      "district": "westbrook",
+      "category": "market",
+      "desc": "A narrow night market glows beneath rows of paper lanterns. Vendors sell imported synth-silk, counterfeit shrine charms, and food that crackles faintly with static.",
+      "exits": { "n": "japantown" },
+      "x": 70,
+      "y": 62
+    },
+    "afterlife-backroom": {
+      "id": "afterlife-backroom",
+      "name": "The Afterlife — Backroom",
+      "district": "westbrook",
+      "category": "bar",
+      "desc": "A low-ceilinged side room where old mercs trade rumors over warm beer. The names scratched into the tables are longer than the guest list.",
+      "exits": { "nw": "afterlife-bar" },
+      "x": 74,
+      "y": 65
+    },
+    "arasaka-arcology-lobby": {
+      "id": "arasaka-arcology-lobby",
+      "name": "City Center — Arcology Sky Lobby",
+      "district": "citycenter",
+      "category": "corpo",
+      "desc": "A mirrored sky-lobby hangs over the harbor on corporate stilts. Badge scanners sweep the marble while silent elevators climb beyond the ceiling.",
+      "exits": { "sw": "arasaka-waterfront" },
+      "x": 82,
+      "y": 59
+    },
+    "embers-memorial": {
+      "id": "embers-memorial",
+      "name": "City Center — Memorial Terrace",
+      "district": "citycenter",
+      "category": "plaza",
+      "desc": "A quiet terrace above the traffic, lit by names etched into strips of smoked glass. Flowers arrive by drone; the rain takes them before morning.",
+      "exits": { "nw": "emblers-hotel" },
+      "x": 78,
+      "y": 68
+    },
+    "vista-del-rey-market": {
+      "id": "vista-del-rey-market",
+      "name": "Heywood — Vista Del Rey Mercado",
+      "district": "heywood",
+      "category": "market",
+      "desc": "A neighborhood mercado fills the shade below the terraced apartments. Music spills between produce stalls, bootleg braindances, and a grill that never cools.",
+      "exits": { "n": "vista-del-rey" },
+      "x": 77,
+      "y": 72
+    },
+    "arroyo-overpass-underwalk": {
+      "id": "arroyo-overpass-underwalk",
+      "name": "Heywood — Overpass Underwalk",
+      "district": "heywood",
+      "category": "street",
+      "desc": "A service path runs below the Arroyo overpass. Traffic thunders overhead while hand-painted murals mark the safest gaps in the fence.",
+      "exits": { "n": "heywood-streets" },
+      "x": 78,
+      "y": 74
+    },
+    "coastview-boardwalk": {
+      "id": "coastview-boardwalk",
+      "name": "Pacifica — Floodline Boardwalk",
+      "district": "pacifica",
+      "category": "ruin",
+      "desc": "A warped boardwalk follows the old floodline. Salt water laps through the gaps, and half-submerged arcade signs blink to an audience of gulls.",
+      "exits": { "ne": "coastview" },
+      "x": 67,
+      "y": 82
+    },
+    "westwind-arcade": {
+      "id": "westwind-arcade",
+      "name": "Pacifica — West Wind Arcade",
+      "district": "pacifica",
+      "category": "ruin",
+      "desc": "A roofless arcade sits inside the unfinished estate. The cabinets are dead, but scavenged speakers still play their attract loops when the wind hits right.",
+      "exits": { "se": "west-wind-estate" },
+      "x": 66,
+      "y": 79
+    },
+    "arroyo-freight-yard": {
+      "id": "arroyo-freight-yard",
+      "name": "Santo Domingo — Arroyo Freight Yard",
+      "district": "santo",
+      "category": "industrial",
+      "desc": "Cargo haulers idle in a freight yard beneath the refinery stacks. Forklifts thread between containers stamped for destinations that no longer exist.",
+      "exits": { "n": "arroyo" },
+      "x": 82,
+      "y": 75
+    },
+    "refinery-canalwalk": {
+      "id": "refinery-canalwalk",
+      "name": "Santo Domingo — Refinery Canalwalk",
+      "district": "santo",
+      "category": "industrial",
+      "desc": "A concrete service walk follows a runoff canal beneath Refinery Row. Green warning lamps reflect in the water, and the pipes overhead never stop knocking.",
+      "exits": { "sw": "santo-streets" },
+      "x": 87,
+      "y": 73
+    },
+    "red-peak-motel": {
+      "id": "red-peak-motel",
+      "name": "Badlands — Red Peak Motel",
+      "district": "badlands",
+      "category": "wasteland",
+      "desc": "A roadside motel leans into the dust, its vacancy sign still glowing red. Someone has wired the ice machine to a solar battery and a very suspicious alarm.",
+      "exits": { "s": "badlands-crossroads" },
+      "x": 85,
+      "y": 83
+    },
+    "dead-waste-outpost": {
+      "id": "dead-waste-outpost",
+      "name": "Badlands — Dead Waste Outpost",
+      "district": "badlands",
+      "category": "tent",
+      "desc": "A scrap-metal shelter marks the edge of the toxic flats. Its shade is barely wide enough for a water tank and the stories people tell while guarding it.",
+      "exits": { "w": "dead-waste" },
+      "x": 89,
+      "y": 86
     }
   }
 }

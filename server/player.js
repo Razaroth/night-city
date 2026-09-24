@@ -81,8 +81,9 @@ export function makeNewPlayer (accountId, opts) {
     quickhacks: [],
     created_at: Date.now(),
     played_sec: 0,
-    stats: { kills: 0, deaths: 0, gigs_done: 0, hacks: 0, breaches: 0 },
+    stats: { kills: 0, deaths: 0, gigs_done: 0, hacks: 0, breaches: 0, special_missions: 0 },
     flags: {},
+    specialMissions: {},
     log: []
   }
 
@@ -289,9 +290,9 @@ export function describeEquipment (p) {
 
 export function describeCyberware (p) {
   const out = []
-  for (const st of Object.values(p.cyberware)) {
+  for (const [slot, st] of Object.entries(p.cyberware)) {
     if (!st) continue
-    out.push({ slot: st.slot, ...describeStack(st) })
+    out.push({ ...describeStack(st), slot })
   }
   return out
 }
@@ -350,12 +351,13 @@ export function stateForClient (p) {
     gigs_done: p.stats.gigs_done ?? 0,
     hacks: p.stats.hacks ?? 0,
     breaches: p.stats.breaches ?? 0,
+    special_missions: p.stats.special_missions ?? 0,
     weight: carriedWeight(p),
     carryCap: carryCapacity(p, eff)
   }
 }
 
-const PERSISTED = ['name', 'cls', 'lifepath', 'style', 'attrs', 'xp', 'level', 'attrPoints', 'perks', 'perkPoints', 'eddies', 'rep', 'room', 'hp', 'stam', 'inv', 'equip', 'cyberware', 'quickhacks', 'created_at', 'played_sec', 'stats', 'flags', 'quests']
+const PERSISTED = ['name', 'cls', 'lifepath', 'style', 'attrs', 'xp', 'level', 'attrPoints', 'perks', 'perkPoints', 'eddies', 'rep', 'room', 'hp', 'stam', 'inv', 'equip', 'cyberware', 'quickhacks', 'created_at', 'played_sec', 'stats', 'flags', 'quests', 'specialMissions']
 
 export function serializePlayer (p) {
   const out = {}
@@ -369,9 +371,10 @@ export function hydratePlayer (saved, accountId) {
   p.equip ??= {}
   p.cyberware ??= {}
   p.quickhacks ??= []
-  p.stats ??= { kills: 0, deaths: 0, gigs_done: 0, hacks: 0, breaches: 0 }
+  p.stats = { kills: 0, deaths: 0, gigs_done: 0, hacks: 0, breaches: 0, special_missions: 0, ...(p.stats ?? {}) }
   p.flags ??= {}
   p.quests ??= {}
+  p.specialMissions ??= {}
   p.attrs ??= { body: 3, reflexes: 3, tech: 3, intel: 3, cool: 3 }
   p.cls ??= 'solo'
   p.perks ??= []

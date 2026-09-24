@@ -1,4 +1,5 @@
 import { perkEffects } from './classes.js'
+import { rewardMultiplier } from './scaling.js'
 
 export const GIGS = {
   'gig-scavdawgs': {
@@ -29,7 +30,7 @@ export const GIGS = {
     id: 'gig-bad-fish', title: 'Bad Fish in the Nest', fixer: 'rog',
     desc: 'A cyberpsycho has holed up in the Pacifica resort penthouse. NCPD is pretending it isn\'t happening. Rogue says it\'s happening and there\'s a payout. The kind of payout that lets you sleep with the lights off.',
     targets: ['cyberpsycho'],
-    rewardEddies: 1600, rewardXp: 900, rep: 120, cooldownSec: 3600, minLevel: 5
+    rewardEddies: 1600, rewardXp: 900, rep: 120, cooldownSec: 3600, minLevel: 8
   }
 }
 
@@ -42,9 +43,10 @@ export function gigsForFixer (fixerId) {
 export function acceptGig (p, gigId, now) {
   const gig = GIGS[gigId]
   if (!gig) return { error: 'gig not found' }
-  if ((p.level || 1) < gig.minLevel) return { error: `You need level ${gig.minLevel} for this job.` }
   p.quests ??= {}
   const rec = p.quests[gigId]
+  if (rec?.completedAt) return { error: 'You already completed this gig.' }
+  if ((p.level || 1) < gig.minLevel) return { error: `You need level ${gig.minLevel} for this job.` }
   if (rec && rec.availableAt > now) return { error: `Still cold. Cooldown: ${Math.ceil((rec.availableAt - now) / 60000)} min.` }
   if (rec && !rec.completedAt) return { error: 'You already have this gig active.' }
   p.quests[gigId] = { acceptedAt: now, prog: {} }
@@ -64,12 +66,11 @@ export function handleKill (p, npcId, now) {
       rec.completedAt = now
       rec.completed = gigId
       rec.availableAt = now + gig.cooldownSec * 1000
-      const pct = perkEffects(p).eddiesPct ?? 0
-      const paid = Math.round(gig.rewardEddies * (1 + pct / 100))
-      p.eddies += paid
-      p.rep += gig.rep
+      const rewards = scaledGigRewards(p, gig)
+      p.eddies += rewards.rewardEddies
+      p.rep += rewards.rep
       p.stats.gigs_done = (p.stats.gigs_done || 0) + 1
-      results.push({ ...gig, rewardEddies: paid })
+      results.push({ ...gig, ...rewards })
     }
   }
   return results
@@ -80,6 +81,7 @@ export function gigListView (p, now) {
   const out = []
   for (const gig of Object.values(GIGS)) {
     const rec = p.quests[gig.id]
+    if (rec?.completedAt) continue
     let status = 'available'
     if (rec) {
       if (rec.completedAt) status = now < rec.availableAt ? 'cooldown' : 'available'
@@ -94,11 +96,19 @@ export function gigListView (p, now) {
       status,
       prog,
       total: gig.targets.length,
-      rewardEddies: gig.rewardEddies,
-      rewardXp: gig.rewardXp,
-      rep: gig.rep,
+      ...scaledGigRewards(p, gig),
       minLevel: gig.minLevel
     })
   }
   return out
+}
+
+function scaledGigRewards (player, gig) {
+  const scale = rewardMultiplier(player.level, gig.minLevel)
+  const eddiesPct = perkEffects(player).eddiesPct ?? 0
+  return {
+    rewardEddies: Math.round(gig.rewardEddies * scale * (1 + eddiesPct / 100)),
+    rewardXp: Math.round(gig.rewardXp * scale),
+    rep: Math.round(gig.rep * scale)
+  }
 }

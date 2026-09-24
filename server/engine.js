@@ -13,6 +13,8 @@ import { handleCommand } from './commands.js'
 import { ambientLine, npcChatterLine, AMBIENT_MIN, AMBIENT_MAX } from './ambient.js'
 import * as netrun from './netrun.js'
 import { createSims } from './sims.js'
+import { SPECIAL_MISSIONS, createSpecialRun, specialMissionView } from './special-missions.js'
+import { levelDelta, rewardMultiplier, scaledLootChance } from './scaling.js'
 
 const TICK_MS = 1000
 const AUTOSAVE_MS = 20000
@@ -32,6 +34,8 @@ export class Game {
     this.startedAt = Date.now()
     this.ambientAt = new Map() // roomId -> next ambient epoch (ms)
     this.netportCd = new Map() // roomId -> access point reboot ready at (ms)
+    this.specialRuns = new Map() // runId -> isolated Special Mission runtime
+    this.specialRooms = new Map() // roomId -> isolated room data
     wss.on('connection', ws => this.onConnection(ws))
     this.timer = setInterval(() => this.tick(), TICK_MS)
   }
@@ -55,6 +59,7 @@ export class Game {
   onClose (session) {
     const { player } = session
     if (player) {
+      this.cleanupSpecialMission(session)
       player.played_sec = (player.played_sec || 0) + Math.floor((this.now() - (session.enteredAt || this.now())) / 1000)
       db.getDb().world.players[session.accountId] = P.serializePlayer(player)
       db.queueSave()
@@ -94,6 +99,20 @@ export class Game {
     for (const s of this.playerSessions(roomId)) {
       if (s.accountId === exceptAccount) continue
       this.log(s, text, cls)
+    }
+  }
+
+  pushCombatEnd (session, roomId) {
+    if (this.world.hostilesInRoom(roomId).length) return
+    this.send(session, { t: 'combatEnd', roomId })
+  }
+
+  pushRoomToPlayers (roomId) {
+    const sessions = this.playerSessions(roomId)
+    const combatEnded = this.world.hostilesInRoom(roomId).length === 0
+    for (const session of sessions) {
+      this.pushRoom(session)
+      if (combatEnded) this.pushCombatEnd(session, roomId)
     }
   }
 
@@ -165,6 +184,7 @@ export class Game {
   handleLogout (session) {
     const { player, accountId } = session
     if (player) {
+      this.cleanupSpecialMission(session)
       player.played_sec = (player.played_sec || 0) + Math.floor((this.now() - (session.enteredAt || this.now())) / 1000)
       db.getDb().world.players[accountId] = P.serializePlayer(player)
       db.queueSave()
@@ -267,6 +287,7 @@ export class Game {
     }
     const saved = db.getDb().world.players[accountId]
     const player = P.hydratePlayer(saved, accountId)
+    if (!rooms[player.room]) player.room = P.LIFEPATHS[player.lifepath]?.startRoom ?? HUB_ROOMS.watson
     session.player = player
     session.enteredAt = this.now()
     this.byAccount.set(accountId, session)
@@ -300,6 +321,130 @@ export class Game {
       console.error('cmd error:', err)
       this.log(session, 'Something glitched in the net. (command error)', 'bad')
     }
+  }
+
+  roomFor (roomId) {
+    return rooms[roomId] ?? this.specialRooms.get(roomId) ?? null
+  }
+
+  scaleGigTarget (session, inst) {
+    const p = session.player
+    const activeGig = Object.entries(p.quests ?? {}).some(([gigId, rec]) =>
+      rec && !rec.completedAt && Q.GIGS[gigId]?.targets.includes(inst.id))
+    if (!activeGig) return
+
+    const base = inst.baseDef ?? inst.def
+    const delta = levelDelta(p.level, base.level, 12)
+    const targetLevel = (base.level || 1) + delta
+    if (!delta || targetLevel <= (inst.scaledLevel ?? base.level)) return
+
+    const hpPct = inst.maxhp > 0 ? inst.hp / inst.maxhp : 1
+    inst.baseDef ??= base
+    inst.scaledLevel = targetLevel
+    inst.def = {
+      ...base,
+      level: targetLevel,
+      armor: (base.armor ?? 0) + Math.floor(delta / 4),
+      stats: Object.fromEntries(Object.entries(base.stats ?? {}).map(([attr, value]) => [attr, value + Math.floor(delta / 4)]))
+    }
+    inst.maxhp = Math.floor(base.maxhp * Math.pow(1.06, targetLevel - 1))
+    inst.hp = Math.max(1, Math.round(inst.maxhp * hpPct))
+  }
+
+  specialMissionList (session, now = this.now()) {
+    return specialMissionView(session.player, now, this.specialRuns.get(session.specialRunId))
+  }
+
+  startSpecialMission (session, missionId) {
+    const p = session.player
+    const mission = SPECIAL_MISSIONS[missionId]
+    if (!mission) return this.log(session, `No Special Mission "${missionId}". Type SPECIAL to see the slate.`, 'bad')
+    if (!p.alive) return this.log(session, 'You need to be alive to accept a Special Mission.', 'bad')
+    if (session.specialRunId) return this.log(session, 'You are already inside a Special Mission. Type SPECIAL LEAVE to extract.', 'bad')
+    if ((p.level || 1) < mission.minLevel) return this.log(session, `You need level ${mission.minLevel} to run "${mission.title}".`, 'bad')
+    if (this.world.hostilesInRoom(p.room).length) return this.log(session, 'Break contact before jacking into a Special Mission.', 'bad')
+    const record = p.specialMissions?.[missionId]
+    if (record?.availableAt > this.now()) return this.log(session, `That shard is still cold. Reboot in ${Math.ceil((record.availableAt - this.now()) / 60000)} min.`, 'bad')
+    if (mission.requiredGigId) {
+      const contract = p.quests?.[mission.requiredGigId]
+      if (!contract?.acceptedAt) return this.log(session, 'Accept Rogue’s Bad Fish in the Nest gig before jacking into this Special Mission.', 'bad')
+    }
+
+    const run = createSpecialRun(missionId, session.accountId, p.room, npcDefs, p.level)
+    this.specialRuns.set(run.id, run)
+    for (const [id, room] of run.rooms) this.specialRooms.set(id, room)
+    for (const enemy of run.enemyIds) {
+      const inst = this.world.spawnTemporaryInstance(enemy.id, enemy.roomId, enemy.def, run.id)
+      inst.questTargetId = enemy.questTargetId
+    }
+    session.specialRunId = run.id
+    p.room = run.roomIds[0]
+    this.log(session, `SPECIAL MISSION ACCEPTED — ${mission.title}. ${mission.desc}`, 'gig')
+    this.roomLog(run.entryRoom, `${p.name} disappears into a sealed contract shard.`, 'sys', session.accountId)
+    this.pushAll(session)
+    this.describeCurrentRoom(session)
+  }
+
+  cleanupSpecialMission (session, run = this.specialRuns.get(session.specialRunId)) {
+    if (!run) return
+    if (session.player && run.roomIds.includes(session.player.room)) session.player.room = run.entryRoom
+    this.world.removeTemporaryInstances(run.id)
+    for (const roomId of run.roomIds) {
+      this.specialRooms.delete(roomId)
+      for (const [uid, corpse] of this.world.corpses) {
+        if (corpse.roomId === roomId) this.world.corpses.delete(uid)
+      }
+    }
+    this.specialRuns.delete(run.id)
+    session.specialRunId = null
+  }
+
+  leaveSpecialMission (session, { quiet = false } = {}) {
+    const run = this.specialRuns.get(session.specialRunId)
+    if (!run) return this.log(session, 'You are not inside a Special Mission.', 'bad')
+    const p = session.player
+    p.room = run.entryRoom
+    this.cleanupSpecialMission(session, run)
+    if (!quiet) {
+      this.log(session, 'You extract from the Special Mission. The shard is lost; no completion payout.', 'sys')
+      this.pushAll(session)
+      this.describeCurrentRoom(session)
+    }
+  }
+
+  specialMissionKill (session, inst, now) {
+    const run = this.specialRuns.get(session.specialRunId)
+    if (!run || inst.instanceRunId !== run.id || run.clearedRooms?.has(inst.roomId)) return
+    if (this.world.hostilesInRoom(inst.roomId).length) return
+    run.clearedRooms ??= new Set()
+    run.clearedRooms.add(inst.roomId)
+    const mission = SPECIAL_MISSIONS[run.missionId]
+    const stage = mission.rooms[run.roomIndex]
+    this.log(session, stage.clear, 'good')
+    if (run.roomIndex !== mission.rooms.length - 1 || run.completed) return
+
+    run.completed = true
+    const p = session.player
+    p.specialMissions ??= {}
+    p.specialMissions[mission.id] = { completedAt: now, availableAt: now + mission.cooldownSec * 1000 }
+    p.stats.special_missions = (p.stats.special_missions || 0) + 1
+    if (mission.rewardsFromGig) {
+      this.log(session, `SPECIAL MISSION COMPLETE — "${mission.title}". Rogue’s contract payout is secured.`, 'gig')
+    } else {
+      const eddiesPct = perkEffects(p).eddiesPct ?? 0
+      const scale = rewardMultiplier(run.playerLevel, mission.minLevel)
+      const paid = Math.round(mission.rewardEddies * scale * (1 + eddiesPct / 100))
+      const xp = Math.round(mission.rewardXp * scale)
+      const rep = Math.round(mission.rewardRep * scale)
+      p.eddies += paid
+      p.rep += rep
+      this.log(session, `SPECIAL MISSION COMPLETE — "${mission.title}". +${paid} eddies, +${xp} XP, +${rep} rep.`, 'gig')
+      for (const lvl of P.addXp(p, xp)) this.log(session, `LEVEL UP — you are now level ${lvl}. Attribute point + perk point available.`, 'level')
+    }
+    this.toast(session, `SPECIAL MISSION COMPLETE: ${mission.title}`, 'gig')
+    this.pushState(session)
+    this.pushJobs(session)
+    db.queueSave()
   }
 
   /* ------------------- netrunning / breach protocol ------------------- */
@@ -372,13 +517,14 @@ export class Game {
 
   roomPayload (session, now) {
     const p = session.player
-    const room = rooms[p.room]
+    const room = this.roomFor(p.room)
+    for (const inst of this.world.hostilesInRoom(p.room)) this.scaleGigTarget(session, inst)
     const hostiles = this.world.hostilesInRoom(p.room)
     const npcs = []
     for (const inst of this.world.allInRoom(p.room)) {
       const d = inst.def
       npcs.push({
-        id: inst.id, name: d.name, kind: d.kind, faction: d.faction, danger: d.danger ?? 'neutral',
+        id: inst.id, name: d.name, kind: d.kind, faction: d.faction, danger: d.danger ?? 'neutral', level: d.level ?? 1,
         desc: d.desc, hpPct: d.kind === 'hostile' ? Math.round(inst.hp / inst.maxhp * 100) : null,
         hp: d.kind === 'hostile' ? inst.hp : null,
         maxhp: d.kind === 'hostile' ? inst.maxhp : null,
@@ -394,7 +540,7 @@ export class Game {
     const simsHere = (this.sims?.presentIn(p.room) ?? []).map(sim => ({ name: sim.name, level: sim.level, lifepath: sim.lifepath, sim: true }))
     const corpse = this.world.corpseFor(p.room)
     const cdLeft = netrun.netportOnCooldown(this, p.room, now)
-    return {
+    const payload = {
       t: 'room',
       id: room.id,
       name: room.name,
@@ -404,7 +550,7 @@ export class Game {
       category: room.category,
       danger: !!room.danger,
       desc: room.desc,
-      exits: Object.entries(room.exits ?? {}).map(([dir, to]) => ({ dir, name: EXIT_NAMES[dir] ?? dir, to, toName: rooms[to]?.name ?? to })),
+      exits: Object.entries(room.exits ?? {}).map(([dir, to]) => ({ dir, name: EXIT_NAMES[dir] ?? dir, to, toName: this.roomFor(to)?.name ?? to })),
       npcs,
       players: [...players, ...simsHere],
       corpse: corpse ? { name: corpse.name, eddies: corpse.eddies, items: corpse.items.map(s => ({ name: getItemDef(s.id)?.name, qty: s.qty })) } : null,
@@ -416,10 +562,28 @@ export class Game {
       clock: new Date(now).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }),
       inCombat: hostiles.length > 0
     }
+    const run = this.specialRuns.get(session.specialRunId)
+    if (run && run.roomIds.includes(p.room)) {
+      payload.specialMission = {
+        title: SPECIAL_MISSIONS[run.missionId].title,
+        room: run.roomIndex + 1,
+        total: SPECIAL_MISSIONS[run.missionId].rooms.length,
+        completed: run.completed,
+        canAdvance: run.roomIndex < SPECIAL_MISSIONS[run.missionId].rooms.length - 1 && hostiles.length === 0,
+        rooms: SPECIAL_MISSIONS[run.missionId].rooms.map((stage, i) => ({
+          name: stage.name,
+          current: i === run.roomIndex,
+          cleared: run.clearedRooms?.has(run.roomIds[i]) ?? false,
+          locked: !((run.clearedRooms?.has(run.roomIds[i]) ?? false) || i === run.roomIndex) &&
+            (i > run.roomIndex + 1 || (i === run.roomIndex + 1 && hostiles.length > 0))
+        }))
+      }
+    }
+    return payload
   }
 
   weatherFor (roomId, now) {
-    const room = rooms[roomId]
+    const room = this.roomFor(roomId)
     const dist = room?.district
     if (dist === 'badlands') return 'Dry static. The wind smells of iron.'
     if (dist === 'pacifica') return 'Salt haze off the water. Gulls with grudges.'
@@ -471,12 +635,13 @@ export class Game {
 
   pushJobs (session) {
     const now = this.now()
-    const room = rooms[session.player.room]
+    const room = this.roomFor(session.player.room)
     const fixersHere = (room.npcs ?? []).filter(id => npcDefs[id]?.kind === 'fixer')
     this.send(session, {
       t: 'jobs',
       fixersHere,
-      gigs: Q.gigListView(session.player, now)
+      gigs: Q.gigListView(session.player, now),
+      specialMissions: specialMissionView(session.player, now, this.specialRuns.get(session.specialRunId))
     })
   }
 
@@ -509,21 +674,30 @@ export class Game {
       this.send(session, { t: 'breach', done: true, aborted: true })
       this.log(session, 'You pull the cable and get moving.', 'sys')
     }
-    const room = rooms[p.room]
+    const room = this.roomFor(p.room)
     const to = room.exits?.[dir]
     if (!to) return this.log(session, `You can't go ${EXIT_NAMES[dir] ?? dir} from here.`, 'bad')
+    const run = this.specialRuns.get(session.specialRunId)
+    const nextIndex = run?.roomIds.indexOf(to) ?? -1
+    if (run && nextIndex > run.roomIndex && this.world.hostilesInRoom(p.room).length) {
+      return this.log(session, 'Hostiles still hold this room. Clear them before pushing deeper.', 'bad')
+    }
     const from = p.room
+    const wasInCombat = this.world.hostilesInRoom(from).length > 0
     p.room = to
+    if (run && nextIndex >= 0) run.roomIndex = nextIndex
+    else if (run && to === run.entryRoom) this.cleanupSpecialMission(session, run)
     this.roomLog(from, `${p.name} heads ${EXIT_NAMES[dir] ?? dir}.`, 'sys', session.accountId)
     this.roomLog(to, `${p.name} arrives from the ${EXIT_NAMES[opposite(dir)] ?? opposite(dir)}.`, 'sys', session.accountId)
     this.pushRoom(session)
+    if (wasInCombat) this.pushCombatEnd(session, to)
     this.pushJobs(session)
     this.describeCurrentRoom(session)
   }
 
   describeCurrentRoom (session) {
     const now = this.now()
-    const room = rooms[session.player.room]
+    const room = this.roomFor(session.player.room)
     const lines = []
     lines.push({ text: `◈ ${room.name}`, cls: 'place' })
     lines.push({ text: room.desc, cls: 'room' })
@@ -582,7 +756,8 @@ export class Game {
     // corpse
     const items = []
     for (const entry of inst.def.loot ?? []) {
-      if (Math.random() < entry.chance) {
+      const chance = scaledLootChance(entry.chance, getItemDef(entry.id), p.level)
+      if (Math.random() < chance) {
         const qty = entry.qty ? C.rand(entry.qty[0], entry.qty[1]) : 1
         items.push(makeStack(entry.id, qty))
       }
@@ -591,14 +766,15 @@ export class Game {
     const uid = crypto.randomUUID()
     this.world.corpses.set(uid, { uid, roomId: p.room, npcId: inst.id, name: inst.def.name, items, eddies, ttl: now + 120000 })
 
-    const gigs = Q.handleKill(p, inst.id, now)
+    const gigs = Q.handleKill(p, inst.questTargetId ?? inst.id, now)
     for (const gig of gigs) {
       this.log(session, `GIG COMPLETE — "${gig.title}". +${gig.rewardEddies} eddies, +${gig.rewardXp} XP, +${gig.rep} rep.`, 'gig')
       const lv = P.addXp(p, gig.rewardXp)
       for (const lvl of lv) this.log(session, `LEVEL UP — you are now level ${lvl}. Attribute point + perk point available.`, 'level')
       this.toast(session, `GIG COMPLETE: ${gig.title}`, 'gig')
     }
-    this.pushRoom(session)
+    if (inst.instanceRunId) this.specialMissionKill(session, inst, now)
+    this.pushRoomToPlayers(p.room)
     this.pushJobs(session)
     this.pushState(session)
     db.queueSave()
@@ -641,6 +817,10 @@ export class Game {
       this.log(session, 'Your Second Heart slams into gear. Chest cracks, vision returns — you are NOT done yet.', 'good')
       this.roomLog(p.room, `${p.name}'s chest spasms — a Second Heart kicks in.`, 'combat', session.accountId)
       return
+    }
+    if (session.specialRunId) {
+      this.cleanupSpecialMission(session)
+      this.log(session, 'SPECIAL MISSION FAILED — your shard signal drops before the objective is secured.', 'bad')
     }
     p.alive = false
     p.hp = 0
@@ -706,7 +886,7 @@ export class Game {
     for (const roomId of occupied) {
       const next = this.ambientAt.get(roomId) ?? 0
       if (now < next) continue
-      const room = rooms[roomId]
+      const room = this.roomFor(roomId)
       if (!room) continue
       this.ambientAt.set(roomId, now + C.rand(AMBIENT_MIN, AMBIENT_MAX))
 

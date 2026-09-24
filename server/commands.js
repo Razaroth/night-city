@@ -1,4 +1,4 @@
-import { getItemDef, describeStack, allItemDefs } from './items.js'
+import { getItemDef, describeStack, allItemDefs, makeStack } from './items.js'
 import * as P from './player.js'
 import * as C from './combat.js'
 import * as Q from './quests.js'
@@ -51,6 +51,7 @@ export function handleCommand (game, session, line) {
     case 'uninstall': return cmdUninstall(game, session, rest)
     case 'jobs': case 'gigs': case 'job': return cmdJobs(game, session)
     case 'accept': case 'gig': return cmdAccept(game, session, rest, now)
+    case 'special': case 'sm': return cmdSpecial(game, session, rest, now)
     case 'up': case 'raise': return cmdUp(game, session, rest)
     case 'perk': case 'perks': case 'tree': return cmdPerks(game, session, rest)
     case 'travel': case 'fasttravel': case 'ft': return cmdTravel(game, session, rest, now)
@@ -78,13 +79,13 @@ function findItem (game, session, query) {
 }
 
 function ripperHere (game, session) {
-  const room = rooms[session.player.room]
+  const room = game.roomFor(session.player.room)
   for (const id of room.npcs ?? []) if (npcDefs[id]?.kind === 'ripper') return npcDefs[id]
   return null
 }
 
 function vendorHere (game, session, query = '') {
-  const room = rooms[session.player.room]
+  const room = game.roomFor(session.player.room)
   const q = query.toLowerCase()
   for (const id of room.npcs ?? []) {
     const def = npcDefs[id]
@@ -106,7 +107,8 @@ function cmdHelp (game, session) {
     { text: 'NETRUN     breach (jack into a netport), then click the grid', cls: 'sys' },
     { text: 'GEAR       equip <item>, unequip <slot>, use <item>, drop <item> [qty]', cls: 'sys' },
     { text: 'TRADE      shop, buy <item> [qty], sell <item> [qty], install <implant>', cls: 'sys' },
-    { text: 'JOBS       jobs (at a fixer), accept <gigId>, up <attr> (spend level point)', cls: 'sys' },
+    { text: 'JOBS       jobs, accept <gigId>, special (view/run a dungeon instance)', cls: 'sys' },
+    { text: '           special enter <mission-id>, special leave (extract), up <attr>', cls: 'sys' },
     { text: 'CLASS      perks (view tree), perk <name> (spend a point)', cls: 'sys' },
     { text: 'Buttons on the right panel do all of this too. Stay chrome, choom.', cls: 'good' }
   ]
@@ -135,9 +137,9 @@ function cmdLook (game, session, query) {
     lines.push({ text: `Value ${d.value} eddies`, cls: 'sys' })
     return game.logLines(session, lines)
   }
-  const room = rooms[session.player.room]
-  const exit = Object.entries(room.exits ?? {}).find(([dir, to]) => dir === query || EXIT_NAMES[dir] === query || rooms[to]?.name.toLowerCase().includes(query.toLowerCase()))
-  if (exit) return game.log(session, `To the ${EXIT_NAMES[exit[0]]}: ${rooms[exit[1]]?.name}.`, 'exit')
+  const room = game.roomFor(session.player.room)
+  const exit = Object.entries(room.exits ?? {}).find(([dir, to]) => dir === query || EXIT_NAMES[dir] === query || game.roomFor(to)?.name.toLowerCase().includes(query.toLowerCase()))
+  if (exit) return game.log(session, `To the ${EXIT_NAMES[exit[0]]}: ${game.roomFor(exit[1])?.name}.`, 'exit')
   const obj = (room.objects ?? []).find(o => o.id === query || o.name.toLowerCase().includes(query.toLowerCase()))
   if (obj) return game.log(session, `${obj.name}: ${obj.desc}`, 'npc')
   game.log(session, `You see nothing special about "${query}".`, 'bad')
@@ -154,7 +156,7 @@ function cmdShout (game, session, text) {
   game.log(session, `You shout: "${text}"`, 'chat')
   for (const s of game.sessions.values()) {
     if (s.accountId === session.accountId) continue
-    if (s.player) game.log(s, `${session.player.name} shouts from ${rooms[session.player.room]?.name}: "${text}"`, 'chat')
+    if (s.player) game.log(s, `${session.player.name} shouts from ${game.roomFor(session.player.room)?.name}: "${text}"`, 'chat')
   }
 }
 function cmdEmote (game, session, text) {
@@ -170,7 +172,7 @@ function cmdWho (game, session) {
     if (!s.player) continue
     n++
     const mark = s.accountId === session.accountId ? ' (you)' : ''
-    lines.push({ text: `${s.player.name}${mark} — Lv${s.player.level} ${CLASSES[s.player.cls]?.name ?? ''} ${P.LIFEPATHS[s.player.lifepath]?.name ?? ''} @ ${rooms[s.player.room]?.name}`, cls: 'who' })
+    lines.push({ text: `${s.player.name}${mark} — Lv${s.player.level} ${CLASSES[s.player.cls]?.name ?? ''} ${P.LIFEPATHS[s.player.lifepath]?.name ?? ''} @ ${game.roomFor(s.player.room)?.name}`, cls: 'who' })
   }
   lines.push({ text: `${n} runner${n === 1 ? '' : 's'} in Night City.`, cls: 'sys' })
   game.logLines(session, lines)
@@ -207,15 +209,46 @@ function cmdInv (game, session) {
 
 function cmdJobs (game, session) {
   const now = game.now()
-  const room = rooms[session.player.room]
+  const room = game.roomFor(session.player.room)
   const fixersHere = (room.npcs ?? []).filter(id => npcDefs[id]?.kind === 'fixer')
   game.pushJobs(session)
+  const gigs = Q.gigListView(session.player, now)
   const lines = [{ text: `◈ GIGS — ${fixersHere.length ? 'Fixers here: ' + fixersHere.map(id => npcDefs[id].name).join(', ') : 'no fixer around (jobs panel shows all)'}`, cls: 'level' }]
-  for (const g of Q.gigListView(session.player, now)) {
+  for (const g of gigs) {
     const status = g.status === 'active' ? `ACTIVE ${g.prog}/${g.total}` : g.status === 'cooldown' ? 'ON COOLDOWN' : 'AVAILABLE'
     lines.push({ text: `${g.title} — ${g.desc} (${status} • ${g.rewardEddies}€$ • ${g.rep}rep)`, cls: g.status === 'active' ? 'gig' : 'sys' })
   }
-  if (!lines.length) lines.push({ text: 'No gigs on the slate.', cls: 'sys' })
+  if (!gigs.length) lines.push({ text: 'All available gigs are complete. Keep an eye out for new contracts.', cls: 'sys' })
+  game.logLines(session, lines)
+}
+
+function cmdSpecial (game, session, rest, now) {
+  const parts = rest.trim().split(/\s+/).filter(Boolean)
+  const action = (parts.shift() ?? '').toLowerCase()
+  if (['leave', 'exit', 'abort', 'extract'].includes(action)) return game.leaveSpecialMission(session)
+  if (['enter', 'start', 'accept'].includes(action)) {
+    const missionId = parts.join(' ').toLowerCase()
+    if (!missionId) return game.log(session, 'Usage: special enter <mission-id>. Type SPECIAL to see the slate.', 'bad')
+    return game.startSpecialMission(session, missionId)
+  }
+
+  game.pushJobs(session)
+  const lines = [{ text: '◈ SPECIAL MISSION SHARDS', cls: 'level' }]
+  for (const mission of game.specialMissionList(session, now)) {
+    const status = mission.status === 'active'
+      ? `ACTIVE ${mission.progress.room}/${mission.progress.total}`
+      : mission.status === 'completed'
+        ? 'COMPLETE — EXTRACT OR REPLAY'
+      : mission.status === 'cooldown'
+          ? `REBOOT ${Math.ceil(mission.cooldownMs / 60000)}m`
+          : mission.status === 'needs-contract'
+            ? (session.player.level < mission.minLevel ? `LEVEL ${mission.minLevel}+; THEN ACCEPT ROGUE\'S GIG` : 'ACCEPT ROGUE\'S GIG FIRST')
+            : mission.replayOnly
+              ? 'REPLAY — CONTRACT ALREADY PAID'
+          : `AVAILABLE • LEVEL ${mission.minLevel}+`
+    lines.push({ text: `${mission.title} — ${mission.desc} (${status} • ${mission.rewardEddies}€$ • ${mission.rewardXp}xp • ${mission.rewardRep}rep)`, cls: mission.status === 'active' || mission.status === 'completed' ? 'gig' : 'sys' })
+  }
+  lines.push({ text: 'Enter with: special enter <mission-id> • Extract with: special leave', cls: 'sys' })
   game.logLines(session, lines)
 }
 
@@ -294,7 +327,6 @@ function cmdDrop (game, session, rest) {
 function cmdAttack (game, session, target, now) {
   const p = session.player
   if (!p.alive) return
-  const room = rooms[p.room]
   let inst = game.hostileInRoom(session, target)
   if (!inst && !target) {
     const hs = game.world.hostilesInRoom(p.room)
@@ -310,12 +342,12 @@ function cmdAttack (game, session, target, now) {
   game.roomLog(p.room, `${p.name} attacks ${inst.def.name} for ${res.dmg}.`, 'combat', session.accountId)
   game.addThreat(inst, session, res.dmg)
   if (inst.hp <= 0) game.grantKill(session, inst)
-  else { game.pushRoom(session); game.pushState(session) }
+  else { game.pushRoomToPlayers(p.room); game.pushState(session) }
 }
 
 function cmdBreach (game, session, now) {
   const p = session.player
-  if (!netrun.netportInRoom(rooms[p.room])) return game.log(session, 'No netport jack point in this room.', 'bad')
+  if (!netrun.netportInRoom(game.roomFor(p.room))) return game.log(session, 'No netport jack point in this room.', 'bad')
   if (session.breach && !session.breach.done) return game.log(session, 'You are already jacked into a subnet.', 'bad')
   const start = netrun.startBreach(game, session, now)
   if (!start.ok) return game.log(session, start.error, 'bad')
@@ -352,7 +384,7 @@ function cmdHack (game, session, rest, now) {
   game.roomLog(p.room, `${p.name} quickhacks ${inst.def.name}.`, 'combat', session.accountId)
   game.addThreat(inst, session, res.dmg)
   if (inst.hp <= 0) game.grantKill(session, inst)
-  else { game.pushRoom(session); game.pushState(session) }
+  else { game.pushRoomToPlayers(p.room); game.pushState(session) }
 }
 
 function cmdDefend (game, session, now) {
@@ -389,7 +421,7 @@ function cmdGrenade (game, session, rest, now) {
     game.addThreat(inst, session, 10)
     if (inst.hp <= 0 && inst.alive) game.grantKill(session, inst)
   }
-  game.pushRoom(session); game.pushInv(session); game.pushState(session)
+  game.pushRoomToPlayers(p.room); game.pushInv(session); game.pushState(session)
 }
 
 function cmdSandevistan (game, session, now) {
@@ -444,9 +476,7 @@ function cmdBuy (game, session, rest, now) {
       p.eddies += price
       return game.log(session, `Not enough chrome capacity (${used + def.capacity}/${eff.capacity}). Install a Chrome Compressor or uninstall something.`, 'bad')
     }
-    const st = P.addToInv(p, def.id, 1)
-    p.cyberware[def.slot] = st
-    P.removeFromInv(p, st.uid, 1) // it lives in cyberware now
+    p.cyberware[def.slot] = makeStack(def.id)
     game.log(session, `Ripper installs ${def.name}. You feel it settle behind your ribs. (-${price} eddies)`, 'good')
     game.roomLog(p.room, `${p.name} gets chrome installed.`, 'sys', session.accountId)
   } else {
@@ -498,10 +528,10 @@ function cmdInstall (game, session, query) {
   const used = P.cyberwareCapacityUsed(p)
   if (p.cyberware[d.slot]) return game.log(session, `Your ${d.slot} slot is occupied (${getItemDef(p.cyberware[d.slot].id).name}). Uninstall it first.`, 'bad')
   if (used + d.capacity > eff.capacity) return game.log(session, `Capacity exceeded (${used + d.capacity}/${eff.capacity}).`, 'bad')
-  P.removeFromInv(p, f.stack.uid, 1)
-  const st = P.addToInv(p, d.id, 1)
-  p.cyberware[d.slot] = st
-  P.removeFromInv(p, st.uid, 1)
+  const inventoryIndex = p.inv.indexOf(f.stack)
+  if (inventoryIndex < 0) return game.log(session, `You aren't carrying "${query}".`, 'bad')
+  p.inv.splice(inventoryIndex, 1)
+  p.cyberware[d.slot] = f.stack
   game.log(session, `${ripper.name} installs ${d.name}. ${d.desc}`, 'good')
   game.roomLog(p.room, `${p.name} goes under the ripper's knife.`, 'sys', session.accountId)
   game.pushInv(session); game.pushState(session)
@@ -523,7 +553,7 @@ function cmdUninstall (game, session, slot) {
 
 function cmdAccept (game, session, gigId, now) {
   const p = session.player
-  const room = rooms[p.room]
+  const room = game.roomFor(p.room)
   const gig = Q.GIGS[gigId]
   if (!gig) return game.log(session, `No such gig "${gigId}". Type jobs.`, 'bad')
   if (!(room.npcs ?? []).includes(gig.fixer)) return game.log(session, `You must accept this gig from ${npcDefs[gig.fixer]?.name}.`, 'bad')
@@ -603,6 +633,7 @@ function cmdPerk (game, session, query) {
 
 function cmdTravel (game, session, dest, now) {
   const p = session.player
+  if (session.specialRunId) return game.log(session, 'Fast travel is offline inside a Special Mission. Clear it or type SPECIAL LEAVE.', 'bad')
   const dist = Object.keys(HUB_ROOMS).find(d => d === dest.toLowerCase() || districts[d]?.name.toLowerCase().includes(dest.toLowerCase()))
   if (!dist) return game.log(session, `Districts: ${Object.keys(HUB_ROOMS).join(', ')}`, 'bad')
   const target = HUB_ROOMS[dist]
@@ -632,16 +663,16 @@ function cmdTalk (game, session, query) {
 
 function cmdMap (game, session) {
   const p = session.player
-  const room = rooms[p.room]
+  const room = game.roomFor(p.room)
   const dist = districts[room.district]
   const lines = [
     { text: `◈ ${dist?.name ?? room.district} — ${dist?.blurb ?? ''}`, cls: 'level' },
     { text: `You are at: ${room.name}`, cls: 'place' }
   ]
   for (const [dir, to] of Object.entries(room.exits ?? {})) {
-    const r = rooms[to]
+    const r = game.roomFor(to)
     lines.push({ text: `  ${EXIT_NAMES[dir].padEnd(10)} → ${r?.name} [${districts[r?.district]?.name}]`, cls: 'exit' })
   }
-  lines.push({ text: `Fast travel: travel <${Object.keys(HUB_ROOMS).join('|')}> (100 eddies)`, cls: 'sys' })
+  if (!session.specialRunId) lines.push({ text: `Fast travel: travel <${Object.keys(HUB_ROOMS).join('|')}> (100 eddies)`, cls: 'sys' })
   game.logLines(session, lines)
 }

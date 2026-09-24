@@ -50,6 +50,7 @@ go <dir>      attack <npc>  hack <qh> <npc>   grenade <type>
 defend        dodge         sandevistan   berserk
 shop          buy <item>    sell <item>   install <cyberware>
 jobs          accept <gig>  talk <npc>    up <attr>
+special       special enter <mission-id>      special leave
 travel <district>           map           who
 ```
 
@@ -68,12 +69,20 @@ available and is the fastest way to play.
 - **Passwords:** salted `scrypt` via Node's `crypto`. Sessions are random tokens (30-day TTL).
 - **Combat:** turn/timer-based. Each weapon has a cooldown (`speed`) reduced by haste and
   Sandevistan. Quickhacks cost RAM and need a cyberdeck. Cyberware uses slot + capacity.
-- **PvP is disabled.** Gigs are repeatable with cooldowns.
+- **PvP is disabled.** Gigs are one-time contracts and disappear when completed. Special
+  Missions remain replayable on their own cooldowns.
+- **Special Missions** are private, multi-room dungeon runs. Use `special` to see the slate,
+  `special enter <mission-id>` to jack in, and `special leave` to extract. Clear each room
+  before pushing deeper; completing a run pays eddies, XP, and rep. All four named bosses are
+  now exclusive to their Special Missions. Accept Rogue's `Bad Fish in the Nest` gig before
+  entering its cyberpsycho mission (level 8+). Enemy levels and mission rewards rise with the
+  runner's level; active gig targets and payouts do too. Higher-level runners have better odds
+  of rare loot. Mission completion and replay cooldowns save with your runner.
 
 ## Content
 
 7 districts (Watson, Westbrook, City Center, Heywood, Pacifica, Santo Domingo, the Badlands),
-43 rooms, 38 NPCs, 5 fixers, 5 gigs, ~70 items. Edit the JSON in `data/` to add more —
+57 city rooms, 38 NPCs, 5 fixers, 5 gigs, 5 Special Missions, ~70 items. Edit the JSON in `data/` to add more —
 `data/world.json` (districts + rooms), `data/npcs.json` (NPCs), `data/items.json` (catalog).
 Keep them as valid double-quoted JSON.
 
@@ -81,7 +90,7 @@ Keep them as valid double-quoted JSON.
 
 ```
 server/   index.js  engine.js  commands.js  combat.js  player.js
-          world.js  items.js   quests.js    db.js
+          world.js  items.js   quests.js    special-missions.js  scaling.js  db.js
 client/   index.html  style.css  app.js
 data/     world.json  npcs.json  items.json   save/world.json (runtime)
 ```
