@@ -106,9 +106,10 @@
         <div id="vitals"></div>
       </div>
       <div class="panel">
-        <h3>DISTRICT MAP</h3>
-        <div id="minimap"></div>
+        <h3>NIGHT CITY</h3>
+        <canvas id="minimap"></canvas>
         <div id="legend"></div>
+        <button id="qmap-btn" class="qbtn wide" title="Open the city map">OPEN MAP ▦</button>
       </div>
       <div class="panel">
         <h3>ATTRIBUTES</h3>
@@ -264,6 +265,26 @@
     <header><h3 id="perks-title">CLASS PERKS</h3><button id="perks-close" class="x">✕</button></header>
     <div class="perks-head" id="perks-head"></div>
     <div id="perks-list" class="perks-list"></div>
+  </div>
+</div>
+
+<!-- ============ CITY MAP MODAL ============ -->
+<div id="mapmodal" class="modal map-modal hidden">
+  <div class="map-card">
+    <header class="map-head">
+      <h3>NIGHT CITY NETWORK ▦</h3>
+      <div class="map-head-controls">
+        <span class="map-hint">drag pan · scroll zoom · click a building to travel</span>
+        <button id="map-follow" class="qbtn">FOLLOW ▸</button>
+        <button id="map-fit" class="qbtn">FIT</button>
+        <button id="map-close" class="x">✕</button>
+      </div>
+    </header>
+    <div class="map-canvas-wrap" id="map-wrap">
+      <canvas id="mapcanvas"></canvas>
+      <div id="map-tip" class="map-tip hidden"></div>
+    </div>
+    <div class="map-legend" id="map-legend"></div>
   </div>
 </div>
 

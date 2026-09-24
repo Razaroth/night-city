@@ -111,7 +111,39 @@ Full netrunning slice, verified **live end-to-end** via `nc-e2e.mjs`
   restart the service (`systemctl --user restart night-city`) before re-running
   `nc-e2e.mjs` against the same netport, or the test trips the cooldown branch.
 
-## Resolved issues (2026-09-22)
+## City map / 3D isometric map (2026-09-24)
+
+Rebuilt the "district map" into a real CP2077-style city map plus a full-screen
+3D isometric modal:
+
+- **Coords**: every room in `data/world.json` now carries hand-placed `x`/`y`
+  (CP2077-ish geography: Watson N, Westbrook NE, City Center mid, Heywood S,
+  Santo E, Pacifica SW, Badlands far E). `server/world.js` `roomsPayload()` now
+  includes `x`/`y`/`exits` (the plumbing note below is outdated — the world
+  payload is no longer exit-less).
+- **Renderer** (`client/app.js` `drawCity` + `MapMod` MM state): Canvas2D
+  isometric projection `sx=(x−y)·u`, `sy=(x+y)·u/2`, zero library deps.
+  Buildings are extruded blocks colored by district (height per category:
+  corpo/apt tallest, tents/wasteland flattest), neon roof strokes, ground
+  shadows, roads connecting linked rooms, translucent district hulls
+  (convex hull, monotone chain) with glowing district labels, and a pulsing
+  player beacon. Painter-sorted by depth (`x+y`) after roads.
+- **Minimap** (`client/index.html` `#minimap` canvas, `renderMinimap`): the
+  left panel now draws a small fitted iso city; `#legend` keeps district dots.
+- **Full-screen modal** (MAP button in the left panel and quickbar, `M` via
+  `.map-modal`/`#mapcanvas` in index.html): pan (drag), zoom (wheel, clamped
+  2–90), FIT / FOLLOW buttons, hover tooltip (name/district/route state),
+  click a building to travel.
+- **Click-to-travel**: client-side BFS over world exits (`bfsPath`), walks the
+  room-by-room path by sending each direction after the previous `room` push
+  arrives (`startMapWalk`/`mapRouteCheck` in `onRoom`); route is highlighted on
+  the map, cancelled on death/route-interrupt. Note the world graph has 9
+  disconnected components (satellite shops like `ripperdoc-*` and `quarantine`
+  are one-way leaves) — BFS will only route within the reachable component,
+  mirroring what the server allows.
+- Verified: node --check all, headless chromium — modal + minimap render with
+  colored pixels, BFS/walk live (h10 → watson-streets → northside → ripperdoc),
+  zero console errors; full `nc-e2e.mjs` still green.
 
 - **`up <attr>` crash**: spending an attribute point from a bare dir (no args)
   crashed the server; fixed in `server/commands.js` (guard before `up 0`).
@@ -220,9 +252,10 @@ Full netrunning slice, verified **live end-to-end** via `nc-e2e.mjs`
 - NPC defs: hp = `maxhp`, weapon by id, armor number; loot/eddies arrays (see npcs.json).
 - Cheapest cyberware = synth-lungs 500€$ (torso, cap 1). Ripdoc sellMul 1.4, buyMul 0.5;
   weapon vendor sellMul 1.6.
-- Plumbing: the world *payload* rooms have no exits (id/name/district/category only),
-  so route planning must read `world.json` rooms[].exits; the harness uses explicit
-  `via`/reenter step lists (see `nc-client.mjs` `route()`).
+- Plumbing: the world *payload* rooms now have coords + exits (see the city-map
+  section above), but the harness predates that and still reads `world.json`
+  `rooms[].exits` directly for route planning (`nc-client.mjs` `route()`); both
+  work for the harness's explicit `via`/reenter step lists.
 
 ## Test harness files (outside the repo, in /tmp/opencode)
 

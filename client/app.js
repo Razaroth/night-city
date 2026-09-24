@@ -382,9 +382,11 @@ function onRoom (msg) {
   renderActions()
   renderMinimap()
   openCombat()
+  mapRouteCheck(msg)
 }
 
 function onDeath (msg) {
+  S.mapWalk = null; MM.route = null
   $('#death-sub').textContent = 'RESPAWNING IN ' + Math.ceil(msg.respawnIn / 1000) + 's…'
   $('#deathveil').classList.remove('hidden')
   if (S.deathTimer) clearInterval(S.deathTimer)
@@ -766,37 +768,396 @@ function jobCard (g, fixerHere) {
     <button data-gig="${esc(g.id)}" ${can ? '' : 'disabled'}>${can ? 'ACCEPT' : (fixerHere ? status : 'FIXER ELSEWHERE')}</button></div>`
 }
 
-/* ================= minimap ================= */
-function renderMinimap () {
-  const rooms = S.world.rooms
-  if (!rooms.length) return
+/* ================= city map ================= */
+const MAP_H = {
+  apartment: 3.2, street: 1.6, market: 1.2, industrial: 2.6, gangden: 2.2,
+  clinic: 1.5, plaza: 2.2, club: 1.7, bar: 1.6, corpo: 4.4, ruin: 1.1,
+  wasteland: 0.8, tent: 0.6
+}
+const MM = { cv: null, view: null, hover: null, raf: 0, drag: null, moved: false, tip: null, walk: null, route: null }
+
+function mapRooms () {
+  const rooms = S.world.rooms || []
+  if (!MM.cached && rooms.length) {
+    let base = 0
+    for (const r of rooms) {
+      if (typeof r.x !== 'number' || typeof r.y !== 'number') {
+        r.x = base % 10; r.y = Math.floor(base / 10); r.y = r.y * 2; r.x = r.x * 2
+      }
+      base++
+    }
+    MM.cached = true
+  }
+  return rooms
+}
+
+function mapProj (r, view) {
+  const u = view.unit
+  const ix = (r.x - r.y) * u
+  const iy = (r.x + r.y) * u * 0.5
+  return { x: ix + view.ox, y: iy + view.oy }
+}
+
+function mapFitView (cw, ch, rooms) {
+  const u0 = 1
+  let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity
+  for (const r of rooms) {
+    const ix = (r.x - r.y) * u0, iy = (r.x + r.y) * u0 * 0.5
+    if (ix < minX) minX = ix; if (ix > maxX) maxX = ix
+    if (iy < minY) minY = iy; if (iy > maxY) maxY = iy
+  }
+  const unit = Math.min(cw / (maxX - minX + 4), ch / (maxY - minY + 4))
+  return {
+    unit: unit,
+    ox: cw / 2 - (minX + maxX) * unit / 2,
+    oy: ch / 2 - (minY + maxY) * unit / 2
+  }
+}
+
+function hexToRgb (hex) {
+  const m = /^#([0-9a-f]{6})$/i.exec(hex || '')
+  if (!m) return [150, 180, 220]
+  const n = parseInt(m[1], 16)
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255]
+}
+function shade (hex, f) {
+  const [r, g, b] = hexToRgb(hex)
+  const t = f < 0 ? 0 : 255
+  const p = Math.abs(f)
+  return `rgb(${Math.round(r + (t - r) * p)},${Math.round(g + (t - g) * p)},${Math.round(b + (t - b) * p)})`
+}
+function distColor (d) { return S.world?.districts?.[d]?.color || '#29f2c3' }
+
+function convexHull (pts) {
+  pts = pts.slice().sort((a, b) => a.x - b.x || a.y - b.y)
+  if (pts.length < 3) return pts
+  const cross = (o, a, b) => (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x)
+  const lo = []
+  for (const p of pts) { while (lo.length >= 2 && cross(lo[lo.length - 2], lo[lo.length - 1], p) <= 0) lo.pop(); lo.push(p) }
+  const up = []
+  for (let i = pts.length - 1; i >= 0; i--) { const p = pts[i]; while (up.length >= 2 && cross(up[up.length - 2], up[up.length - 1], p) <= 0) up.pop(); up.push(p) }
+  up.pop(); lo.pop()
+  return lo.concat(up)
+}
+
+function drawCity (ctx, cw, ch, view, opts) {
+  opts = opts || {}
+  const rooms = mapRooms()
+  const g = ctx.createLinearGradient(0, 0, 0, ch)
+  g.addColorStop(0, '#05060c'); g.addColorStop(0.6, '#0a0d18'); g.addColorStop(1, '#0d1220')
+  ctx.fillStyle = g
+  ctx.fillRect(0, 0, cw, ch)
+
   const byDist = {}
   for (const r of rooms) (byDist[r.district] ??= []).push(r)
-  const colW = 33, gap = 15, top = 10
-  let maxN = 1
-  for (const d of DIST_ORDER) maxN = Math.max(maxN, (byDist[d] || []).length)
-  const height = top + maxN * gap + 16
-  const width = colW * DIST_ORDER.length
-  let svg = `<svg viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">`
-  DIST_ORDER.forEach((d, i) => {
-    const dist = S.world.districts[d]
-    const cx = i * colW + colW / 2
-    svg += `<text x="${cx}" y="${height - 3}" fill="${dist?.color || '#456'}" font-size="6" text-anchor="middle" font-family="monospace">${(dist?.name || d).slice(0, 7).toUpperCase()}</text>`
-    const list = byDist[d] || []
-    list.forEach((r, k) => {
-      const cy = top + k * gap
-      const cur = S.room && S.room.id === r.id
-      const col = dist?.color || '#456'
-      if (cur) svg += `<circle cx="${cx}" cy="${cy}" r="7" fill="none" stroke="${col}" stroke-width="1" opacity="0.8"><animate attributeName="r" values="5;8;5" dur="1.4s" repeatCount="indefinite"/></circle>`
-      svg += `<circle cx="${cx}" cy="${cy}" r="${cur ? 4 : 2.6}" fill="${cur ? '#fff' : col}" opacity="${cur ? 1 : 0.75}"><title>${esc(r.name)}</title></circle>`
-    })
-  })
-  svg += '</svg>'
-  $('#minimap').innerHTML = svg
+
+  const hulls = []
+  for (const d of Object.keys(byDist)) {
+    const pts = byDist[d].map(r => { const p = mapProj(r, view); return { x: p.x, y: p.y } })
+    const poly = convexHull(pts)
+    hulls.push({ d, poly, col: distColor(d) })
+  }
+  for (const h of hulls) {
+    ctx.beginPath()
+    ctx.moveTo(h.poly[0].x, h.poly[0].y)
+    for (let i = 1; i < h.poly.length; i++) ctx.lineTo(h.poly[i].x, h.poly[i].y)
+    ctx.closePath()
+    ctx.fillStyle = h.col + '14'
+    ctx.fill()
+    ctx.strokeStyle = h.col
+    ctx.globalAlpha = 0.28
+    ctx.lineWidth = 1
+    ctx.stroke()
+    ctx.globalAlpha = 1
+  }
+
+  const edges = new Set()
+  for (const r of rooms) {
+    for (const e of (r.exits || [])) {
+      const key = (r.id < e.to ? r.id + '>' + e.to : e.to + '>' + r.id)
+      edges.add(key)
+    }
+  }
+  const rIndex = S.roomIndex
+  ctx.lineCap = 'round'
+  for (const key of edges) {
+    const [a, b] = key.split('>')
+    const ra = rIndex[a], rb = rIndex[b]
+    if (!ra || !rb) continue
+    const pa = mapProj(ra, view), pb = mapProj(rb, view)
+    ctx.strokeStyle = '#0b0e18'
+    ctx.lineWidth = view.unit * 0.42
+    ctx.beginPath(); ctx.moveTo(pa.x, pa.y); ctx.lineTo(pb.x, pb.y); ctx.stroke()
+    ctx.strokeStyle = '#3d4a66'
+    ctx.lineWidth = view.unit * 0.1
+    ctx.beginPath(); ctx.moveTo(pa.x, pa.y); ctx.lineTo(pb.x, pb.y); ctx.stroke()
+  }
+
+  const sorted = rooms.slice().sort((a, b) => b.x + b.y - (a.x + a.y))
+  const step = view.unit
+  for (const r of sorted) {
+    const p = mapProj(r, view)
+    const w = step * 0.5, hh = step * 0.27
+    const h = (MAP_H[r.category] ?? 1.5) * step * 0.5
+    const top = { x: p.x, y: p.y - hh }, right = { x: p.x + w, y: p.y }
+    const bottom = { x: p.x, y: p.y + hh }, left = { x: p.x - w, y: p.y }
+    const col = distColor(r.district)
+    const cur = opts.cur && opts.cur === r.id
+    const hover = opts.hover && opts.hover === r.id
+    const inRoute = opts.route && opts.route.includes(r.id)
+
+    ctx.fillStyle = 'rgba(0,0,0,.35)'
+    ctx.beginPath()
+    ctx.ellipse(p.x, p.y + hh * 0.8, w * 1.15, hh * 1.15, 0, 0, Math.PI * 2)
+    ctx.fill()
+
+    const tH = { x: top.x, y: top.y - h }, rH = { x: right.x, y: right.y - h }
+    const bH = { x: bottom.x, y: bottom.y - h }, lH = { x: left.x, y: left.y - h }
+
+    ctx.beginPath()
+    ctx.moveTo(left.x, left.y); ctx.lineTo(bottom.x, bottom.y); ctx.lineTo(bH.x, bH.y); ctx.lineTo(lH.x, lH.y)
+    ctx.closePath(); ctx.fillStyle = shade(col, hover ? 0.5 : 0.18); ctx.fill()
+
+    ctx.beginPath()
+    ctx.moveTo(bottom.x, bottom.y); ctx.lineTo(right.x, right.y); ctx.lineTo(rH.x, rH.y); ctx.lineTo(bH.x, bH.y)
+    ctx.closePath(); ctx.fillStyle = shade(col, hover ? 0.35 : 0.02); ctx.fill()
+
+    ctx.beginPath()
+    ctx.moveTo(tH.x, tH.y); ctx.lineTo(rH.x, rH.y); ctx.lineTo(bH.x, bH.y); ctx.lineTo(lH.x, lH.y)
+    ctx.closePath()
+    ctx.fillStyle = hover ? shade(col, 0.42) : col
+    ctx.fill()
+    ctx.strokeStyle = hover ? '#fff' : shade(col, 0.55)
+    ctx.lineWidth = hover ? Math.max(1.6, step * 0.09) : Math.max(0.7, step * 0.045)
+    ctx.stroke()
+
+    if (inRoute && !cur) {
+      ctx.strokeStyle = 'rgba(120,220,255,.55)'
+      ctx.lineWidth = Math.max(1, step * 0.06)
+      ctx.beginPath(); ctx.arc(p.x, p.y - h * 0.5, w * 0.8, 0, Math.PI * 2); ctx.stroke()
+    }
+  }
+
+  const myRoom = opts.cur && rIndex[opts.cur]
+  if (myRoom) {
+    const p = mapProj(myRoom, view)
+    const w = step * 0.55
+    const pulse = opts.time ? (opts.time % 1.4) / 1.4 : 0.5
+    const pr = w * (1 + pulse * 1.4)
+    ctx.strokeStyle = '#7dffd9'
+    ctx.globalAlpha = 1 - pulse * 0.7
+    ctx.lineWidth = Math.max(1.5, step * 0.1)
+    ctx.beginPath(); ctx.arc(p.x, p.y - step * 1.9, pr, 0, Math.PI * 2); ctx.stroke()
+    ctx.globalAlpha = 1
+    const beamTop = p.y - step * 3.2
+    const grad = ctx.createLinearGradient(0, p.y - step, 0, beamTop)
+    grad.addColorStop(0, 'rgba(125,255,217,.9)'); grad.addColorStop(1, 'rgba(125,255,217,0)')
+    ctx.strokeStyle = grad
+    ctx.lineWidth = Math.max(1.5, step * 0.09)
+    ctx.beginPath(); ctx.moveTo(p.x, p.y - step); ctx.lineTo(p.x, beamTop); ctx.stroke()
+  }
+
+  for (const h of hulls) {
+    let cx = 0, cy = 0
+    for (const p of h.poly) { cx += p.x; cy += p.y }
+    cx /= h.poly.length; cy /= h.poly.length
+    ctx.fillStyle = h.col
+    ctx.font = `700 ${Math.max(9, view.unit * 1.15)}px Orbitron, sans-serif`
+    ctx.textAlign = 'center'
+    ctx.shadowColor = h.col; ctx.shadowBlur = view.unit * 1.4
+    ctx.fillText((S.world.districts[h.d]?.name || h.d).toUpperCase(), cx, cy + view.unit * 2.6)
+    ctx.shadowBlur = 0
+  }
+}
+
+function mapSizeTo (cv, targetW, targetH) {
+  const dpr = window.devicePixelRatio || 1
+  if (cv.width !== targetW * dpr || cv.height !== targetH * dpr) {
+    cv.width = targetW * dpr; cv.height = targetH * dpr
+  }
+  cv.style.width = targetW + 'px'; cv.style.height = targetH + 'px'
+  const ctx = cv.getContext('2d')
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+  return ctx
+}
+
+function renderMinimap () {
+  const cv = $('#minimap')
+  const rooms = mapRooms()
+  if (!cv || !rooms.length) return
+  const w = cv.parentElement.clientWidth || 200
+  const h = 150
+  const ctx = mapSizeTo(cv, w, h)
+  const view = mapFitView(w, h, rooms)
+  drawCity(ctx, w, h, view, { cur: S.room?.id, route: MM.route })
   $('#legend').innerHTML = DIST_ORDER.map(d => {
     const dist = S.world.districts[d]
     return `<span class="lg"><i class="dot" style="background:${dist?.color || '#456'}"></i>${esc(dist?.name || d)}</span>`
   }).join('')
+}
+
+function mapHit (ev, cv, view) {
+  const rect = cv.getBoundingClientRect()
+  const mx = ev.clientX - rect.left, my = ev.clientY - rect.top
+  let best = null, bd = Infinity
+  for (const r of mapRooms()) {
+    const p = mapProj(r, view)
+    const d = Math.hypot(mx - p.x, my - p.y)
+    if (d < bd) { bd = d; best = r }
+  }
+  return bd < view.unit * 0.95 ? best : null
+}
+
+function bfsPath (fromId, toId) {
+  if (fromId === toId) return []
+  const prev = { [fromId]: null }
+  const q = [fromId]
+  while (q.length) {
+    const cur = q.shift()
+    const r = S.roomIndex[cur]
+    for (const e of (r?.exits || [])) {
+      if (!(e.to in prev)) { prev[e.to] = [cur, e.dir]; q.push(e.to) }
+    }
+  }
+  if (!prev[toId]) return null
+  const steps = []
+  let at = toId
+  while (at !== fromId) { const [from, dir] = prev[at]; steps.unshift({ to: at, dir }); at = from }
+  return steps
+}
+
+function startMapWalk (steps) {
+  if (!steps || !steps.length) return
+  S.mapWalk = { steps, i: 0 }
+  mapWalkStep()
+}
+function mapWalkStep () {
+  const w = S.mapWalk
+  if (!w) return
+  const s = w.steps[w.i]
+  if (!s) { S.mapWalk = null; MM.route = null; toast('You reached your destination.', 'good'); return }
+  cmd(s.dir)
+  w.expect = s.to
+}
+function mapRouteCheck (msg) {
+  const w = S.mapWalk
+  if (!w) return
+  if (msg && msg.id === w.expect) {
+    w.i++
+    mapWalkStep()
+  } else if (msg && msg.id !== w.expect) {
+    S.mapWalk = null; MM.route = null
+    toast('Route interrupted.', 'bad')
+  }
+}
+
+function openMap () {
+  if (!mapRooms().length) return
+  const wrap = $('#map-wrap')
+  const cv = $('#mapcanvas')
+  const w = wrap.clientWidth || 800, h = wrap.clientHeight || 600
+  const rooms = mapRooms()
+  MM.cv = cv
+  MM.view = mapFitView(w, h, rooms)
+  MM.hover = null
+  $('#mapmodal').classList.remove('hidden')
+  $('#map-legend').innerHTML = DIST_ORDER.map(d => {
+    const dist = S.world.districts[d]
+    return `<span class="lg"><i class="dot" style="background:${dist?.color || '#456'}"></i><b>${esc(dist?.name || d)}</b></span>`
+  }).join('')
+  MM.walk = S.room?.id || null
+  requestMapFrame()
+}
+function closeMap () {
+  $('#mapmodal').classList.add('hidden')
+  if (MM.raf) { cancelAnimationFrame(MM.raf); MM.raf = 0 }
+}
+function requestMapFrame () {
+  cancelAnimationFrame(MM.raf)
+  const cv = MM.cv
+  const wrap = $('#map-wrap')
+  const tick = (t) => {
+    if ($('#mapmodal').classList.contains('hidden') || !cv) return
+    const w = wrap.clientWidth || 800, h = wrap.clientHeight || 600
+    const ctx = mapSizeTo(cv, w, h)
+    drawCity(ctx, w, h, MM.view, { cur: S.room?.id, hover: MM.hover, route: MM.route, time: t / 1000 })
+    MM.raf = requestAnimationFrame(tick)
+  }
+  MM.raf = requestAnimationFrame(tick)
+}
+
+;(function mapBind () {
+  const wrap = $('#map-wrap')
+  if (!wrap) return
+  const cv = $('#mapcanvas')
+  $('#map-close').onclick = () => closeMap()
+  $('#mapmodal').addEventListener('click', (e) => { if (e.target === $('#mapmodal')) closeMap() })
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !$('#mapmodal').classList.contains('hidden')) closeMap()
+  })
+  $('#map-fit').onclick = () => {
+    const wrapE = $('#map-wrap')
+    MM.view = mapFitView(wrapE.clientWidth || 800, wrapE.clientHeight || 600, mapRooms())
+  }
+  $('#map-follow').onclick = () => {
+    const r = S.roomIndex[S.room?.id]
+    if (!r) return
+    const wrapE = $('#map-wrap')
+    const w = wrapE.clientWidth || 800, h = wrapE.clientHeight || 600
+    const p = (r.x - r.y) * 1, py = (r.x + r.y) * 1 * 0.5
+    MM.view.unit = Math.max(MM.view.unit, 13)
+    MM.view.ox = w / 2 - p * MM.view.unit
+    MM.view.oy = h / 2 - py * MM.view.unit
+  }
+  wrappers()
+  cv.addEventListener('mousemove', (ev) => {
+    if (MM.drag) {
+      MM.view.ox += ev.movementX; MM.view.oy += ev.movementY
+      MM.moved = true
+      return
+    }
+    MM.hover = mapHit(ev, cv, MM.view)?.id || null
+    const tip = $('#map-tip')
+    const hit = mapHit(ev, cv, MM.view)
+    if (hit) {
+      const dist = S.world.districts[hit.district]
+      const cur = hit.id === S.room?.id
+      tip.innerHTML = `<b>${esc(hit.name)}</b> <span>${esc(dist?.name || hit.district)}</span><i>${cur ? 'YOU ARE HERE' : MM.route && MM.route.includes(hit.id) ? 'ON ROUTE' : 'CLICK TO TRAVEL'}</i>`
+      tip.classList.remove('hidden')
+      const rect = cv.getBoundingClientRect()
+      tip.style.left = (ev.clientX - rect.left + 12) + 'px'
+      tip.style.top = (ev.clientY - rect.top + 12) + 'px'
+    } else tip.classList.add('hidden')
+  })
+  cv.addEventListener('mouseleave', () => { MM.hover = null; $('#map-tip').classList.add('hidden') })
+  cv.addEventListener('mousedown', (ev) => { MM.drag = { x: ev.clientX, y: ev.clientY }; MM.moved = false })
+  window.addEventListener('mouseup', () => { MM.drag = null })
+  cv.addEventListener('click', (ev) => {
+    if (MM.moved || !S.room) return
+    const hit = mapHit(ev, cv, MM.view)
+    if (!hit || hit.id === S.room.id || S.mapWalk) return
+    const path = bfsPath(S.room.id, hit.id)
+    if (!path) { toast('No safe network path there.', 'bad'); return }
+    MM.route = path.map(s => s.to)
+    toast('Routing to ' + hit.name + '…', 'info')
+    startMapWalk(path)
+  })
+  cv.addEventListener('wheel', (ev) => {
+    ev.preventDefault()
+    const rect = cv.getBoundingClientRect()
+    const mx = ev.clientX - rect.left, my = ev.clientY - rect.top
+    const f = ev.deltaY < 0 ? 1.15 : 1 / 1.15
+    const v = MM.view
+    const wx = (mx - v.ox) / v.unit, wy = (my - v.oy) / v.unit
+    v.unit = Math.max(2, Math.min(90, v.unit * f))
+    v.ox = mx - wx * v.unit; v.oy = my - wy * v.unit
+  }, { passive: false })
+})()
+
+function wrappers () {
+  $('#qmap-btn').onclick = () => openMap()
+  const qo = $('#qmap-open')
+  if (qo && !qo.dataset.wired) { qo.dataset.wired = '1'; qo.onclick = () => openMap() }
 }
 
 /* ================= quickbar ================= */
@@ -817,7 +1178,7 @@ function renderQuickbar () {
   if (ap && ap.ready) btns.push('<button class="qbtn gig" data-cmd="breach">BREACH</button>')
   if (ap && !ap.ready) btns.push(`<button class="qbtn" disabled>NET ${ap.cdLeft || 0}s</button>`)
   btns.push('<button class="qbtn" data-cmd="look">LOOK</button>')
-  btns.push('<button class="qbtn" data-cmd="map">MAP</button>')
+  btns.push('<button class="qbtn" id="qmap-open">MAP ▦</button>')
   btns.push('<button class="qbtn" data-cmd="stats">STATS</button>')
   btns.push('<button class="qbtn" id="qsheet-btn">SHEET</button>')
   btns.push('<button class="qbtn" data-cmd="inv">INV</button>')
@@ -826,6 +1187,8 @@ function renderQuickbar () {
   btns.push('<button class="qbtn" data-cmd="help">HELP</button>')
   $('#quickbar').innerHTML = btns.join('')
   bindCmdButtons($('#quickbar'))
+  const qo = $('#qmap-open')
+  if (qo) qo.onclick = () => openMap()
   const qp = $('#qperk-btn')
   if (qp) qp.onclick = () => openPerks()
   const qs = $('#qsheet-btn')

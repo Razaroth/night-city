@@ -145,7 +145,11 @@ export function districtMapPayload () {
 export function roomsPayload () {
   const list = []
   for (const r of Object.values(rooms)) {
-    list.push({ id: r.id, name: r.name, district: r.district, category: r.category })
+    list.push({
+      id: r.id, name: r.name, district: r.district, category: r.category,
+      x: r.x ?? 0, y: r.y ?? 0,
+      exits: Object.keys(r.exits ?? {}).map(k => ({ dir: k, to: r.exits[k] }))
+    })
   }
   return list
 }
