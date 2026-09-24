@@ -985,9 +985,15 @@ function renderMinimap () {
   const cv = $('#minimap')
   const rooms = mapRooms()
   if (!cv || !rooms.length) return
-  const w = cv.parentElement.clientWidth || 200
+  const pan = cv.parentElement
+  const ps = getComputedStyle(pan)
+  const padW = (parseFloat(ps.paddingLeft) || 0) + (parseFloat(ps.paddingRight) || 0)
+  const w = Math.max(120, pan.clientWidth - padW)
   const h = 150
-  const ctx = mapSizeTo(cv, w, h)
+  const dpr = window.devicePixelRatio || 1
+  cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr)
+  const ctx = cv.getContext('2d')
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
   const view = mapFitView(w, h, rooms)
   drawCity(ctx, w, h, view, { cur: S.room?.id, route: MM.route })
   $('#legend').innerHTML = DIST_ORDER.map(d => {
