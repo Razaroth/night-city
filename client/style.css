@@ -558,6 +558,7 @@ input { font-family: var(--mono); }
 .exit-grid button { background: #131d36; border: 1px solid #31486b; color: var(--cyan); padding: 5px 9px; font-size: 11px; }
 .exit-grid button:hover { border-color: var(--cyan); box-shadow: 0 0 10px rgba(41,242,195,.3); }
 .players-here { margin-top: 8px; font-size: 11px; color: var(--cyan); }
+.players-here .runner-sim { color: var(--dim); font-style: italic; }
 .obj-row { font-size: 11px; color: var(--dim); margin-top: 6px; }
 
 /* inventory / equipment */

@@ -147,6 +147,7 @@ function cmdSay (game, session, text) {
   if (!text) return
   game.log(session, `You say: "${text}"`, 'chat')
   game.roomLog(session.player.room, `${session.player.name} says: "${text}"`, 'chat', session.accountId)
+  game.sims?.handleSay(game, session.player.room)
 }
 function cmdShout (game, session, text) {
   if (!text) return

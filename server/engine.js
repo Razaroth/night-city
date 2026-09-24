@@ -12,6 +12,7 @@ import { CLASSES, PERKS, TIER_REQUIREMENTS, perkEffects, classPerks } from './cl
 import { handleCommand } from './commands.js'
 import { ambientLine, npcChatterLine, AMBIENT_MIN, AMBIENT_MAX } from './ambient.js'
 import * as netrun from './netrun.js'
+import { createSims } from './sims.js'
 
 const TICK_MS = 1000
 const AUTOSAVE_MS = 20000
@@ -23,6 +24,7 @@ export class Game {
     this.byAccount = new Map() // accountId -> session
     this.world = new WorldState()
     this.world.seed()
+    this.sims = createSims()
     this.lastSave = Date.now()
     this.itemCatalog = buildCatalog()
     this.districts = districtMapPayload()
@@ -389,6 +391,7 @@ export class Game {
     const players = this.playerSessions(p.room)
       .filter(s => s !== session)
       .map(s => ({ name: s.player.name, level: s.player.level, lifepath: s.player.lifepath }))
+    const simsHere = (this.sims?.presentIn(p.room) ?? []).map(sim => ({ name: sim.name, level: sim.level, lifepath: sim.lifepath, sim: true }))
     const corpse = this.world.corpseFor(p.room)
     const cdLeft = netrun.netportOnCooldown(this, p.room, now)
     return {
@@ -403,7 +406,7 @@ export class Game {
       desc: room.desc,
       exits: Object.entries(room.exits ?? {}).map(([dir, to]) => ({ dir, name: EXIT_NAMES[dir] ?? dir, to, toName: rooms[to]?.name ?? to })),
       npcs,
-      players,
+      players: [...players, ...simsHere],
       corpse: corpse ? { name: corpse.name, eddies: corpse.eddies, items: corpse.items.map(s => ({ name: getItemDef(s.id)?.name, qty: s.qty })) } : null,
       objects: (room.objects ?? []).map(o => o.kind === 'netport'
         ? { id: o.id, name: o.name, kind: o.kind, desc: o.desc, tier: o.tier ?? 'mid', ready: cdLeft === 0, cdLeft }
@@ -528,6 +531,7 @@ export class Game {
     if (exits.length) lines.push({ text: `Exits: ${exits.map(e => EXIT_NAMES[e]).join(', ')}`, cls: 'exit' })
     const others = this.playerSessions(room.id).filter(s => s !== session)
     for (const s of others) lines.push({ text: `${s.player.name} is here.`, cls: 'who' })
+    for (const sim of this.sims?.presentIn(room.id) ?? []) lines.push({ text: `${sim.name} is here.`, cls: 'who' })
     const hostiles = this.world.hostilesInRoom(room.id)
     for (const h of hostiles) lines.push({ text: `${h.def.name} [${h.def.faction}] is watching you. HP ${Math.round(h.hp / h.maxhp * 100)}%.`, cls: 'hostile' })
     const neutrals = this.world.allInRoom(room.id).filter(i => i.def.kind !== 'hostile')
@@ -723,6 +727,7 @@ export class Game {
     }
     this.world.tickCorpses(now)
     this.tickAmbient(now, spawnedRooms)
+    this.sims?.tick(this, now)
 
     // player regen + pushes
     for (const session of this.sessions.values()) {

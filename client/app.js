@@ -705,7 +705,9 @@ function renderActions () {
   for (const e of room.exits) html += `<button data-cmd="${e.dir}">${e.name.toUpperCase()} →</button>`
   html += '</div>'
   if (room.players && room.players.length) {
-    html += `<div class="players-here">Runners here: ${room.players.map(p => esc(p.name) + ' (Lv' + p.level + ')').join(', ')}</div>`
+    const real = room.players.filter(p => !p.sim).map(p => esc(p.name) + ' (Lv' + p.level + ')')
+    const sim = room.players.filter(p => p.sim).map(p => `<span class="runner-sim" title="Local runner">${esc(p.name)} (Lv${p.level})</span>`)
+    html += `<div class="players-here">Runners here: ${[...real, ...sim].join(', ')}</div>`
   }
   for (const o of (room.objects || [])) {
     if (o.kind === 'netport') continue
