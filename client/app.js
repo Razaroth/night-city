@@ -99,6 +99,7 @@ function handle (msg) {
     case 'jobs': S.jobs = msg; renderJobs(); renderActions(); break
     case 'shop': S.shop = msg; openShop(); break
     case 'log': addLog(msg.lines); break
+    case 'breach': onBreach(msg); break
     case 'toast': toast(msg.text, msg.cls); break
     case 'death': onDeath(msg); break
     case 'respawned': onRespawned(); break
@@ -190,7 +191,9 @@ function openCombat () {
 
   // foes — build/refresh cards in place so HP bars animate
   const foesEl = $('#cfx-foes')
-  const qh = S.inv?.quickhacks?.[0]
+  const hacks = S.inv?.quickhacks || []
+  const hasDeck = !!S.char?.hasDeck
+  const ram = S.char?.ram ?? 0
 
   const existing = {}
   foesEl.querySelectorAll('.cfx-foe').forEach(c => { existing[c.dataset.foe] = c })
@@ -206,27 +209,25 @@ function openCombat () {
       card = document.createElement('div')
       card.className = 'cfx-foe'
       card.dataset.foe = h.id
-      card.innerHTML = `<div class="cfx-fname">${esc(h.name).toUpperCase()}<small>${esc(h.faction)}</small></div>
-        <div class="cfx-fbar"><i style="width:${h.hpPct ?? 100}%"></i><b>${h.hp} / ${h.maxhp}</b></div>
-        <div class="cfx-fbtns">
-          <button class="atk" data-cmd="attack ${esc(h.id)}">⚔ ATK</button>
-          <button data-cmd="look ${esc(h.id)}">SCAN</button>
-        </div>`
       foesEl.appendChild(card)
-      card.querySelector('.cfx-fbtns').innerHTML =
-        `<button class="atk" data-cmd="attack ${esc(h.id)}">⚔ ATK</button>` +
-        (qh ? `<button data-cmd="hack ${esc(qh.id)} ${esc(h.id)}">HACK</button>` : `<button disabled>HACK</button>`) +
-        `<button data-cmd="look ${esc(h.id)}">SCAN</button>`
       bindCmdButtons(card)
     }
     card.classList.toggle('boss', h.danger === 'boss')
     card.classList.toggle('stunned', !!h.stunned)
+    const status = (h.burning ? ' • BURN' : '') + (h.stunned ? ' • STUN' : '') + (h.blinded ? ' • BLIND' : '') + (h.weakened ? ' • WEAK' : '') + (h.danger === 'boss' ? ' • BOSS' : '')
+    const hackBtns = hacks.map(q =>
+      `<button data-cmd="hack ${esc(q.id)} ${esc(h.id)}" ${hasDeck && ram >= (q.ram || 0) ? '' : 'disabled'} title="${esc(q.name)} (${q.ram || 0} RAM)">${esc(q.name)}</button>`).join('')
+    card.innerHTML = `<div class="cfx-fname">${esc(h.name).toUpperCase()}<small>${esc(h.faction)}${status}</small></div>
+        <div class="cfx-fbar"><i style="width:${h.hpPct ?? 100}%"></i><b>${h.hp} / ${h.maxhp}</b></div>
+        <div class="cfx-fbtns">
+          <button class="atk" data-cmd="attack ${esc(h.id)}">⚔ ATK</button>
+          ${hackBtns || '<button disabled>HACK</button>'}
+          <button data-cmd="look ${esc(h.id)}">SCAN</button>
+        </div>`
+    bindCmdButtons(card)
     const bar = card.querySelector('.cfx-fbar i')
     bar.style.width = (h.hpPct ?? 100) + '%'
     card.querySelector('.cfx-fbar b').textContent = `${h.hp} / ${h.maxhp}`
-    card.querySelector('.cfx-fname small').textContent =
-      esc(h.faction) + (h.burning ? ' • BURN' : '') + (h.stunned ? ' • STUNNED' : '') +
-      (h.danger === 'boss' ? ' • BOSS' : '')
   }
 
   // enemy lost hp → float
@@ -268,9 +269,115 @@ function spawnFloat (anchor, text, cls) {
   setTimeout(() => f.remove(), 950)
 }
 
+/* ================= breach protocol ================= */
+let breachTimer = null
+let breachGrid = null
+
+function onBreach (msg) {
+  const modal = $('#breachmodal')
+  if (msg.error) { toast(msg.error, 'bad'); return }
+  if (msg.done) {
+    closeBreach()
+    if (msg.aborted) toast('Disconnected from the subnet.', 'sys')
+    else if (msg.ok) {
+      toast('Daemons uploaded — breach success.', 'good')
+      for (const l of msg.lines || []) addLog([{ text: l, cls: 'good' }])
+    } else {
+      toast('ICE caught you. Breach failed.', 'bad')
+      for (const l of msg.lines || []) addLog([{ text: l, cls: 'bad' }])
+    }
+    return
+  }
+  modal.classList.remove('hidden')
+  $('#breach-ap').textContent = msg.ap ? String(msg.ap).toUpperCase() + ' ACCESS POINT' : ''
+  renderBreachGrid(msg)
+}
+
+function closeBreach (keepModal) {
+  if (breachTimer) { clearInterval(breachTimer); breachTimer = null }
+  const modal = $('#breachmodal')
+  if (!keepModal) modal.classList.add('hidden')
+}
+
+function renderBreachGrid (msg) {
+  const gridEl = $('#breach-grid')
+  if (gridEl.dataset.gridSize !== String(msg.size)) {
+    gridEl.innerHTML = ''
+    gridEl.style.gridTemplateColumns = `repeat(${msg.size}, minmax(0, 1fr))`
+    gridEl.dataset.gridSize = String(msg.size)
+    breachGrid = msg.cells.map(cell => {
+      const b = document.createElement('button')
+      b.type = 'button'
+      b.className = 'bcq ' + (cell.col || 'ice')
+      b.dataset.i = cell.i
+      b.dataset.r = cell.r
+      b.dataset.c = cell.c
+      b.textContent = cell.v
+      b.onclick = () => send({ t: 'breach', action: 'pick', cell: cell.i })
+      gridEl.appendChild(b)
+      return b
+    })
+  }
+  // mark used cells + current row/col hint
+  const lastIdx = [...msg.cells].reverse().find(c => c.used)
+  const last = lastIdx ? msg.cells[lastIdx.i] : null
+  msg.cells.forEach(cell => {
+    const el = breachGrid[cell.i]
+    el.classList.toggle('used', cell.used)
+  })
+  breachGrid.forEach(el => el.classList.remove('ok'))
+  breachGrid.forEach(el => {
+    const idx = Number(el.dataset.i)
+    const cell = msg.cells[idx]
+    if (cell.used) return
+    const r = Number(el.dataset.r)
+    const c = Number(el.dataset.c)
+    if (!last) {
+      if (r === 0) el.classList.add('ok')
+    } else {
+      const vertical = msg.codes.length % 2 === 1
+      if (vertical ? c === last.c : r === last.r) el.classList.add('ok')
+    }
+  })
+
+  // daemon targets
+  $('#breach-daemons').innerHTML = msg.daemons.map((d, k) =>
+    `<div class="bd-item ${d.uploaded ? 'up' : ''}"><span class="bd-label">DAEMON ${k + 1}</span>` +
+    d.seq.map(v => `<i class="bd-code">${esc(v)}</i>`).join('') +
+    (d.uploaded ? '<em class="bd-done">✓ UPLOADED</em>' : '') + '</div>').join('')
+
+  // buffer: slot count vs used
+  const buf = $('#breach-buffer')
+  let slots = ''
+  for (let i = 0; i < msg.buffer; i++) slots += `<i class="${i < msg.codes.length ? 'full' : ''}"></i>`
+  buf.innerHTML = `<span class="buf-lbl">BUFFER</span>${slots}<span class="buf-n">${msg.codes.length}/${msg.buffer}</span>`
+
+  updateBreachTimer(msg.tLeft)
+}
+
+function updateBreachTimer (tLeft) {
+  if (breachTimer) clearInterval(breachTimer)
+  const el = $('#breach-timer')
+  const tick = (ms) => {
+    const s = Math.max(0, Math.ceil(ms / 1000))
+    el.textContent = '⏱ ' + s + (s === 1 ? 's' : 's')
+    el.classList.toggle('warn', s <= 5)
+  }
+  let left = tLeft
+  tick(left)
+  breachTimer = setInterval(() => {
+    left -= 1000
+    if (left <= 0) { clearInterval(breachTimer); breachTimer = null; tick(0) }
+    else tick(left)
+  }, 1000)
+}
+$('#breach-abort').onclick = () => send({ t: 'breach', action: 'abort' })
+$('#breach-close').onclick = () => send({ t: 'breach', action: 'abort' })
+
 function onRoom (msg) {
   $('#deathveil').classList.add('hidden')
   if (S.deathTimer) { clearInterval(S.deathTimer); S.deathTimer = null }
+  if (!$('#breachmodal').classList.contains('hidden')) closeBreach()
   renderScene(msg)
   renderActions()
   renderMinimap()
@@ -510,17 +617,22 @@ function renderActions () {
   if (!room) return
   const hostiles = (room.npcs || []).filter(n => n.kind === 'hostile')
   const others = (room.npcs || []).filter(n => n.kind !== 'hostile')
+  const hacks = S.inv?.quickhacks || []
+  const hasDeck = !!S.char?.hasDeck
+  const ram = S.char?.ram ?? 0
   let html = ''
 
   for (const n of hostiles) {
     const cls = n.danger === 'boss' ? 'npc-row hostile boss' : 'npc-row hostile'
-    const qh = S.inv?.quickhacks?.[0]?.id
+    const status = (n.stunned ? ' • STUNNED' : '') + (n.burning ? ' • BURNING' : '') + (n.blinded ? ' • BLINDED' : '') + (n.weakened ? ' • WEAKENED' : '')
+    const hackBtns = hacks.map(q =>
+      `<button data-cmd="hack ${esc(q.id)} ${esc(n.id)}" ${hasDeck && ram >= (q.ram || 0) ? '' : 'disabled'} title="${esc(q.name)} (${q.ram || 0} RAM)">${esc(q.name)}</button>`).join('')
     html += `<div class="${cls}">
-      <div class="nname">${esc(n.name)}<small>${esc(n.faction)}${n.stunned ? ' • STUNNED' : ''}${n.burning ? ' • BURNING' : ''}</small>
+      <div class="nname">${esc(n.name)}<small>${esc(n.faction)}${status}</small>
         <div class="hpbar"><i style="width:${n.hpPct ?? 100}%"></i></div></div>
       <div class="npc-btns">
         <button data-cmd="attack ${esc(n.id)}">ATK</button>
-        <button data-cmd="${qh ? `hack ${qh} ${esc(n.id)}` : 'attack ' + esc(n.id)}" ${qh ? '' : 'disabled'} title="${qh ? '' : 'Need a quickhack + deck'}">HACK</button>
+        ${hackBtns}
         <button data-cmd="look ${esc(n.id)}">SCAN</button>
       </div></div>`
   }
@@ -538,14 +650,28 @@ function renderActions () {
     html += `<div class="obj-row" style="color:var(--yellow)">Corpse: ${esc(room.corpse.name)} — ${room.corpse.eddies}€$, ${room.corpse.items.length} item(s)
       <button class="qbtn" data-cmd="take" style="margin-left:6px">LOOT</button></div>`
   }
+  // access points — breach protocol entry
+  const aps = (room.objects || []).filter(o => o.kind === 'netport')
+  for (const ap of aps) {
+    const ready = ap.ready
+    html += `<div class="netport-row ${ready ? 'ready' : ''}">
+      <div class="np-info">${esc(ap.name)}<small>${(ap.tier || 'mid').toUpperCase()} TIER</small></div>
+      <div class="npc-btns">
+        ${ready
+          ? `<button class="breach-btn" data-cmd="breach">BREACH ▸</button>`
+          : `<button disabled>COOLDOWN ${ap.cdLeft || 0}s</button>`}
+      </div>
+    </div>`
+  }
   html += '<div class="exit-grid" style="margin-top:8px">'
   for (const e of room.exits) html += `<button data-cmd="${e.dir}">${e.name.toUpperCase()} →</button>`
   html += '</div>'
   if (room.players && room.players.length) {
     html += `<div class="players-here">Runners here: ${room.players.map(p => esc(p.name) + ' (Lv' + p.level + ')').join(', ')}</div>`
   }
-  if (room.objects && room.objects.length) {
-    for (const o of room.objects) html += `<div class="obj-row">${esc(o.name)} — ${esc(o.desc)}</div>`
+  for (const o of (room.objects || [])) {
+    if (o.kind === 'netport') continue
+    html += `<div class="obj-row">${esc(o.name)} — ${esc(o.desc)}</div>`
   }
   $('#actions').innerHTML = html
   bindCmdButtons($('#actions'))
@@ -687,6 +813,9 @@ function renderQuickbar () {
     if (ownedGrenade) btns.push(`<button class="qbtn hot" data-cmd="grenade ${esc(ownedGrenade.id)}">GRENADE</button>`)
   }
   if (room.corpse) btns.push('<button class="qbtn gig" data-cmd="take">LOOT CORPSE</button>')
+  const ap = (room.objects || []).find(o => o.kind === 'netport')
+  if (ap && ap.ready) btns.push('<button class="qbtn gig" data-cmd="breach">BREACH</button>')
+  if (ap && !ap.ready) btns.push(`<button class="qbtn" disabled>NET ${ap.cdLeft || 0}s</button>`)
   btns.push('<button class="qbtn" data-cmd="look">LOOK</button>')
   btns.push('<button class="qbtn" data-cmd="map">MAP</button>')
   btns.push('<button class="qbtn" data-cmd="stats">STATS</button>')
@@ -821,6 +950,7 @@ function renderSheet () {
     sheetLine('FLATLINES', s.deaths) +
     sheetLine('GIGS DONE', s.gigs_done ?? 0) +
     sheetLine('HACKS RUN', s.hacks ?? 0) +
+    sheetLine('BREACHES', s.breaches ?? 0) +
     sheetLine('WEIGHT', `${s.weight}/${s.carryCap}kg`)
 
   $('#sheet-loadout').innerHTML = gear('hands', 'WEAPON') + gear('chest', 'APRON')

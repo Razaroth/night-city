@@ -587,6 +587,36 @@ input { font-family: var(--mono); }
 .job button { margin-top: 5px; width: 100%; font-size: 10px; padding: 4px; background: #131d36; border: 1px solid var(--cyan); color: var(--cyan); }
 .job button:disabled { border-color: #3a4d6d; color: #5a6f8f; cursor: default; }
 
+/* access points / breach */
+.netport-row {
+  display: flex; justify-content: space-between; align-items: center; gap: 8px;
+  border: 1px solid var(--cyan); padding: 6px 8px; margin-top: 6px;
+  background: rgba(41,242,195,.06); box-shadow: inset 0 0 14px rgba(41,242,195,.08);
+}
+.netport-row.ready { animation: npulse 2.4s ease-in-out infinite; }
+@keyframes npulse {
+  0%, 100% { box-shadow: 0 0 0 rgba(41,242,195,0); }
+  50% { box-shadow: 0 0 14px rgba(41,242,195,.35); }
+}
+.netport-row .np-info { font-size: 11px; color: var(--cyan); }
+.netport-row .np-info small { display: block; color: var(--dim); font-size: 9px; letter-spacing: 1px; }
+.breach-btn {
+  background: transparent; border: 1px solid var(--cyan); color: var(--cyan);
+  padding: 5px 10px; font-size: 11px; letter-spacing: 1px;
+  box-shadow: 0 0 12px rgba(41,242,195,.4); text-shadow: 0 0 8px rgba(41,242,195,.6);
+}
+.breach-btn:hover { background: var(--cyan); color: #06121a; }
+
+/* foe hack buttons (combat overlay + area panel) */
+.cfx-fbtns button, .cfx-acts button, .npc-btns button { white-space: nowrap; }
+.cfx-fbtns button[data-cmd*="hack"], .npc-btns button[data-cmd*="hack"] {
+  border-color: var(--magenta); color: var(--magenta); font-size: 9px;
+}
+.cfx-fbtns button[data-cmd*="hack"]:hover, .npc-btns button[data-cmd*="hack"]:hover {
+  background: rgba(255,90,224,.15);
+}
+.cfx-fbtns button[disabled], .npc-btns button[disabled], .cfx-acts button[disabled] { opacity: .35; cursor: default; }
+
 /* ================= MODAL ================= */
 .modal { position: fixed; inset: 0; z-index: 9990; background: rgba(8,11,24,.8); display: flex; align-items: center; justify-content: center; }
 .modal-card { width: 860px; max-width: 95vw; max-height: 88vh; overflow: hidden; display: flex; flex-direction: column;
@@ -605,6 +635,55 @@ input { font-family: var(--mono); }
 .shop-item .si small { display: block; color: var(--dim); font-size: 9px; line-height: 1.35; }
 .shop-item .sp { color: var(--yellow); font-size: 11px; white-space: nowrap; }
 .shop-item button { font-size: 10px; padding: 3px 8px; background: #131d36; border: 1px solid var(--cyan); color: var(--cyan); }
+
+/* ================= BREACH PROTOCOL ================= */
+.breach-card { width: 520px; }
+.breach-head { display: flex; align-items: center; gap: 10px; }
+.breach-ap { font-size: 10px; color: var(--yellow); letter-spacing: 1px; }
+.breach-timer { font-size: 14px; color: var(--cyan); letter-spacing: 1px; }
+.breach-timer.warn { color: var(--red); animation: pulse 1s infinite; }
+.breach-body { padding: 14px 18px 16px; overflow-y: auto; max-height: 70vh; }
+.breach-hint { font-size: 10px; color: var(--dim); line-height: 1.5; margin-top: 12px; border-top: 1px dashed #24406b; padding-top: 10px; }
+
+.breach-daemons { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+.bd-item {
+  display: flex; align-items: center; gap: 6px; font-size: 16px;
+  border: 1px dashed #24406b; padding: 6px 8px;
+}
+.bd-item.up { border-color: var(--green); box-shadow: inset 0 0 12px rgba(171,255,102,.1); }
+.bd-label { font-size: 9px; color: var(--dim); letter-spacing: 2px; margin-right: 4px; white-space: nowrap; }
+.bd-code {
+  font-style: normal; color: var(--yellow); text-shadow: 0 0 6px rgba(255,210,74,.5);
+  min-width: 26px; text-align: center; border: 1px solid #31486b; padding: 1px 4px;
+}
+.bd-done { font-style: normal; font-size: 10px; color: var(--green); letter-spacing: 1px; margin-left: auto; }
+
+.breach-buffer { display: flex; align-items: center; gap: 5px; margin-bottom: 12px; }
+.buf-lbl { font-size: 10px; color: var(--dim); letter-spacing: 2px; margin-right: 6px; }
+.breach-buffer i {
+  width: 14px; height: 14px; border: 1px solid #31486b; background: #0b1220;
+}
+.breach-buffer i.full { background: var(--cyan); box-shadow: 0 0 8px rgba(41,242,195,.8); border-color: var(--cyan); }
+.buf-n { margin-left: auto; font-size: 10px; color: var(--cyan); }
+
+.breach-grid {
+  display: grid; gap: 6px; justify-content: center; padding: 10px;
+  background: rgba(6,10,22,.6); border: 1px solid var(--panel-edge);
+}
+.bcq {
+  background: #0b1220; border: 1px solid #31486b; color: var(--text);
+  font-family: var(--mono); font-size: 16px; font-weight: 700;
+  width: 52px; height: 42px; text-shadow: 0 0 8px rgba(234,244,255,.4);
+  transition: .1s;
+}
+.bcq.volt { color: var(--blue); border-color: #2a6d8a; }
+.bcq.fire { color: var(--orange); border-color: #8a4a2a; }
+.bcq.acid { color: var(--green); border-color: #4a8a3a; }
+.bcq.ghost { color: var(--purple); border-color: #5a3a8a; }
+.bcq.ice { color: var(--cyan); border-color: #2a8a7a; }
+.bcq.ok { border-color: var(--cyan); box-shadow: 0 0 10px rgba(41,242,195,.45); }
+.bcq.used { opacity: .3; border-color: #1c2a44; pointer-events: none; color: #5a6f8f; }
+.bcq:not(.used):hover { transform: translateY(-1px); box-shadow: 0 0 14px rgba(41,242,195,.6); border-color: var(--cyan); }
 
 /* toasts */
 #toasts { position: fixed; top: 60px; right: 18px; z-index: 9995; display: flex; flex-direction: column; gap: 8px; }

@@ -97,6 +97,8 @@ export function playerQuickhack (p, target, qhDef, now, eff, roomList) {
   const effects = []
   if (qhDef.burn && target.alive) { target.statuses.push({ kind: 'burn', until: now + 6000, perTick: qhDef.burn.perTick, ticks: qhDef.burn.ticks }); effects.push('a burn') }
   if (qhDef.poison && target.alive) { target.statuses.push({ kind: 'poison', until: now + 9000, perTick: qhDef.poison.perTick, ticks: qhDef.poison.ticks }); effects.push('contagion') }
+  if (qhDef.blind && target.alive) { target.statuses.push({ kind: 'blind', until: now + qhDef.blind }); effects.push('blinding their optics') }
+  if (qhDef.weaken && target.alive) { target.statuses.push({ kind: 'weaken', until: now + qhDef.weaken }); effects.push('garbling their weapon feed') }
   if (qhDef.stunChance && target.alive) {
     if (Math.random() < qhDef.stunChance) { target.statuses.push({ kind: 'stun', until: now + 4000 }); effects.push('a stun lock') }
   }
@@ -139,13 +141,15 @@ export function enemyAttack (inst, target, now) {
   inst.attackAt = now + speed
   const eff = computeStats(target)
   const evasion = 0.06 + eff.dodge / 100 + (target.buff?.dodgeUntil && now < target.buff.dodgeUntil ? 0.6 : 0)
-  const chance = hitChance((inst.def.stats[governingStat(target, wep.skill)] || 6), inst.def.level, Math.min(0.5, evasion), 0, 0.5)
+  const blinded = isEnemyBlinded(inst, now) ? 0.25 : 0
+  const chance = hitChance((inst.def.stats[governingStat(target, wep.skill)] || 6), inst.def.level, Math.min(0.5, evasion), -blinded, 0.5)
   target.stam = Math.max(0, target.stam - 1)
   if (Math.random() > chance) {
     return { desc: `${inst.def.name} swings at you — you slip out of the way.` }
   }
   let dmg = rand(wep.dmg[0], wep.dmg[1]) + Math.floor(inst.def.level * 0.6)
   if (enraged) dmg = Math.floor(dmg * 1.4)
+  if (isEnemyWeakened(inst, now)) dmg = Math.floor(dmg * 0.7)
   const crit = Math.random() < (wep.crit || 0) / 100 + inst.def.level * 0.004
   const res = applyDamageTo(target, dmg, { dr: eff.dr, pen: wep.pen || 0, crit, defending: target.buff?.defendUntil && now < target.buff.defendUntil, defendingPercent: target.buff?.defendUntil && now < target.buff.defendUntil ? 0.4 : 0 })
   target.lastHitAt = now
@@ -171,6 +175,14 @@ export function tickEnemyStatuses (inst, now) {
 
 export function isEnemyStunned (inst, now) {
   return inst.statuses.some(s => (s.kind === 'stun') && now < s.until)
+}
+
+export function isEnemyBlinded (inst, now) {
+  return inst.statuses.some(s => s.kind === 'blind' && now < s.until)
+}
+
+export function isEnemyWeakened (inst, now) {
+  return inst.statuses.some(s => s.kind === 'weaken' && now < s.until)
 }
 
 export function weaponCooldownRemaining (p, now) {

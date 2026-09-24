@@ -33,19 +33,21 @@
     "northside": {
       "id": "northside", "name": "Watson — Northside", "district": "watson", "category": "industrial",
       "desc": "Industrial rooftops and shuttered docks. This is where Maelstrom coils around the rusted ribs of the city. Every shadow holds a trashed drone; every drone might hold a surprise.",
-      "exits": { "e": "watson-streets", "ne": "maelstrom-den" }
+      "exits": { "e": "watson-streets", "ne": "maelstrom-den" },
+      "objects": [{ "id": "ap-northside", "name": "subnet access terminal", "kind": "netport", "tier": "mid", "desc": "A battered Arasaka wall-port bolted to a generator shack. Blue light pulses behind a scarred metal flap." }]
     },
     "warehouse-district": {
       "id": "warehouse-district", "name": "Watson — Warehouse District", "district": "watson", "category": "industrial",
       "desc": "A row of dented container-warehouses. One has a fresh SIGURD SECURITY wax seal, another has a door swung open, dripping light. The kind of place cargo goes missing from, and people go missing in.",
       "exits": { "nw": "watson-streets", "s": "scav-den" },
-      "objects": [{ "id": "crate-a", "name": "scav crater", "kind": "container", "desc": "A crate with a busted lock, spilling synth-spray cans." }]
+      "objects": [{ "id": "crate-a", "name": "scav crater", "kind": "container", "desc": "A crate with a busted lock, spilling synth-spray cans." }, { "id": "ap-warehouse", "name": "subnet splice node", "kind": "netport", "tier": "mid", "desc": "A dangling network splice dripping signal like static rain. Wiring for the whole district flows through it." }]
     },
     "maelstrom-den": {
       "id": "maelstrom-den", "name": "Maelstrom Den", "district": "watson", "category": "gangden", "danger": true,
       "desc": "A gutted factory floor painted in strobe-light graffiti. Maelstrom chromeheads twitch around a holo-rig, wired to the shop. The air smells of coolant and metal-grind. You are not welcome.",
       "exits": { "sw": "northside" },
-      "npcs": ["maelstrom-1", "maelstrom-2", "maelstrom-boss"]
+      "npcs": ["maelstrom-1", "maelstrom-2", "maelstrom-boss"],
+      "objects": [{ "id": "ap-maelstrom", "name": "Maelstrom rig node", "kind": "netport", "tier": "hot", "desc": "A chrome skull wired into the den's local net. Its eye-socket LED daemon is staring back at you with intent." }]
     },
     "scav-den": {
       "id": "scav-den", "name": "Scav Hideout", "district": "watson", "category": "gangden", "danger": true,
@@ -78,13 +80,15 @@
       "id": "cloud-bar", "name": "Cloud — Dollhouse", "district": "westbrook", "category": "club",
       "desc": "Pink light, perfume-tinted fog, and dolls who remember things you didn't say. The vending wall is stocked with premium chrome and better ghosts. Drinks are twice the price and worth half.",
       "exits": { "sw": "japantown" },
-      "npcs": ["cloud-barkeep"]
+      "npcs": ["cloud-barkeep"],
+      "objects": [{ "id": "ap-cloud", "name": "Cloud dollhouse router", "kind": "netport", "tier": "mid", "desc": "A pink-lit comms rink tucked behind the bar. The dolls' personalities live on the other side, endlessly uploading." }]
     },
     "afterlife-bar": {
       "id": "afterlife-bar", "name": "The Afterlife", "district": "westbrook", "category": "bar",
       "desc": "Legendary merc dive carved out of a morgue. Every booth is a monument to somebody's final run, and Rogue's seat at the bar is the only throne in Night City that means anything.",
       "exits": { "n": "north-oak", "e": "citycenter-streets" },
-      "npcs": ["rog", "afterlife-barkeep"]
+      "npcs": ["rog", "afterlife-barkeep"],
+      "objects": [{ "id": "ap-afterlife", "name": "Afterlife terminal", "kind": "netport", "tier": "mid", "desc": "Rogue's private booth terminal. A memorial playlist for the dead runs on loop behind the ledger." }]
     },
     "ripperdoc-westbrook": {
       "id": "ripperdoc-westbrook", "name": "Ripperdoc — Westbrook", "district": "westbrook", "category": "clinic",
@@ -100,19 +104,22 @@
     "downtown": {
       "id": "downtown", "name": "City Center — Downtown", "district": "citycenter", "category": "plaza",
       "desc": "Corpo ants in thousand-eddie suits hurry between towers. A street preacher on a soapbox shouts about the Machine. A concession bot sells 'Authentic Poverty Experience' bobbleheads.",
-      "exits": { "s": "citycenter-streets", "e": "corpo-plaza", "ne": "arasaka-waterfront" }
+      "exits": { "s": "citycenter-streets", "e": "corpo-plaza", "ne": "arasaka-waterfront" },
+      "objects": [{ "id": "ap-downtown", "name": "public net kiosk", "kind": "netport", "tier": "safe", "desc": "A municipal kiosk promising 'one free credit.' The city's generosity is, predictably, a lie with a keyhole." }]
     },
     "corpo-plaza": {
       "id": "corpo-plaza", "name": "Corpo Plaza", "district": "citycenter", "category": "corpo",
       "desc": "Drone-lit marble and fifty-meter glass. The Arasaka obelisk sulks against the skyline. Guards with mirror faces watch you the way accountants audit: completely, and without feeling.",
       "exits": { "w": "downtown", "s": "arasaka-waterfront" },
-      "npcs": ["corpo-minion"]
+      "npcs": ["corpo-minion"],
+      "objects": [{ "id": "ap-corpo", "name": "Arasaka fiber tap", "kind": "netport", "tier": "mid", "desc": "A mirrored data stack inside a glass podium. The guard pretends not to see the port. He sees it." }]
     },
     "arasaka-waterfront": {
       "id": "arasaka-waterfront", "name": "Arasaka Waterfront", "district": "citycenter", "category": "corpo",
       "desc": "Loading docks under corporate surveillance, where crates of prototype chrome change hands and cameras never blink. A ferry hums against the pier, carrying the authorized and the almost-caught.",
       "exits": { "n": "corpo-plaza", "sw": "downtown" },
-      "npcs": ["arasaka-sec-1", "arasaka-sec-2"]
+      "npcs": ["arasaka-sec-1", "arasaka-sec-2"],
+      "objects": [{ "id": "ap-waterfront", "name": "harbor master uplink", "kind": "netport", "tier": "mid", "desc": "A harbor control uplink buzzing with shipping manifests. Cameras never blink; this one also records your typing." }]
     },
     "emblers-hotel": {
       "id": "emblers-hotel", "name": "Embers", "district": "citycenter", "category": "bar",
@@ -146,13 +153,15 @@
       "id": "valentinos-den", "name": "Valentino Compound", "district": "heywood", "category": "gangden", "danger": true,
       "desc": "Tight streets and open windows with telltale curtain-tugs. Rosary-tatted Valentinos stalk between bikes and incense bowls. The only way to leave smoothly is to have never been printed on an entry log.",
       "exits": { "s": "vista-del-rey" },
-      "npcs": ["valentino-1", "valentino-2", "valentino-boss"]
+      "npcs": ["valentino-1", "valentino-2", "valentino-boss"],
+      "objects": [{ "id": "ap-valentino", "name": "candle-wired altar port", "kind": "netport", "tier": "hot", "desc": "Devotional candles wired into a parish net. The faithful upload prayers; you'll upload something louder." }]
     },
     "stadium": {
       "id": "stadium", "name": "Heywood — Grand Imperial Mall", "district": "heywood", "category": "market",
       "desc": "A stadium repurposed into Night City's biggest flea market. Stalls curve like rows of a concrete shark's mouth, selling butcher-blade chrome, bootleg fails, and hope at half price.",
       "exits": { "e": "the-glen" },
-      "npcs": ["apparel-vendor", "netrunner-vendor"]
+      "npcs": ["apparel-vendor", "netrunner-vendor"],
+      "objects": [{ "id": "ap-stadium", "name": "stallholder net hub", "kind": "netport", "tier": "safe", "desc": "A striker that takes five eddie coins and grants 'one layer of the net.' The market loves a gimmick." }]
     },
     "ripperdoc-heywood": {
       "id": "ripperdoc-heywood", "name": "Ripperdoc — Heywood", "district": "heywood", "category": "clinic",
@@ -179,12 +188,14 @@
     "west-wind-estate": {
       "id": "west-wind-estate", "name": "Pacifica — West Wind Estate", "district": "pacifica", "category": "ruin",
       "desc": "An unfinished housing estate frozen mid-collapse. Wind rakes through rebar and half-walls of graffiti. Sometimes the graffiti moves.",
-      "exits": { "ne": "pacifica-streets" }
+      "exits": { "ne": "pacifica-streets" },
+      "objects": [{ "id": "ap-westwind", "name": "survey drone uplink", "kind": "netport", "tier": "mid", "desc": "Construction scaffolding strung with drone-charging cables. Half the wiring is load-bearing; the other half is unguarded." }]
     },
     "abandoned-resort": {
       "id": "abandoned-resort", "name": "Pacifica — Abandoned Resort", "district": "pacifica", "category": "ruin", "danger": true,
       "desc": "A skeletal beach resort. A swimming pool has become a cistern of black water, and something with too many lenses pads around the penthouse. The last tourist left a decade ago. Something else stayed.",
-      "exits": { "w": "coastview", "up": "cyberpsycho-den" }
+      "exits": { "w": "coastview", "up": "cyberpsycho-den" },
+      "objects": [{ "id": "ap-resort", "name": "resort security core", "kind": "netport", "tier": "hot", "desc": "A drowned server rack in the old security office. Something up in the penthouse breathes into the same subnet you're about to enter." }]
     },
     "cyberpsycho-den": {
       "id": "cyberpsycho-den", "name": "Pacifica — Penthouse Nest", "district": "pacifica", "category": "gangden", "danger": true,
@@ -206,13 +217,15 @@
       "id": "santo-streets", "name": "Santo Domingo — Refinery Row", "district": "santo", "category": "industrial",
       "desc": "Refinery plumbing weeps steam into the streetlights. Buses thundering past, workers in yellow vests, and the distant clank of an assembly line folding steel like origami.",
       "exits": { "s": "arroyo", "w": "rancho-coronado", "n": "6th-street-den" },
-      "npcs": ["el-capitan"]
+      "npcs": ["el-capitan"],
+      "objects": [{ "id": "ap-santo", "name": "refinery SCADA port", "kind": "netport", "tier": "mid", "desc": "A refinery control rack sweating steam. It runs the compressors, the cameras, and — if you're fast — anything you want it to." }]
     },
     "6th-street-den": {
       "id": "6th-street-den", "name": "6th Street Firebase", "district": "santo", "category": "gangden", "danger": true,
       "desc": "A fortified vet-barf where 6th Street runs drills and laments the good old days of manual guns. Ammo crates double as furniture. An American flag, threadbare, flies above an inspirational bombicide poster.",
       "exits": { "s": "santo-streets" },
-      "npcs": ["sixthstreet-1", "sixthstreet-2", "sixthstreet-boss"]
+      "npcs": ["sixthstreet-1", "sixthstreet-2", "sixthstreet-boss"],
+      "objects": [{ "id": "ap-6th", "name": "firebase radio mast", "kind": "netport", "tier": "hot", "desc": "A mast wired into the firebase's comms. Below it, veterans swap war stories and ammo in equal measure." }]
     },
     "ripperdoc-santo": {
       "id": "ripperdoc-santo", "name": "Ripperdoc — Santo Domingo", "district": "santo", "category": "clinic",
@@ -229,7 +242,8 @@
       "id": "nomad-camp", "name": "Badlands — Nomad Camp", "district": "badlands", "category": "tent",
       "desc": "A convoy of armored haulers circled in the dust. Nomads cook over open copper, kids tag the air with drones, and the horizon hums with the road's endless invitation.",
       "exits": { "w": "badlands-crossroads", "n": "raider-flats" },
-      "npcs": ["dakota", "food-cart"]
+      "npcs": ["dakota", "food-cart"],
+      "objects": [{ "id": "ap-nomad", "name": "convoy mesh uplink", "kind": "netport", "tier": "safe", "desc": "A lo-band mesh relay strung between the rigs. Dakota would charge you for what's on the other side. She won't mind if you take it yourself." }]
     },
     "raider-flats": {
       "id": "raider-flats", "name": "Badlands — Raider Flats", "district": "badlands", "category": "wasteland", "danger": true,
@@ -246,7 +260,8 @@
     "quarantine": {
       "id": "quarantine", "name": "Badlands — Quarantine Station", "district": "badlands", "category": "ruin",
       "desc": "An old bio-quarantine station, doors sealed, stamps peeling. Someone's left a cooler of cold synth-beer out front, which in the Badlands is either a trap or a public service.",
-      "exits": { "nw": "badlands-crossroads" }
+      "exits": { "nw": "badlands-crossroads" },
+      "objects": [{ "id": "ap-quarantine", "name": "quarantine uplink post", "kind": "netport", "tier": "mid", "desc": "A sealed bio-uplink stamped with decommissioned chains. Old outbreak data hums inside like a caged heartbeat." }]
     }
   }
 }

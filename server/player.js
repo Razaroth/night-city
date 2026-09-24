@@ -81,7 +81,7 @@ export function makeNewPlayer (accountId, opts) {
     quickhacks: [],
     created_at: Date.now(),
     played_sec: 0,
-    stats: { kills: 0, deaths: 0, gigs_done: 0, hacks: 0 },
+    stats: { kills: 0, deaths: 0, gigs_done: 0, hacks: 0, breaches: 0 },
     flags: {},
     log: []
   }
@@ -349,6 +349,7 @@ export function stateForClient (p) {
     deaths: p.stats.deaths,
     gigs_done: p.stats.gigs_done ?? 0,
     hacks: p.stats.hacks ?? 0,
+    breaches: p.stats.breaches ?? 0,
     weight: carriedWeight(p),
     carryCap: carryCapacity(p, eff)
   }
@@ -368,7 +369,7 @@ export function hydratePlayer (saved, accountId) {
   p.equip ??= {}
   p.cyberware ??= {}
   p.quickhacks ??= []
-  p.stats ??= { kills: 0, deaths: 0, gigs_done: 0, hacks: 0 }
+  p.stats ??= { kills: 0, deaths: 0, gigs_done: 0, hacks: 0, breaches: 0 }
   p.flags ??= {}
   p.quests ??= {}
   p.attrs ??= { body: 3, reflexes: 3, tech: 3, intel: 3, cool: 3 }

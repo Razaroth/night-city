@@ -229,6 +229,27 @@
   </div>
 </div>
 
+<!-- ============ BREACH PROTOCOL MODAL ============ -->
+<div id="breachmodal" class="modal hidden">
+  <div class="modal-card breach-card">
+    <header>
+      <h3 id="breach-title">BREACH PROTOCOL</h3>
+      <div class="breach-head">
+        <span id="breach-ap" class="breach-ap"></span>
+        <span id="breach-timer" class="breach-timer"></span>
+        <button id="breach-abort" class="qbtn">ABORT</button>
+        <button id="breach-close" class="x">✕</button>
+      </div>
+    </header>
+    <div class="breach-body">
+      <div id="breach-daemons" class="breach-daemons"></div>
+      <div id="breach-buffer" class="breach-buffer"></div>
+      <div id="breach-grid" class="breach-grid"></div>
+      <div class="breach-hint">Trace a daemon's code sequence across the net — each pick must alternate row ↔ column, starting on the top row. Fill the buffer before ICE traces you.</div>
+    </div>
+  </div>
+</div>
+
 <div id="toasts"></div>
 <div id="deathveil" class="hidden"><div class="death-text">FLATLINED</div><div class="death-sub" id="death-sub"></div></div>
 <div id="respawnfx" class="hidden">

@@ -11,6 +11,7 @@ import * as Q from './quests.js'
 import { CLASSES, PERKS, TIER_REQUIREMENTS, perkEffects, classPerks } from './classes.js'
 import { handleCommand } from './commands.js'
 import { ambientLine, npcChatterLine, AMBIENT_MIN, AMBIENT_MAX } from './ambient.js'
+import * as netrun from './netrun.js'
 
 const TICK_MS = 1000
 const AUTOSAVE_MS = 20000
@@ -28,6 +29,7 @@ export class Game {
     this.roomList = roomsPayload()
     this.startedAt = Date.now()
     this.ambientAt = new Map() // roomId -> next ambient epoch (ms)
+    this.netportCd = new Map() // roomId -> access point reboot ready at (ms)
     wss.on('connection', ws => this.onConnection(ws))
     this.timer = setInterval(() => this.tick(), TICK_MS)
   }
@@ -104,6 +106,7 @@ export class Game {
     if (t === 'charCreate') return this.handleCharCreate(session, msg)
     if (t === 'charDelete') return this.handleCharDelete(session)
     if (t === 'cmd') return this.handleCmd(session, msg.line ?? '')
+    if (t === 'breach') return this.handleBreachMsg(session, msg)
     if (t === 'ping') return this.send(session, { t: 'pong' })
   }
 
@@ -175,6 +178,7 @@ export class Game {
     session.player = null
     session.enteredAt = null
     session.token = null
+    session.breach = null
     this.send(session, { t: 'logout', ok: true })
   }
 
@@ -296,6 +300,66 @@ export class Game {
     }
   }
 
+  /* ------------------- netrunning / breach protocol ------------------- */
+  handleBreachMsg (session, msg) {
+    const p = session.player
+    if (!p) return
+    const now = this.now()
+    const b = session.breach
+    if (!b) {
+      if (msg.action === 'start' || msg.action === 'pick') {
+        const start = netrun.startBreach(this, session, now)
+        if (!start.ok) return this.log(session, start.error, 'bad')
+        const nb = session.breach
+        this.log(session, `You jack into ${nb.apName}. Trace window active — upload the daemons.`, 'net')
+        this.pushBreach(session)
+        return
+      }
+      return
+    }
+    if (msg.action === 'abort') {
+      netrun.abortBreach(this, session)
+      this.send(session, { t: 'breach', done: true, aborted: true })
+      this.log(session, 'You pull the cable. The net spits you out clean.', 'sys')
+      return
+    }
+    if (msg.action === 'pick') {
+      const res = netrun.pickBreach(this, session, msg.cell, now)
+      if (res.error) { this.send(session, { t: 'breach', error: res.error }); return }
+      if (res.done) return this.finishBreach(session, res, now)
+      this.pushBreach(session)
+    }
+  }
+
+  finishBreach (session, res, now) {
+    const p = session.player
+    const b = session.breach
+    if (!b) return
+    const full = {
+      done: true,
+      ok: !!res.ok,
+      tier: b.tier,
+      lines: res.lines ?? []
+    }
+    this.send(session, { t: 'breach', ...full })
+    if (res.ok) {
+      this.roomLog(p.room, `${p.name} finishes a breach run on ${b.apName}.`, 'sys', session.accountId)
+      for (const lvl of res.gained ?? []) this.log(session, `LEVEL UP — you are now level ${lvl}. Attribute point + perk point available.`, 'level')
+    } else {
+      this.log(session, 'The ICE bites back. Your skull rings like a spent bell.', 'bad')
+    }
+    this.pushInv(session)
+    this.pushState(session)
+    if (p.hp <= 0) this.handlePlayerDeath(session, now)
+    else this.pushRoom(session)
+    session.breach = null
+  }
+
+  pushBreach (session) {
+    const payload = netrun.breachPayload(session, this.now())
+    if (payload) this.send(session, payload)
+  }
+
   /* ------------------- state pushes ------------------- */
   pushAll (session) {
     this.pushRoom(session)
@@ -317,13 +381,16 @@ export class Game {
         hp: d.kind === 'hostile' ? inst.hp : null,
         maxhp: d.kind === 'hostile' ? inst.maxhp : null,
         stunned: inst.statuses.some(s => s.kind === 'stun' && now < s.until),
-        burning: inst.statuses.some(s => s.kind === 'burn' || s.kind === 'poison')
+        burning: inst.statuses.some(s => s.kind === 'burn' || s.kind === 'poison'),
+        blinded: inst.statuses.some(s => s.kind === 'blind' && now < s.until),
+        weakened: inst.statuses.some(s => s.kind === 'weaken' && now < s.until)
       })
     }
     const players = this.playerSessions(p.room)
       .filter(s => s !== session)
       .map(s => ({ name: s.player.name, level: s.player.level, lifepath: s.player.lifepath }))
     const corpse = this.world.corpseFor(p.room)
+    const cdLeft = netrun.netportOnCooldown(this, p.room, now)
     return {
       t: 'room',
       id: room.id,
@@ -338,7 +405,10 @@ export class Game {
       npcs,
       players,
       corpse: corpse ? { name: corpse.name, eddies: corpse.eddies, items: corpse.items.map(s => ({ name: getItemDef(s.id)?.name, qty: s.qty })) } : null,
-      objects: (room.objects ?? []).map(o => ({ id: o.id, name: o.name, kind: o.kind, desc: o.desc })),
+      objects: (room.objects ?? []).map(o => o.kind === 'netport'
+        ? { id: o.id, name: o.name, kind: o.kind, desc: o.desc, tier: o.tier ?? 'mid', ready: cdLeft === 0, cdLeft }
+        : { id: o.id, name: o.name, kind: o.kind, desc: o.desc }),
+      netportCd: cdLeft,
       weather: this.weatherFor(p.room, now),
       clock: new Date(now).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }),
       inCombat: hostiles.length > 0
@@ -431,6 +501,11 @@ export class Game {
   move (session, dir) {
     const p = session.player
     if (!p.alive) return this.log(session, 'You are flatlined. Wait for the trauma team... or your ripper.', 'bad')
+    if (session.breach && !session.breach.done) {
+      netrun.abortBreach(this, session)
+      this.send(session, { t: 'breach', done: true, aborted: true })
+      this.log(session, 'You pull the cable and get moving.', 'sys')
+    }
     const room = rooms[p.room]
     const to = room.exits?.[dir]
     if (!to) return this.log(session, `You can't go ${EXIT_NAMES[dir] ?? dir} from here.`, 'bad')
@@ -550,6 +625,10 @@ export class Game {
   handlePlayerDeath (session, now) {
     const p = session.player
     if (!p.alive) return
+    if (session.breach && !session.breach.done) {
+      session.breach = null
+      this.send(session, { t: 'breach', done: true, aborted: true })
+    }
     const eff = P.computeStats(p)
     if (eff.secondHeart && !p.flags.secondHeartUsed) {
       p.flags.secondHeartUsed = true
@@ -655,6 +734,15 @@ export class Game {
           this.respawn(session)
         }
         continue
+      }
+      // active breach: drive the trace countdown / timeout
+      if (session.breach && !session.breach.done) {
+        const tb = netrun.tickBreach(this, session, now)
+        if (tb.done) {
+          this.finishBreach(session, tb, now)
+          continue
+        }
+        this.pushBreach(session)
       }
       const eff = P.computeStats(p)
       const outOfCombat = this.world.hostilesInRoom(p.room).length === 0

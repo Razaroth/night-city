@@ -69,6 +69,48 @@ battery, and `nc-gameplay.mjs` (WS bot using real world data; see test files):
   `client/img/CREDITS.json` and is shown bottom of the sheet; server MIME map now
   includes `.jpg/.jpeg`.
 
+## Netrunning / Breach Protocol (2026-09-24)
+
+Full netrunning slice, verified **live end-to-end** via `nc-e2e.mjs`
+(real WS bot: register→create→navigate→start→rules→abort→solve→win→stat→cooldown):
+
+- **Breach Protocol minigame** on netport rooms (`server/netrun.js`). `startBreach`
+  builds a `size x size` grid (5 for intel≥7, else 4), places `daemonCount`
+  sequences (3/2/1 by intel), and opens a `buffer * 4 + 2` pick sequence with a
+  `28s + intel*1.5s` deadline. When ALL daemons upload, it's a win.
+- **Guaranteed solvable by construction**: `buildGrid` lays a single "snake" path
+  (H/V alternating moves; rows bounce at the bottom edge, columns shuffled via
+  `perm`) of length = sum of the daemon sequence lengths, writing each daemon's
+  codes down that path in order, then fills the leftover cells randomly.
+  `path` is stored in the (server-only) breach session and **never** sent to the
+  client — the solver must reconstruct it from the grid alone. Unit-validated by
+  replaying `b.path` through the real `pickBreach` engine: **6000/6000** uploads
+  all daemons (`/tmp/opencode/nc-netrun-test.mjs`).
+- **Rules** (`pickBreach`): first pick must be row 0; odd picks share the last
+  pick's COLUMN, even picks share its ROW; cells never reused. A daemon uploads
+  when its sequence appears as a contiguous suffix of the picked codes.
+- **Rewards** (`NETPORT_TIERS`): safe {45–110 eddies, 22–30 xp, 90s cd},
+  mid {90–190, 30–44, 150s}, hot {150–300, 46–66, 240s}; win does `×1.15`, bumps
+  `stats.breaches`, refills RAM, and has a 35% chance to drop a random quickhack.
+  Fail hurts: `hp -= maxHp*0.12` (min 1). Starting again during cooldown is
+  rejected ("Access point rebooting").
+- **3 new quickhacks** (`data/items.json`): `reboot-optics` (ram 3, dmg 8–14,
+  blind 5s), `weapon-glitch` (ram 4, dmg 6–10, weaken 6s),
+  `synapse-burnout` (ram 8, dmg 32–48). Combat applies the status effects
+  (`server/combat.js`); the deck+RAM economy gates them. The netrunner-vendor in
+  stadium auto-stocks all quickhacks.
+- **Client** (`client/`): BREACH modal with AP/buffer/daemon readout, timer bar
+  (warns ≤5s), animated grid (cells color-coded by code; picked = used, uploaded
+  daemon = ok), abort button; per-foe quickhack buttons in the combat overlay
+  (disabled unless a deck is owned and RAM suffices); netport rows in `renderActions`
+  show BREACH / cooldown state. Grid is built once per `size` and updated in-place
+  on tick pushes (never rebuilt per message).
+- **E2E scope covered**: mid-tier (northside) netport start; invalid non-top-row
+  pick rejected; abort; solver win with real `pickBreach` engine; `breaches` stat
+  bump; cooldown block. Reminder: a winning run puts the netport on `150s` cd —
+  restart the service (`systemctl --user restart night-city`) before re-running
+  `nc-e2e.mjs` against the same netport, or the test trips the cooldown branch.
+
 ## Resolved issues (2026-09-22)
 
 - **`up <attr>` crash**: spending an attribute point from a bare dir (no args)
@@ -194,3 +236,6 @@ battery, and `nc-gameplay.mjs` (WS bot using real world data; see test files):
   `ensureDeadCooldown`, `healTo`, `waitLog`, `assert`/`ok`/`fail`).
 - `nc-clean.mjs` — removes `gp_`/`dt_`/`sm_`/`bt_` accounts from the save (run with
   the service stopped).
+- `nc-e2e.mjs` — netrunning breach-protocol E2E (see the Netrunning section above).
+- `nc-netrun-test.mjs` — unit harness: replays `buildGrid` paths through the real
+  `pickBreach` engine, asserts solvability (6000/6000).

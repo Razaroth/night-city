@@ -255,6 +255,27 @@
       "ram": 6, "stunChance": 1, "dmg": [4, 8],
       "value": 1500, "weight": 0,
       "desc": "Target forgets they were fighting. Or walking. Or conscious."
+    },
+    "reboot-optics": {
+      "id": "reboot-optics", "name": "Quickhack: Reboot Optics", "type": "quickhack", "class": "quickhack",
+      "skill": "intelligence", "skillName": "Quickhacking",
+      "ram": 3, "dmg": [8, 14], "blind": 5000,
+      "value": 550, "weight": 0,
+      "desc": "Fry the target's ocular relays. They keep the eyes — just stop trusting them."
+    },
+    "weapon-glitch": {
+      "id": "weapon-glitch", "name": "Quickhack: Weapon Glitch", "type": "quickhack", "class": "quickhack",
+      "skill": "intelligence", "skillName": "Quickhacking",
+      "ram": 4, "dmg": [6, 10], "weaken": 6000,
+      "value": 800, "weight": 0,
+      "desc": "Chokes the target's smart-link. Their piece jams, their bolt cycles slower, their aim gets philosophical."
+    },
+    "synapse-burnout": {
+      "id": "synapse-burnout", "name": "Quickhack: Synapse Burnout", "type": "quickhack", "class": "quickhack",
+      "skill": "intelligence", "skillName": "Quickhacking",
+      "ram": 8, "dmg": [32, 48],
+      "value": 1900, "weight": 0,
+      "desc": "Overwrites a stack of sensory memory with a fire alarm and a heartbeat. Extremely rude."
     }
   },
 

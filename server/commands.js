@@ -4,6 +4,7 @@ import * as C from './combat.js'
 import * as Q from './quests.js'
 import { CLASSES, PERKS, TIER_REQUIREMENTS, classPerks } from './classes.js'
 import { rooms, districts, HUB_ROOMS, EXIT_NAMES, npcDefs } from './world.js'
+import * as netrun from './netrun.js'
 
 const DIRS = { n: 'n', s: 's', e: 'e', w: 'w', ne: 'ne', nw: 'nw', se: 'se', sw: 'sw', up: 'up', down: 'down' }
 const DIR_ALIAS = { north: 'n', south: 's', east: 'e', west: 'w', northeast: 'ne', northwest: 'nw', southeast: 'se', southwest: 'sw', up: 'up', down: 'down' }
@@ -36,6 +37,7 @@ export function handleCommand (game, session, line) {
     case 'take': case 'loot': case 'get': return game.lootCorpse(session)
     case 'attack': case 'a': case 'kill': case 'shoot': return cmdAttack(game, session, rest, now)
     case 'hack': case 'quickhack': case 'qh': return cmdHack(game, session, rest, now)
+    case 'breach': case 'netrun': case 'cyberspace': return cmdBreach(game, session, now)
     case 'defend': case 'block': return cmdDefend(game, session, now)
     case 'dodge': return cmdDodge(game, session, now)
     case 'grenade': case 'nade': case 'throw': return cmdGrenade(game, session, rest, now)
@@ -101,6 +103,7 @@ function cmdHelp (game, session) {
     { text: 'SOCIAL     say <text>, shout <text>, emote <text>, talk <npc>', cls: 'sys' },
     { text: 'COMBAT     attack <target>, hack <quickhack> <target>, defend, dodge', cls: 'sys' },
     { text: '           grenade <name>, sandevistan, berserk, take (loot corpse)', cls: 'sys' },
+    { text: 'NETRUN     breach (jack into a netport), then click the grid', cls: 'sys' },
     { text: 'GEAR       equip <item>, unequip <slot>, use <item>, drop <item> [qty]', cls: 'sys' },
     { text: 'TRADE      shop, buy <item> [qty], sell <item> [qty], install <implant>', cls: 'sys' },
     { text: 'JOBS       jobs (at a fixer), accept <gigId>, up <attr> (spend level point)', cls: 'sys' },
@@ -307,6 +310,18 @@ function cmdAttack (game, session, target, now) {
   game.addThreat(inst, session, res.dmg)
   if (inst.hp <= 0) game.grantKill(session, inst)
   else { game.pushRoom(session); game.pushState(session) }
+}
+
+function cmdBreach (game, session, now) {
+  const p = session.player
+  if (!netrun.netportInRoom(rooms[p.room])) return game.log(session, 'No netport jack point in this room.', 'bad')
+  if (session.breach && !session.breach.done) return game.log(session, 'You are already jacked into a subnet.', 'bad')
+  const start = netrun.startBreach(game, session, now)
+  if (!start.ok) return game.log(session, start.error, 'bad')
+  const b = session.breach
+  game.log(session, `You jack into ${b.apName}. Trace window active — upload the daemons.`, 'net')
+  game.pushBreach(session)
+  game.log(session, 'Grid: pick cells to trace the daemon sequences (they alternate row/column).', 'sys')
 }
 
 function cmdHack (game, session, rest, now) {
