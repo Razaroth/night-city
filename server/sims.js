@@ -1,10 +1,11 @@
 // Simulated runners — NPCs that move through Night City like real players:
-// walking room-to-room, lingering, trading, hitting subnet terminals, and
-// occasionally talking back. They exist only in memory (no save data) and are
-// re-seeded on every boot. Hostiles never target them (combat only picks real
-// player sessions), so they are pure ambience.
+// walking room-to-room, lingering, trading, hitting subnet terminals, talking
+// back, taking gigs against gang dens, and trading fire with hostiles. They can
+// be flatlined and respawn later. They exist only in memory (no save data) and
+// are re-seeded on every boot. Hostiles still treat real player sessions as
+// their primary targets; sims only engage hostiles that no player has aggroed.
 
-import { rooms, HUB_ROOMS, EXIT_NAMES } from './world.js'
+import { rooms, HUB_ROOMS, EXIT_NAMES, npcDefs } from './world.js'
 import { rand } from './combat.js'
 
 const FIRST = [
@@ -23,6 +24,20 @@ const LAST = [
 
 const CLASS_POOL = ['solo', 'netrunner', 'techie', 'rockerboy', 'nomad']
 const LIFEPATH_POOL = ['streetkid', 'corpo', 'nomad']
+
+// how likely each class is to throw down with hostiles
+const FIGHT_CHANCE = { solo: 0.95, nomad: 0.8, techie: 0.55, rockerboy: 0.35, netrunner: 0.3 }
+const WEAPONS = {
+  solo: { name: 'an assault rifle', dmg: [6, 11] },
+  netrunner: { name: 'a back-up pistol', dmg: [4, 9] },
+  techie: { name: 'a mil-spec SMG', dmg: [4, 10] },
+  rockerboy: { name: 'belt-fed knuckles', dmg: [2, 8] },
+  nomad: { name: 'a pump shotgun', dmg: [7, 14] }
+}
+const BOSS_HUNT_LEVEL = 14 // sims below this dodge boss lairs entirely
+const RESURRECT_MS = [4 * 60000, 10 * 60000]
+const GIG_CD_MS = [8 * 60000, 18 * 60000]
+const MAX_LEVEL = 30
 
 // generic "runner doing runner things" lines, keyed by room category
 const RUNNER_ACTIONS = {
@@ -149,8 +164,22 @@ function stepsBetween (fromId, toId) {
 
 class Sims {
   constructor () {
-    this.sims = [] // { id, name, cls, lifepath, level, roomId, destId, path, nextAt }
+    this.sims = []
+    this.gigRooms = this.buildGigRooms()
     this.seed()
+  }
+
+  // rooms that host hostiles, together with the strongest threat there
+  buildGigRooms () {
+    const out = []
+    for (const [rid, room] of Object.entries(rooms)) {
+      const hostiles = (room.npcs ?? []).filter(nid => npcDefs[nid]?.kind === 'hostile')
+      if (!hostiles.length) continue
+      const maxLevel = Math.max(...hostiles.map(nid => npcDefs[nid].level))
+      const hasBoss = hostiles.some(nid => npcDefs[nid].danger === 'boss')
+      out.push({ roomId: rid, maxLevel, hasBoss, count: hostiles.length })
+    }
+    return out
   }
 
   seed () {
@@ -165,15 +194,28 @@ class Sims {
         : Math.random() < 0.5 ? hubs[rand(0, hubs.length - 1)]
           : pool[rand(0, pool.length - 1)]
       const name = `${FIRST[rand(0, FIRST.length - 1)]} ${LAST[rand(0, LAST.length - 1)]}`
+      const cls = CLASS_POOL[rand(0, CLASS_POOL.length - 1)]
+      const level = rand(2, 20)
       this.sims.push({
         id: 'sim-' + i,
         name,
-        cls: CLASS_POOL[rand(0, CLASS_POOL.length - 1)],
+        cls,
         lifepath: LIFEPATH_POOL[rand(0, LIFEPATH_POOL.length - 1)],
-        level: rand(2, 20),
+        level,
         roomId: startId,
         destId: null,
         path: [],
+        weapon: WEAPONS[cls],
+        willFight: Math.random() < FIGHT_CHANCE[cls],
+        hp: 50 + level * 11,
+        maxhp: 50 + level * 11,
+        attackAt: 0,
+        kills: 0,
+        gig: null,
+        gigCdAt: 0,
+        dead: false,
+        respawnAt: 0,
+        lastCombatAt: 0,
         nextAt: Date.now() + rand(2000, 9000),
         walkDelay: rand(8000, 16000),
         linger: rand(30000, 180000)
@@ -182,7 +224,7 @@ class Sims {
   }
 
   presentIn (roomId) {
-    return this.sims.filter(s => s.roomId === roomId)
+    return this.sims.filter(s => !s.dead && s.roomId === roomId)
   }
 
   pickDestination (sim) {
@@ -193,7 +235,7 @@ class Sims {
     return roomsWithExits[rand(0, roomsWithExits.length - 1)].id
   }
 
-  chase(sim) {
+  chase (sim) {
     // scoot a sim on to a new walk target (walk, or catch a shuttle across the map)
     const from = sim.roomId
     if (Math.random() < 0.08) {
@@ -207,7 +249,8 @@ class Sims {
       }
     }
     let target = null
-    if (sim.destId && sim.path.length) target = sim.destId
+    if (sim.gig && (!sim.destId || !sim.path.length)) target = sim.gig.roomId
+    else if (sim.destId && sim.path.length) target = sim.destId
     else target = this.pickDestination(sim)
     const steps = stepsBetween(from, target)
     if (!steps || !steps.length) return null
@@ -236,8 +279,131 @@ class Sims {
     return `${sim.name} ${pool[rand(0, pool.length - 1)]}`
   }
 
+  // --- combat -------------------------------------------------------------
+
+  canEngage (sim, inst) {
+    if (!inst.alive || inst.hp <= 0) return false
+    // never snipe a hostile a player has claimed
+    if (Object.keys(inst.threat ?? {}).length) return false
+    // below level 14 sims give boss lairs a wide berth
+    if ((inst.def.danger === 'boss') && sim.level < BOSS_HUNT_LEVEL) return false
+    return true
+  }
+
+  combatTick (game, sim, now) {
+    const hostiles = game.world.hostilesInRoom?.(sim.roomId) ?? []
+    const target = hostiles.find(i => this.canEngage(sim, i))
+    if (!target) return false
+    sim.lastCombatAt = now
+    if (now < (sim.attackAt || 0)) return true
+    // not every pass produces a shot — pacing and variety
+    if (Math.random() < 0.4) { sim.attackAt = now + rand(900, 1800); return true }
+
+    const evade = target.def.stats?.reflexes ? rand(1, 100) > 70 : false
+    if (evade) {
+      sim.attackAt = now + rand(1400, 2400)
+      game.roomLog(sim.roomId, `${target.def.name} ducks ${sim.name}'s shot.`, 'combat')
+      return true
+    }
+    const base = Math.floor(sim.level * 2.4) + rand(sim.weapon.dmg[0], sim.weapon.dmg[1])
+    const taken = Math.max(1, base - Math.floor((target.def.armor ?? 0) * 0.55))
+    const crit = Math.random() < 0.12
+    const damage = crit ? Math.floor(taken * 1.5) : taken
+    target.hp = Math.max(0, target.hp - damage)
+    sim.attackAt = now + rand(1600, 2800)
+    game.roomLog(sim.roomId, `${sim.name} lets off ${sim.weapon.name} at ${target.def.name} for [B]${damage}[/B]${crit ? ' — clean crit!' : ''}.`, 'combat')
+
+    // hostile hits back
+    if (target.hp > 0 && Math.random() < 0.65) {
+      this.hostileHits(sim, target, game, now)
+    } else if (target.hp <= 0 && target.alive) {
+      this.simKills(game, sim, target, now)
+    }
+    return true
+  }
+
+  hostileHits (sim, inst, game, now) {
+    const simArmor = Math.floor(sim.level / 2)
+    const baseDamage = Math.max(1, rand(4, 10) + Math.floor(inst.def.level * 0.5) - simArmor)
+    const crit = Math.random() < 0.08
+    const dmg = crit ? Math.floor(baseDamage * 1.5) : baseDamage
+    sim.hp = Math.max(0, sim.hp - dmg)
+    game.roomLog(sim.roomId, `${inst.def.name} fights back, scoring [B]${dmg}[/B] on ${sim.name}${crit ? ' — a hell of a hit.' : '.'}`, 'combat')
+    if (sim.hp <= 0) this.simDies(game, sim, inst, now)
+    else sim.lastCombatAt = now
+  }
+
+  simKills (game, sim, inst, now) {
+    game.world.kill(inst, now)
+    sim.kills++
+    const isBoss = inst.def.danger === 'boss'
+    game.roomLog(sim.roomId, `${inst.def.name} is flatlined by ${sim.name}.${isBoss ? ' [B]Boss down![/B]' : ''}`, 'combat')
+    if (sim.gig && sim.gig.roomId === sim.roomId) sim.gig.kills++
+  }
+
+  simDies (game, sim, inst, now) {
+    sim.dead = true
+    sim.respawnAt = now + rand(RESURRECT_MS[0], RESURRECT_MS[1])
+    sim.gig = null
+    sim.path = []
+    const min = Math.round((sim.respawnAt - now) / 60000)
+    game.roomLog(sim.roomId, `${sim.name} is flatlined by ${inst.def.name}. Back on the streets in ~${min} min.`, 'combat')
+  }
+
+  gigLoop (game, sim, now) {
+    // picking up / finishing contract work against gang dens
+    if (sim.gig) return
+    if (!sim.willFight) return
+    if (now < sim.gigCdAt) return
+    if (Math.random() > 0.08) return
+    const eligible = this.gigRooms.filter(g =>
+      (g.maxLevel >= 2 && sim.level >= g.maxLevel - 1) &&
+      (g.hasBoss ? sim.level >= BOSS_HUNT_LEVEL : true)
+    )
+    if (!eligible.length) return
+    const gig = eligible[rand(0, eligible.length - 1)]
+    sim.gig = { roomId: gig.roomId, kills: 0 }
+    sim.destId = gig.roomId
+    sim.path = []
+    game.roomLog(sim.roomId, `${sim.name} picks up a contract: ${rooms[gig.roomId]?.name}.`, 'sys')
+  }
+
+  gigComplete (game, sim, now) {
+    sim.gig = null
+    sim.gigCdAt = now + rand(GIG_CD_MS[0], GIG_CD_MS[1])
+    sim.destId = null
+    sim.path = []
+    const payout = rand(120, 460) + sim.level * 20
+    game.roomLog(sim.roomId, `${sim.name} wraps the gig — ${payout} eddies, no questions asked.`, 'sys')
+    if (sim.kills >= 2 && sim.level < MAX_LEVEL && Math.random() < 0.5) {
+      sim.level++
+      sim.maxhp = 50 + sim.level * 11
+      sim.hp = sim.maxhp
+      sim.kills = 0
+      game.roomLog(sim.roomId, `${sim.name} pulls up to level ${sim.level}.`, 'sys')
+    }
+    sim.nextAt = now + sim.walkDelay
+  }
+
   tick (game, now) {
     for (const sim of this.sims) {
+      if (sim.dead) {
+        if (now >= sim.respawnAt) this.respawn(game, sim)
+        continue
+      }
+      // regen out of combat
+      if (now - (sim.lastCombatAt || 0) > 30000 && sim.hp < sim.maxhp) {
+        sim.hp = Math.min(sim.maxhp, sim.hp + Math.max(1, Math.floor(sim.maxhp * 0.04)))
+      }
+      // exchange lead with anything unfriendly sharing the room
+      if (this.combatTick(game, sim, now)) continue
+      // standing in the gig room? grind the crew down, then call it done
+      if (sim.gig && sim.roomId === sim.gig.roomId) {
+        const hostiles = game.world.hostilesInRoom?.(sim.roomId) ?? []
+        if (!hostiles.length && sim.gig.kills > 0) this.gigComplete(game, sim, now)
+        else sim.nextAt = now + rand(3000, 8000)
+        continue
+      }
       if (now < sim.nextAt) continue
       if (sim.path.length) {
         const res = this.step(sim)
@@ -247,7 +413,15 @@ class Sims {
         }
         continue
       }
-      // no path: linger action or start a new walk
+      if (sim.gig && sim.roomId !== sim.gig.roomId) {
+        // headed somewhere: plan the walk next spin via chase()
+        const moved = this.chase(sim)
+        if (moved) game.roomLog(moved.roomId, moved.line, 'sys')
+        else sim.nextAt = now + sim.walkDelay
+        continue
+      }
+      // no path: linger action, pick up gigs, or start a new walk
+      this.gigLoop(game, sim, now)
       if (Math.random() < 0.6 && game.playerSessions(sim.roomId).length) {
         const line = this.actionLine(sim)
         game.roomLog(sim.roomId, line, 'amb')
@@ -258,6 +432,23 @@ class Sims {
       if (moved) game.roomLog(moved.roomId, moved.line, 'sys')
       else sim.nextAt = now + sim.walkDelay
     }
+  }
+
+  respawn (game, sim) {
+    const hubs = Object.values(HUB_ROOMS)
+    const target = hubs[rand(0, hubs.length - 1)]
+    const from = sim.roomId
+    sim.roomId = target
+    sim.dead = false
+    sim.respawnAt = 0
+    sim.hp = sim.maxhp
+    sim.lastCombatAt = 0
+    sim.attackAt = 0
+    sim.destId = null
+    sim.path = []
+    sim.nextAt = Date.now() + rand(3000, 9000)
+    game.roomLog(from, `${sim.name} breathes again. Resurrected somewhere safer than that.`, 'sys')
+    game.roomLog(target, `${sim.name} limps in, sweaty and alive.`, 'sys')
   }
 
   handleSay (game, roomId) {

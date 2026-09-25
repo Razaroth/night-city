@@ -47,7 +47,7 @@ const server = http.createServer((req, res) => {
 
 const wss = new WebSocketServer({ server, maxPayload: 64 * 1024 })
 
-loadDb()
+await loadDb()
 const game = new Game({ wss })
 
 server.listen(PORT, HOST, () => {
@@ -66,13 +66,16 @@ server.listen(PORT, HOST, () => {
   console.log('')
 })
 
-function bye () {
+let shuttingDown = false
+async function bye () {
+  if (shuttingDown) return
+  shuttingDown = true
   console.log('\nShutting down — saving Night City...')
-  try { game.shutdown() } catch {}
+  try { await game.shutdown() } catch (err) { console.error('Shutdown save failed:', err) }
   try { wss.close() } catch {}
   server.close(() => process.exit(0))
   setTimeout(() => process.exit(0), 1500)
 }
-process.on('SIGINT', bye)
-process.on('SIGTERM', bye)
-process.on('uncaughtException', err => { console.error('uncaught:', err); dbShutdown() })
+process.on('SIGINT', () => { void bye() })
+process.on('SIGTERM', () => { void bye() })
+process.on('uncaughtException', err => { console.error('uncaught:', err); void dbShutdown().catch(saveErr => console.error('Save failed:', saveErr)) })

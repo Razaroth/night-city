@@ -11,22 +11,38 @@ const EMPTY_DB = { accounts: {}, world: {} }
 
 let db = null
 let writeTimer = null
+let saveChain = Promise.resolve()
+let redisStore = null
+
+const REDIS_SAVE_KEY = 'night-city-world'
 
 export function ensureSaveDir () {
   fs.mkdirSync(SAVE_DIR, { recursive: true })
 }
 
-export function loadDb () {
+export async function loadDb () {
   ensureSaveDir()
-  if (fs.existsSync(DB_FILE)) {
-    try {
-      db = JSON.parse(fs.readFileSync(DB_FILE, 'utf8'))
-    } catch (err) {
-      console.error('Corrupt save file, starting fresh:', err.message)
+  const url = String(process.env.UPSTASH_REDIS_REST_URL ?? '').trim().replace(/\/+$/, '')
+  const token = String(process.env.UPSTASH_REDIS_REST_TOKEN ?? '').trim()
+  if (url || token) {
+    if (!url || !token) throw new Error('Both UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN are required.')
+    redisStore = { url, token }
+    const saved = await redisGet()
+    db = saved == null ? structuredClone(EMPTY_DB) : JSON.parse(saved)
+  } else {
+    if (process.env.NIGHT_CITY_REQUIRE_REMOTE_SAVE === 'true') {
+      throw new Error('Remote save is required, but Upstash credentials are missing.')
+    }
+    if (fs.existsSync(DB_FILE)) {
+      try {
+        db = JSON.parse(fs.readFileSync(DB_FILE, 'utf8'))
+      } catch (err) {
+        console.error('Corrupt save file, starting fresh:', err.message)
+        db = structuredClone(EMPTY_DB)
+      }
+    } else {
       db = structuredClone(EMPTY_DB)
     }
-  } else {
-    db = structuredClone(EMPTY_DB)
   }
   db.accounts ??= {}
   db.world ??= {}
@@ -37,8 +53,12 @@ export function getDb () {
   return db
 }
 
-export function saveNow () {
+export async function saveNow () {
   if (!db) return
+  if (redisStore) {
+    await redisSet(JSON.stringify(db))
+    return
+  }
   fs.mkdirSync(SAVE_DIR, { recursive: true })
   const tmp = DB_FILE + '.tmp'
   fs.writeFileSync(tmp, JSON.stringify(db, null, 2))
@@ -49,20 +69,39 @@ export function queueSave (delay = 250) {
   if (writeTimer) return
   writeTimer = setTimeout(() => {
     writeTimer = null
-    try {
-      saveNow()
-    } catch (err) {
-      console.error('Save failed:', err)
-    }
+    saveChain = saveChain.then(() => saveNow()).catch(err => console.error('Save failed:', err))
   }, delay)
 }
 
-export function shutdown () {
+export async function shutdown () {
   if (writeTimer) {
     clearTimeout(writeTimer)
     writeTimer = null
   }
-  if (db) saveNow()
+  await saveChain
+  if (db) await saveNow()
+}
+
+async function redisGet () {
+  const response = await fetch(`${redisStore.url}/get/${REDIS_SAVE_KEY}`, {
+    headers: { Authorization: `Bearer ${redisStore.token}` }
+  })
+  const body = await response.json()
+  if (!response.ok || body.error) throw new Error(`Upstash save read failed: ${body.error ?? response.statusText}`)
+  return body.result
+}
+
+async function redisSet (value) {
+  const response = await fetch(`${redisStore.url}/set/${REDIS_SAVE_KEY}`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${redisStore.token}`,
+      'Content-Type': 'text/plain; charset=utf-8'
+    },
+    body: value
+  })
+  const body = await response.json()
+  if (!response.ok || body.error) throw new Error(`Upstash save write failed: ${body.error ?? response.statusText}`)
 }
 
 // ---------- crypto ----------

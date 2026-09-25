@@ -998,10 +998,10 @@ export class Game {
     db.queueSave()
   }
 
-  shutdown () {
+  async shutdown () {
     clearInterval(this.timer)
     this.persistAll()
-    db.shutdown()
+    await db.shutdown()
   }
 }
 

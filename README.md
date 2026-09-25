@@ -95,6 +95,109 @@ client/   index.html  style.css  app.js
 data/     world.json  npcs.json  items.json   save/world.json (runtime)
 ```
 
+## Hosting the game
+
+The server is a long-running Node.js process with WebSocket connections and a local JSON
+save. The Render setup below uses Upstash Redis for durable saves because Render's free
+service sleeps when idle and its local filesystem is temporary.
+
+### Render Free
+
+1. Create a free Redis database at [Upstash](https://upstash.com/) and copy its REST URL and
+   token from the database console. The free plan includes 256 MB and 500,000 commands/month.
+2. To preserve your current local save, upload it to the empty Upstash database before the
+   first Render deploy. Run this from the project directory, using your Upstash credentials:
+
+   ```sh
+   export UPSTASH_REDIS_REST_URL='https://your-database.upstash.io'
+   export UPSTASH_REDIS_REST_TOKEN='your-token'
+   curl -fsS -X POST "$UPSTASH_REDIS_REST_URL/set/night-city-world" \
+     -H "Authorization: Bearer $UPSTASH_REDIS_REST_TOKEN" \
+     -H 'Content-Type: text/plain' \
+     --data-binary @data/save/world.json
+   ```
+
+   Upstash should reply with `{"result":"OK"}`. Keep the token private.
+3. Push the project to GitHub, then in Render choose **New → Blueprint** and connect the
+   repository. Render reads `render.yaml`, creates the free Docker Web Service, and prompts
+   for the Upstash REST URL and token. Use the same database you migrated above.
+4. After deployment, share the Render `onrender.com` URL. Render provides HTTPS, and the game
+   client automatically uses secure WebSockets. Player saves remain in Upstash across service
+   sleeps, restarts, and redeploys.
+
+Render's free service sleeps after 15 minutes without inbound traffic and may take about a
+minute to wake. Connected players keep it active through WebSocket pings, but it is not a hard
+24/7 guarantee. `render.yaml` requires remote-save credentials so it won't silently fall back
+to temporary local storage.
+
+### Alternative: Oracle Cloud Always Free VM
+
+1. Create an Ubuntu VM using the **Always Free eligible** Ampere A1 shape. Current Always
+   Free limits are 2 OCPUs, 12 GB RAM, and 200 GB combined block storage; a 1 OCPU / 6 GB
+   VM is ample for this game and may be easier to provision when capacity is tight.
+2. Point a domain at the VM's public IP. A free [DuckDNS](https://www.duckdns.org/) subdomain
+   works; note the hostname for the `.env` configuration below.
+
+3. Allow inbound TCP ports **22, 80, and 443** in the Oracle VCN security rules. Port 80/443
+   are for Caddy HTTPS; the game port stays private to Docker.
+4. Install Docker Engine, Docker Compose, and UFW on Ubuntu:
+
+   ```sh
+   sudo apt update
+   sudo apt install -y git docker.io docker-compose-v2 ufw
+   sudo systemctl enable --now docker
+   ```
+
+5. Allow SSH and Caddy through Ubuntu's host firewall:
+
+   ```sh
+   sudo ufw allow OpenSSH
+   sudo ufw allow 80/tcp
+   sudo ufw allow 443/tcp
+   sudo ufw allow 443/udp
+   sudo ufw --force enable
+   ```
+
+6. Clone and configure the project:
+
+   ```sh
+   git clone https://github.com/Razaroth/night-city.git
+   cd night-city
+   mkdir -p data/save
+   cp .env.example .env
+   # Edit .env and set DOMAIN to your hostname
+   ```
+
+   To migrate your existing save, copy `data/save/world.json` from your current machine to
+   `~/night-city/data/save/world.json` on the VM before the first start. Run this example
+   from your current machine, replacing the source path and VM IP:
+
+   ```sh
+   scp /path/to/night-city/data/save/world.json ubuntu@<VM-IP>:~/night-city/data/save/world.json
+   ```
+
+7. Start the game and reverse proxy:
+
+   ```sh
+   sudo docker compose up -d --build
+   sudo docker compose logs -f night-city
+   ```
+
+   Caddy obtains and renews the HTTPS certificate and proxies WebSocket traffic to the game.
+   Share `https://<your-domain>` with players. A host-directory mount keeps `world.json`
+   across container rebuilds and restarts. The container runs as UID 1000, matching Ubuntu's
+   default `ubuntu` account. Back up the save periodically with:
+
+   ```sh
+   cp data/save/world.json world.json.backup
+   ```
+
+8. Update the game later with `git pull` and `sudo docker compose up -d --build`.
+
+Oracle Always Free has no uptime SLA or guaranteed regional capacity. Oracle may reclaim an
+Always Free VM if CPU, network, and (for A1) memory utilization all stay below 20% over a
+seven-day period. So this is a good no-cost home for the game, but not a hard 24/7 guarantee.
+
 ## License
 
 Do what you want with it. Cyberpunk 2077 is a trademark of CD Projekt Red; this is an

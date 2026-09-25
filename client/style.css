@@ -870,7 +870,7 @@ input { font-family: var(--mono); }
   transition: width .35s cubic-bezier(.2, 1, .4, 1), background .3s;
   box-shadow: 0 0 14px rgba(61, 255, 209, .6);
 }
-#cfx-hp { background: linear-gradient(90deg, var(--red), #ff9; box-shadow: 0 0 14px rgba(255, 92, 120, .7); }
+#cfx-hp { background: linear-gradient(90deg, var(--red), #ff9); box-shadow: 0 0 14px rgba(255, 92, 120, .7); }
 .cfx-buffs { display: flex; gap: 4px; flex-wrap: wrap; }
 .cfx-buffs span {
   font-size: 8px; letter-spacing: 1px; color: #3a4d6d; border: 1px solid #22365a;
@@ -1004,4 +1004,194 @@ input { font-family: var(--mono); }
   #left .panel, #right .panel { flex: 1 1 240px; }
   #scene { height: 130px; }
   .create-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 760px) {
+  html, body { height: 100%; height: 100dvh; }
+  body { overflow: hidden; overscroll-behavior: none; }
+  #game { height: 100vh; height: 100dvh; min-height: 0; }
+
+  #hud {
+    flex-wrap: wrap; gap: 4px 8px;
+    padding: calc(5px + env(safe-area-inset-top)) 8px 6px;
+  }
+  .hud-left { display: none; }
+  .hud-char { order: 0; flex: 1 1 100%; min-width: 0; justify-content: space-between; gap: 5px; }
+  .hud-char b { min-width: 0; max-width: 42vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; }
+  .pill { padding: 3px 5px; font-size: 9px; letter-spacing: .5px; white-space: nowrap; }
+  .hud-right { order: 1; width: 100%; flex-wrap: wrap; justify-content: space-between; gap: 4px 8px; font-size: 10px; }
+  #hud-online { display: none; }
+  .hud-logout { min-height: 34px; padding: 5px 8px; }
+
+  #gamebody {
+    display: flex; flex: 1 1 auto; flex-direction: column; gap: 8px;
+    min-height: 0; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain;
+    padding: 6px 8px calc(10px + env(safe-area-inset-bottom));
+    -webkit-overflow-scrolling: touch;
+  }
+  #center { order: 0; flex: 0 0 auto; min-height: 68dvh; gap: 6px; }
+  #left { order: 1; }
+  #right { order: 2; }
+  #scene { height: 112px; }
+  .scene-label { left: 8px; bottom: 7px; }
+  .scene-district { font-size: 9px; letter-spacing: 2px; }
+  .scene-room { max-width: 88vw; font-size: 16px; letter-spacing: 1px; }
+  .scene-weather { max-width: 90vw; font-size: 9px; }
+
+  #log { flex: 1 1 auto; min-height: 150px; max-height: 38dvh; padding: 8px; font-size: 13px; }
+  #quickbar {
+    flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden; gap: 6px;
+    margin: 0 -2px; padding: 2px 2px 7px; touch-action: pan-x; scrollbar-width: thin;
+    -webkit-overflow-scrolling: touch;
+  }
+  #quickbar .qbtn { flex: 0 0 auto; min-height: 42px; padding: 8px 10px; }
+  #cmdform {
+    position: sticky; bottom: 0; z-index: 20; gap: 6px;
+    margin: 0 -8px -6px; padding: 7px 8px calc(7px + env(safe-area-inset-bottom));
+    border-top: 1px solid var(--panel-edge); background: rgba(11,16,32,.98);
+  }
+  #cmdform .prompt { display: none; }
+  #cmdinput { min-width: 0; min-height: 44px; padding: 10px; font-size: 16px; }
+  #cmdform button { min-height: 44px; padding: 0 14px; }
+
+  .auth-card { width: calc(100vw - 24px); padding: 20px 16px 16px; }
+  #authform input, .fld input { min-height: 44px; font-size: 16px; }
+  #creation { padding: calc(12px + env(safe-area-inset-top)) 8px calc(12px + env(safe-area-inset-bottom)); }
+  .create-head h2 { font-size: 18px; letter-spacing: 1px; }
+  .create-head p { font-size: 11px; line-height: 1.45; }
+  .create-grid, .create-col { gap: 8px; }
+  .create-col .panel { padding: 9px; }
+  .attr-row { grid-template-columns: 68px minmax(20px, 1fr) 22px 30px 22px; gap: 4px; }
+  .attr-row .aname { font-size: 9px; letter-spacing: 0; }
+  .attr-row button { min-height: 34px; }
+  .chrome-grid { grid-template-columns: 1fr; }
+  .create-foot { flex-direction: column; align-items: stretch; gap: 8px; margin: 10px 0 22px; }
+  .create-foot .err { flex: 0 0 auto; }
+  .neon-btn.big { width: 100%; padding: 13px 12px; font-size: 13px; }
+
+  #left, #right {
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-content: start; gap: 8px; overflow: visible; padding: 0;
+  }
+  #left .panel, #right .panel { min-width: 0; margin: 0; padding: 9px; }
+  #left .panel:nth-child(2), #right .panel:first-child, #right .panel:last-child { grid-column: 1 / -1; }
+  #left .panel h3, #right .panel h3 { margin-bottom: 7px; padding-bottom: 5px; font-size: 10px; letter-spacing: 1.5px; }
+  #minimap { height: 130px; }
+  #legend { gap: 4px; }
+  #legend .lg { font-size: 8px; }
+  #qmap-btn { min-height: 40px; }
+  .exit-grid { gap: 6px; }
+  .exit-grid button { flex: 1 1 88px; min-height: 42px; }
+  .npc-btns button { min-height: 38px; padding: 5px 8px; }
+  #inventory .inv-item { align-items: stretch; flex-direction: column; gap: 5px; }
+  #inventory .inv-btns { flex-wrap: wrap; gap: 5px; }
+  #inventory .inv-btns button { min-height: 36px; padding: 5px 8px; }
+  .eq-slot { gap: 4px; }
+  .eq-slot .it { min-width: 0; overflow-wrap: anywhere; text-align: right; }
+  .job button { min-height: 40px; }
+
+  .modal { align-items: flex-end; padding-top: env(safe-area-inset-top); }
+  .modal-card {
+    width: 100%; max-width: 100%; max-height: calc(100dvh - env(safe-area-inset-top));
+    border-right: 0; border-bottom: 0; border-left: 0; clip-path: none;
+  }
+  .modal-card header { gap: 8px; padding: 9px 11px; }
+  .modal-card header h3 { font-size: 12px; letter-spacing: 1px; }
+  .modal-card .x { min-width: 38px; min-height: 38px; }
+  .modal-cols { grid-template-columns: 1fr; overflow-y: auto; }
+  .modal-cols > div { max-height: 38dvh; padding: 10px; border: 0; }
+  .modal-cols > div:first-child { border-right: 0; border-bottom: 1px solid var(--panel-edge); }
+  .shop-item button { min-height: 38px; }
+  .sheet-body { flex-direction: column; gap: 10px; padding: 10px; }
+  .sheet-img-wrap { display: none; }
+  .sheet-raw { grid-template-columns: 1fr; gap: 8px; }
+  .sheet-idrow span { font-size: 16px; letter-spacing: 1px; }
+  .perks-head { gap: 8px; padding: 8px 11px; font-size: 11px; }
+  .perks-list { padding: 8px; }
+  .perk-row { gap: 6px; padding: 7px; }
+  .perk-row .pk-tier { min-width: 25px; font-size: 14px; }
+  .map-card { width: 100vw; height: 100dvh; }
+  .map-head { flex-wrap: wrap; gap: 6px; padding: 7px 9px; }
+  .map-head h3 { font-size: 11px; letter-spacing: 1px; }
+  .map-head-controls { gap: 4px; }
+  .map-head-controls .qbtn { min-height: 38px; padding: 5px 7px; }
+  .map-hint { display: none; }
+  .map-legend { gap: 6px; padding: 6px 9px; }
+  .breach-card { width: 100%; }
+  .breach-head { flex-wrap: wrap; justify-content: flex-end; gap: 5px; }
+  .breach-ap { flex: 1 1 100%; }
+  .breach-body { max-height: calc(100dvh - 104px); padding: 9px; }
+  .breach-grid { gap: 4px; padding: 6px; }
+  .bcq { width: clamp(40px, 11vw, 52px); height: clamp(38px, 10vw, 44px); }
+  .breach-buffer { overflow-x: auto; }
+
+  #combatfx { align-items: flex-start; overflow-y: auto; padding: calc(5px + env(safe-area-inset-top)) 6px 8px; }
+  .cfx-panel { width: 100%; max-width: 100%; max-height: calc(100dvh - env(safe-area-inset-top) - 8px); overflow-y: auto; clip-path: none; }
+  .cfx-head { padding: 8px 10px; }
+  .cfx-title { font-size: 12px; letter-spacing: 2px; }
+  .cfx-clk { font-size: 9px; letter-spacing: 1px; }
+  .cfx-body { grid-template-columns: minmax(0, 1fr); gap: 7px; padding: 8px; }
+  .cfx-you { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5px; }
+  .cfx-youtag, .cfx-buffs { grid-column: 1 / -1; }
+  .cfx-youtag { font-size: 10px; letter-spacing: 2px; }
+  .cfx-vs { display: none; }
+  .cfx-foes { max-height: 28dvh; overflow-y: auto; gap: 6px; }
+  .cfx-foe { padding: 7px; }
+  .cfx-fname { font-size: 10px; flex-wrap: wrap; }
+  .cfx-fname small { font-size: 8px; }
+  .cfx-fbtns { flex-wrap: wrap; }
+  .cfx-fbtns button { min-height: 38px; padding: 6px; letter-spacing: 1px; }
+  .cfx-acts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5px; padding: 7px; }
+  .cfx-acts button { min-width: 0; min-height: 42px; padding: 6px 4px; font-size: 9px; letter-spacing: 1px; }
+  #toasts { top: calc(6px + env(safe-area-inset-top)); right: 6px; left: 6px; align-items: flex-end; }
+  .toast { max-width: 100%; min-width: 0; padding: 8px 10px; font-size: 11px; }
+  .death-text { font-size: clamp(30px, 10vw, 50px); letter-spacing: 5px; text-align: center; }
+}
+
+@media (max-width: 390px) {
+  #left, #right { grid-template-columns: minmax(0, 1fr); }
+  #left .panel, #right .panel { grid-column: 1; }
+  #right .panel:first-child, #right .panel:last-child, #left .panel:nth-child(2) { grid-column: 1; }
+  .hud-char { flex-wrap: wrap; justify-content: flex-start; }
+  .hud-char b { max-width: 100%; flex-basis: 100%; }
+  .cfx-acts { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (max-width: 760px) and (max-height: 500px) {
+  #scene { height: 76px; }
+  #center { min-height: 56dvh; }
+  #log { min-height: 90px; max-height: 26dvh; }
+  .cfx-body { grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); }
+  .cfx-vs { display: none; }
+  .cfx-you { grid-template-columns: 1fr; }
+  .cfx-youtag, .cfx-buffs { grid-column: 1; }
+}
+
+@media (max-height: 500px) and (orientation: landscape) {
+  #game { height: 100vh; height: 100dvh; }
+  #gamebody {
+    display: grid; grid-template-columns: minmax(145px, .75fr) minmax(0, 2fr) minmax(190px, 1fr);
+    gap: 6px; overflow: hidden; padding: 6px;
+  }
+  #left, #right { flex-direction: column; flex-wrap: nowrap; overflow-y: auto; gap: 6px; padding: 0; }
+  #left .panel, #right .panel { flex: 0 0 auto; min-width: 0; padding: 8px; }
+  #center { min-width: 0; gap: 5px; }
+  #scene { height: 80px; }
+  .scene-label { left: 8px; bottom: 5px; }
+  .scene-room { font-size: 15px; }
+  #log { min-height: 0; padding: 6px 8px; font-size: 11px; }
+  #quickbar { max-height: 52px; overflow-x: auto; flex-wrap: nowrap; }
+  #quickbar .qbtn { flex: 0 0 auto; min-height: 38px; }
+  #cmdform { gap: 5px; }
+  #cmdinput { min-width: 0; font-size: 16px; padding: 7px 9px; }
+  #cmdform button { padding: 7px 12px; }
+  #minimap { height: 110px; }
+  .map-card { height: 94dvh; }
+  #combatfx { align-items: flex-start; overflow-y: auto; padding: 5px 8px; }
+  .cfx-panel { width: min(760px, 96vw); max-height: 96dvh; overflow-y: auto; clip-path: none; }
+  .cfx-head { padding: 6px 12px; }
+  .cfx-title { font-size: 13px; letter-spacing: 3px; }
+  .cfx-body { grid-template-columns: minmax(125px, .7fr) 22px minmax(0, 1.8fr); gap: 7px; padding: 8px; }
+  .cfx-acts { flex-wrap: wrap; gap: 5px; padding: 6px 8px; }
+  .cfx-acts button { min-height: 38px; padding: 6px; font-size: 10px; letter-spacing: 1px; }
 }
