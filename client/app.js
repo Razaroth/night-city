@@ -21,6 +21,7 @@ const S = {
   char: null,
   inv: null,
   room: null,
+  tramRide: null,
   jobs: null,
   shop: null,
   hist: [],
@@ -93,7 +94,14 @@ function handle (msg) {
     case 'needChar': S.creation = msg.creation; showScreen('creation'); renderCreation(); break
     case 'charCreated': toast('Runner on file: ' + msg.name, 'good'); break
     case 'entered': onEntered(msg); break
-    case 'room': S.room = msg; onRoom(msg); break
+    case 'room': S.room = msg; S.tramRide = msg.tramRide || null; onRoom(msg); break
+    case 'tram': {
+      S.tramRide = msg.ride || null
+      if (S.room) S.room.tramRide = S.tramRide
+      renderQuickbar(); renderActions(); renderMinimap()
+      if (S.room?.tramRide) renderScene(S.room)
+      break
+    }
     case 'state': S.char = msg.state; renderHud(); renderVitals(); renderAttrs(); renderQuickbar(); openCombat(); refreshPerks(); refreshSheet(); break
     case 'combatEnd': {
       if (S.room && (!msg.roomId || msg.roomId === S.room.id)) {
@@ -139,6 +147,7 @@ function onLogout () {
   S.char = null
   S.inv = null
   S.room = null
+  S.tramRide = null
   S.jobs = null
   S.shop = null
   S.creation = null
@@ -665,9 +674,11 @@ function renderScene (room) {
   const d = S.world.districts[room.district]
   document.documentElement.style.setProperty('--district', d?.color || '#4ae7ff')
   $('#scene').dataset.district = room.district
-  $('#scene-district').textContent = room.specialMission
-    ? `SPECIAL MISSION • STAGE ${room.specialMission.room}/${room.specialMission.total}`
-    : (d?.name || room.district).toUpperCase()
+  $('#scene-district').textContent = room.tramRide
+    ? `NCART IN TRANSIT • ${room.tramRide.destinationName.toUpperCase()} • ${Math.ceil(room.tramRide.remainingMs / 1000)}s`
+    : room.specialMission
+      ? `SPECIAL MISSION • STAGE ${room.specialMission.room}/${room.specialMission.total}`
+      : (d?.name || room.district).toUpperCase()
   $('#scene-room').textContent = room.name
   $('#scene-weather').textContent = (room.clock || '') + '  •  ' + (room.weather || '')
   if (room.clock) $('#hud-clock').textContent = room.clock
@@ -712,6 +723,22 @@ function renderActions () {
       <div class="npc-btns">${btns.join('')}</div></div>`
   }
   if (!room.npcs || !room.npcs.length) html += '<div class="empty-note">No one else here.</div>'
+
+  if (room.tramStation && !room.tramRide) {
+    const stops = S.world.tram?.stations || []
+    html += `<div class="tram-panel"><b>◉ ${esc(room.tramStation.name)} • NCART</b><small>${esc(S.world.tram?.line || 'NIGHT CITY RAIL')} • ${S.world.tram?.farePerStop || 18}€$ per stop</small><div class="tram-stops">`
+    for (const stop of stops) {
+      if (stop.id === room.tramStation.id) continue
+      html += `<button data-cmd="tram ${esc(stop.id)}">TO ${esc(stop.name)}</button>`
+    }
+    html += '</div></div>'
+  }
+  if (room.tramRide) {
+    const status = room.tramRide.arrived
+      ? room.inCombat ? 'PLATFORM REACHED • CLEAR HOSTILES' : 'PLATFORM REACHED • TAKE LOOT OR TYPE TRAM EXIT'
+      : `ARRIVING AT ${room.tramRide.destinationName.toUpperCase()} IN ${Math.ceil(room.tramRide.remainingMs / 1000)}s`
+    html += `<div class="tram-panel riding"><b>◉ NCART • ${esc(room.tramRide.direction.toUpperCase())}</b><small>${esc(status)}</small></div>`
+  }
 
   if (room.corpse) {
     html += `<div class="obj-row" style="color:var(--yellow)">Corpse: ${esc(room.corpse.name)} — ${room.corpse.eddies}€$, ${room.corpse.items.length} item(s)
@@ -997,6 +1024,28 @@ function drawCity (ctx, cw, ch, view, opts) {
     ctx.beginPath(); ctx.moveTo(pa.x, pa.y); ctx.lineTo(pb.x, pb.y); ctx.stroke()
   }
 
+  const tramStations = S.world.tram?.stations || []
+  if (tramStations.length > 1) {
+    const pts = tramStations.map(s => mapProj(s, view))
+    ctx.save()
+    ctx.lineCap = 'round'
+    ctx.lineJoin = 'round'
+    ctx.shadowColor = '#37ffd2'
+    ctx.shadowBlur = Math.max(3, view.unit * 0.2)
+    ctx.strokeStyle = '#102c35'
+    ctx.lineWidth = Math.max(3, view.unit * 0.3)
+    ctx.beginPath(); ctx.moveTo(pts[0].x, pts[0].y)
+    for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y)
+    ctx.closePath(); ctx.stroke()
+    ctx.strokeStyle = '#42ffd2'
+    ctx.lineWidth = Math.max(1.2, view.unit * 0.075)
+    ctx.setLineDash([Math.max(2, view.unit * 0.22), Math.max(2, view.unit * 0.12)])
+    ctx.beginPath(); ctx.moveTo(pts[0].x, pts[0].y)
+    for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y)
+    ctx.closePath(); ctx.stroke()
+    ctx.restore()
+  }
+
   const sorted = rooms.slice().sort((a, b) => b.x + b.y - (a.x + a.y))
   const step = view.unit
   for (const r of sorted) {
@@ -1040,6 +1089,40 @@ function drawCity (ctx, cw, ch, view, opts) {
       ctx.lineWidth = Math.max(1, step * 0.06)
       ctx.beginPath(); ctx.arc(p.x, p.y - h * 0.5, w * 0.8, 0, Math.PI * 2); ctx.stroke()
     }
+  }
+
+  for (const stop of tramStations) {
+    const p = mapProj(stop, view)
+    const r = Math.max(7, step * 0.32)
+    const hovered = opts.hover === stop.roomId
+    ctx.save()
+    ctx.shadowColor = '#ffd34e'; ctx.shadowBlur = Math.max(9, step * 0.55)
+    ctx.fillStyle = '#10131b'; ctx.strokeStyle = hovered ? '#fff' : '#ffd34e'; ctx.lineWidth = Math.max(2, step * 0.1)
+    ctx.beginPath(); ctx.arc(p.x, p.y, r + 2, 0, Math.PI * 2); ctx.fill(); ctx.stroke()
+    ctx.fillStyle = '#ff5ae0'
+    ctx.beginPath(); ctx.moveTo(p.x, p.y - r * 0.64); ctx.lineTo(p.x + r * 0.64, p.y); ctx.lineTo(p.x, p.y + r * 0.64); ctx.lineTo(p.x - r * 0.64, p.y); ctx.closePath(); ctx.fill()
+    ctx.fillStyle = '#fff'; ctx.font = `900 ${Math.max(9, r * 0.82)}px Orbitron, sans-serif`
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('T', p.x, p.y + 0.5)
+    const label = (S.world.districts[stop.id]?.name || stop.id).toUpperCase()
+    ctx.font = `700 ${Math.max(8, Math.min(10, step * 0.4))}px Orbitron, sans-serif`
+    const labelW = ctx.measureText(label).width + 10
+    const labelY = p.y - r - 19
+    ctx.fillStyle = 'rgba(5,8,17,.96)'; ctx.strokeStyle = '#ff5ae0'; ctx.lineWidth = 1
+    ctx.fillRect(p.x - labelW / 2, labelY, labelW, 15); ctx.strokeRect(p.x - labelW / 2, labelY, labelW, 15)
+    ctx.fillStyle = '#ffe078'; ctx.textBaseline = 'middle'; ctx.fillText(label, p.x, labelY + 7.5)
+    ctx.restore()
+  }
+
+  if (opts.tram?.position) {
+    const p = mapProj(opts.tram.position, view)
+    const r = Math.max(4, step * 0.25)
+    ctx.save()
+    ctx.shadowColor = '#ff557e'; ctx.shadowBlur = Math.max(8, step * 0.75)
+    ctx.fillStyle = '#ff557e'
+    ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, Math.PI * 2); ctx.fill()
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = Math.max(1, step * 0.07)
+    ctx.beginPath(); ctx.arc(p.x, p.y, r * 1.55, 0, Math.PI * 2); ctx.stroke()
+    ctx.restore()
   }
 
   const myRoom = opts.cur && rIndex[opts.cur]
@@ -1114,11 +1197,11 @@ function renderMinimap () {
   const ctx = cv.getContext('2d')
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
   const view = mapFitView(w, h, rooms)
-  drawCity(ctx, w, h, view, { cur: S.room?.id, route: MM.route })
+  drawCity(ctx, w, h, view, { cur: S.room?.id, route: MM.route, tram: S.room?.tramRide })
   $('#legend').innerHTML = DIST_ORDER.map(d => {
     const dist = S.world.districts[d]
     return `<span class="lg"><i class="dot" style="background:${dist?.color || '#456'}"></i>${esc(dist?.name || d)}</span>`
-  }).join('')
+  }).join('') + '<span class="lg"><i class="tram-dot"></i>NCART STOPS</span>'
 }
 
 function mapHit (ev, cv, view) {
@@ -1131,6 +1214,19 @@ function mapHit (ev, cv, view) {
     if (d < bd) { bd = d; best = r }
   }
   return bd < view.unit * 0.95 ? best : null
+}
+
+function mapStationHit (ev, cv, view) {
+  const stations = S.world.tram?.stations || []
+  const rect = cv.getBoundingClientRect()
+  const mx = ev.clientX - rect.left, my = ev.clientY - rect.top
+  let best = null, bd = Infinity
+  for (const station of stations) {
+    const p = mapProj(station, view)
+    const d = Math.hypot(mx - p.x, my - p.y)
+    if (d < bd) { bd = d; best = station }
+  }
+  return bd < Math.max(14, view.unit * 0.55) ? best : null
 }
 
 function bfsPath (fromId, toId) {
@@ -1151,16 +1247,22 @@ function bfsPath (fromId, toId) {
   return steps
 }
 
-function startMapWalk (steps) {
+function startMapWalk (steps, thenTram = null) {
   if (!steps || !steps.length) return
-  S.mapWalk = { steps, i: 0 }
+  S.mapWalk = { steps, i: 0, thenTram }
   mapWalkStep()
 }
 function mapWalkStep () {
   const w = S.mapWalk
   if (!w) return
   const s = w.steps[w.i]
-  if (!s) { S.mapWalk = null; MM.route = null; toast('You reached your destination.', 'good'); return }
+  if (!s) {
+    const thenTram = w.thenTram
+    S.mapWalk = null; MM.route = null
+    if (thenTram) { toast('At the platform. Boarding the NCART…', 'good'); cmd('tram ' + thenTram) }
+    else toast('You reached your destination.', 'good')
+    return
+  }
   cmd(s.dir)
   w.expect = s.to
 }
@@ -1176,6 +1278,57 @@ function mapRouteCheck (msg) {
   }
 }
 
+function nearestTramStation (roomId) {
+  let best = null
+  for (const station of S.world.tram?.stations || []) {
+    const path = bfsPath(roomId, station.roomId)
+    if (path && (!best || path.length < best.path.length)) best = { station, path }
+  }
+  return best
+}
+
+function chooseTramStop (stationId) {
+  const destination = (S.world.tram?.stations || []).find(s => s.id === stationId)
+  if (!destination || !S.room) return
+  if (S.mapWalk) { toast('Finish your current route first.', 'info'); return }
+  if (S.room.tramRide) { toast('You are already aboard the NCART.', 'info'); return }
+  if (S.room.tramStation) {
+    if (S.room.tramStation.id === destination.id) { cmd('tram'); return }
+    cmd('tram ' + destination.id)
+    return
+  }
+
+  const nearest = nearestTramStation(S.room.id)
+  if (!nearest) { toast('No walkable NCART station is reachable from here.', 'bad'); return }
+  const thenTram = nearest.station.id === destination.id ? null : destination.id
+  const routeText = thenTram
+    ? `Walking to ${nearest.station.name}, then riding to ${destination.name}…`
+    : `Walking to ${destination.name}…`
+  if (!nearest.path.length) {
+    if (thenTram) cmd('tram ' + thenTram)
+    else cmd('tram')
+    return
+  }
+  MM.route = nearest.path.map(s => s.to)
+  toast(routeText, 'info')
+  startMapWalk(nearest.path, thenTram)
+}
+
+function renderTramMapStops () {
+  const box = $('#tram-map-stops')
+  if (!box) return
+  const stations = S.world.tram?.stations || []
+  if (!stations.length || S.room?.specialMission) { box.classList.add('hidden'); return }
+  box.classList.remove('hidden')
+  const nearest = S.room && !S.room.tramStation && !S.room.tramRide ? nearestTramStation(S.room.id)?.station.id : null
+  box.innerHTML = `<span class="tram-stop-prompt">${S.room?.tramRide ? 'ON THE LINE' : S.room?.tramStation ? 'RIDE TO' : 'WALK / RIDE TO'}</span>` + stations.map(stop => {
+    const here = S.room?.tramStation?.id === stop.id
+    const action = S.room?.tramRide ? 'ON TRAIN' : here ? 'HERE' : S.room?.tramStation ? 'RIDE' : nearest === stop.id ? 'WALK' : 'WALK + RIDE'
+    return `<button class="tram-map-stop ${here ? 'here' : ''} ${S.room?.tramRide ? 'aboard' : ''}" data-tram-stop="${esc(stop.id)}" ${S.room?.tramRide ? 'disabled' : ''}><i> T </i><span>${esc(stop.name)}</span><small>${action}</small></button>`
+  }).join('')
+  box.querySelectorAll('[data-tram-stop]').forEach(b => { b.onclick = () => chooseTramStop(b.dataset.tramStop) })
+}
+
 function openMap () {
   if (S.room?.specialMission) return openSpecialMissionMap()
   if (!mapRooms().length) return
@@ -1185,7 +1338,8 @@ function openMap () {
   $('#special-map-view').classList.add('hidden')
   cv.style.display = ''
   wrap.style.cursor = 'grab'
-  $('#map-title').textContent = 'NIGHT CITY NETWORK ▦'
+  $('#map-title').textContent = 'NIGHT CITY • NCART RAIL ▦'
+  $('#map-hint').textContent = 'choose a stop below to route · click labeled rail markers · drag / zoom map'
   $('#map-hint').style.display = ''
   $('#map-follow').style.display = ''
   $('#map-fit').style.display = ''
@@ -1198,7 +1352,8 @@ function openMap () {
   $('#map-legend').innerHTML = DIST_ORDER.map(d => {
     const dist = S.world.districts[d]
     return `<span class="lg"><i class="dot" style="background:${dist?.color || '#456'}"></i><b>${esc(dist?.name || d)}</b></span>`
-  }).join('')
+  }).join('') + '<span class="lg"><i class="tram-dot"></i>NCART LOOP • STATIONS</span>'
+  renderTramMapStops()
   MM.walk = S.room?.id || null
   requestMapFrame()
 }
@@ -1225,6 +1380,7 @@ function renderSpecialMissionMap () {
       ? '<button class="qbtn" disabled>CLEAR HOSTILES TO UNLOCK EAST</button>'
       : '<span class="special-map-done">OBJECTIVE ROOM • SECURE THE SHARD</span>'
   $('#map-title').textContent = mission.title.toUpperCase() + ' // ROUTE'
+  $('#tram-map-stops').classList.add('hidden')
   $('#map-hint').style.display = 'none'
   $('#map-follow').style.display = 'none'
   $('#map-fit').style.display = 'none'
@@ -1258,7 +1414,7 @@ function requestMapFrame () {
     if ($('#mapmodal').classList.contains('hidden') || !cv) return
     const w = wrap.clientWidth || 800, h = wrap.clientHeight || 600
     const ctx = mapSizeTo(cv, w, h)
-    drawCity(ctx, w, h, MM.view, { cur: S.room?.id, hover: MM.hover, route: MM.route, time: t / 1000 })
+    drawCity(ctx, w, h, MM.view, { cur: S.room?.id, hover: MM.hover, route: MM.route, tram: S.room?.tramRide, time: t / 1000 })
     MM.raf = requestAnimationFrame(tick)
   }
   MM.raf = requestAnimationFrame(tick)
@@ -1278,7 +1434,7 @@ function requestMapFrame () {
     MM.view = mapFitView(wrapE.clientWidth || 800, wrapE.clientHeight || 600, mapRooms())
   }
   $('#map-follow').onclick = () => {
-    const r = S.roomIndex[S.room?.id]
+    const r = S.room?.tramRide?.position || S.roomIndex[S.room?.id]
     if (!r) return
     const wrapE = $('#map-wrap')
     const w = wrapE.clientWidth || 800, h = wrapE.clientHeight || 600
@@ -1290,17 +1446,20 @@ function requestMapFrame () {
   wrappers()
   cv.addEventListener('mousemove', (ev) => {
     if (MM.drag) {
+      if (!MM.drag.moved && Math.hypot(ev.clientX - MM.drag.x, ev.clientY - MM.drag.y) < 5) return
+      MM.drag.moved = true
       MM.view.ox += ev.movementX; MM.view.oy += ev.movementY
       MM.moved = true
       return
     }
-    MM.hover = mapHit(ev, cv, MM.view)?.id || null
+    const stop = mapStationHit(ev, cv, MM.view)
+    MM.hover = stop?.roomId || mapHit(ev, cv, MM.view)?.id || null
     const tip = $('#map-tip')
-    const hit = mapHit(ev, cv, MM.view)
+    const hit = stop ? S.roomIndex[stop.roomId] : mapHit(ev, cv, MM.view)
     if (hit) {
       const dist = S.world.districts[hit.district]
       const cur = hit.id === S.room?.id
-      tip.innerHTML = `<b>${esc(hit.name)}</b> <span>${esc(dist?.name || hit.district)}</span><i>${cur ? 'YOU ARE HERE' : MM.route && MM.route.includes(hit.id) ? 'ON ROUTE' : 'CLICK TO TRAVEL'}</i>`
+      tip.innerHTML = `<b>${esc(stop?.name || hit.name)}</b> <span>${esc(dist?.name || hit.district)}</span><i>${stop ? (S.room?.tramRide ? 'ONBOARD • TRAIN POSITION' : S.room?.tramStation ? 'NCART STOP • CLICK TO RIDE' : 'NCART STOP • CLICK TO ROUTE') : cur ? 'YOU ARE HERE' : MM.route && MM.route.includes(hit.id) ? 'ON ROUTE' : 'CLICK TO TRAVEL'}</i>`
       tip.classList.remove('hidden')
       const rect = cv.getBoundingClientRect()
       tip.style.left = (ev.clientX - rect.left + 12) + 'px'
@@ -1308,10 +1467,16 @@ function requestMapFrame () {
     } else tip.classList.add('hidden')
   })
   cv.addEventListener('mouseleave', () => { MM.hover = null; $('#map-tip').classList.add('hidden') })
-  cv.addEventListener('mousedown', (ev) => { MM.drag = { x: ev.clientX, y: ev.clientY }; MM.moved = false })
+  cv.addEventListener('mousedown', (ev) => { MM.drag = { x: ev.clientX, y: ev.clientY, moved: false }; MM.moved = false })
   window.addEventListener('mouseup', () => { MM.drag = null })
   cv.addEventListener('click', (ev) => {
     if (MM.moved || !S.room) return
+    const stop = mapStationHit(ev, cv, MM.view)
+    if (stop) {
+      if (S.room.tramRide) { toast('You are already aboard. The rail marker shows your position.', 'info'); return }
+      chooseTramStop(stop.id)
+      return
+    }
     const hit = mapHit(ev, cv, MM.view)
     if (!hit || hit.id === S.room.id || S.mapWalk) return
     const path = bfsPath(S.room.id, hit.id)
@@ -1344,6 +1509,8 @@ function renderQuickbar () {
   if (!room) return
   const hostiles = (room.npcs || []).filter(n => n.kind === 'hostile')
   const btns = []
+  if (room.tramStation && !room.tramRide) btns.push(`<button class="qbtn gig" data-cmd="tram">NCART • ${esc(room.tramStation.name)}</button>`)
+  if (room.tramRide) btns.push(`<button class="qbtn gig" data-cmd="tram">NCART • ${room.tramRide.arrived ? 'PLATFORM' : Math.ceil(room.tramRide.remainingMs / 1000) + 's'}</button>`)
   if (hostiles.length) {
     for (const h of hostiles.slice(0, 3)) btns.push(`<button class="qbtn hot" data-cmd="attack ${esc(h.id)}">⚔ ${esc(h.name)}</button>`)
     btns.push('<button class="qbtn hot" data-cmd="defend">DEFEND</button>')
@@ -1353,7 +1520,7 @@ function renderQuickbar () {
   }
   if (room.corpse) btns.push('<button class="qbtn gig" data-cmd="take">LOOT CORPSE</button>')
   if (room.specialMission) btns.push('<button class="qbtn gig" data-cmd="special leave">EXTRACT</button>')
-  else btns.push('<button class="qbtn gig" data-cmd="special">SPECIAL MISSION</button>')
+  else if (!room.tramRide) btns.push('<button class="qbtn gig" data-cmd="special">SPECIAL MISSION</button>')
   const ap = (room.objects || []).find(o => o.kind === 'netport')
   if (ap && ap.ready) btns.push('<button class="qbtn gig" data-cmd="breach">BREACH</button>')
   if (ap && !ap.ready) btns.push(`<button class="qbtn" disabled>NET ${ap.cdLeft || 0}s</button>`)

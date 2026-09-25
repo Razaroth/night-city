@@ -51,7 +51,8 @@ defend        dodge         sandevistan   berserk
 shop          buy <item>    sell <item>   install <cyberware>
 jobs          accept <gig>  talk <npc>    up <attr>
 special       special enter <mission-id>      special leave
-travel <district>           map           who
+travel <district>           tram          tram <district>
+map           who
 ```
 
 Buttons throughout the UI emit these commands for you — the command line is always
@@ -78,6 +79,12 @@ available and is the fastest way to play.
   entering its cyberpsycho mission (level 8+). Enemy levels and mission rewards rise with the
   runner's level; active gig targets and payouts do too. Higher-level runners have better odds
   of rare loot. Mission completion and replay cooldowns save with your runner.
+- **NCART Night Line** links seven district platforms in a loop. Use the map's glowing rail
+  and station markers to walk to a platform; at a station, select a destination or type
+  `tram <district>`. Fares are 18 eddies per stop, and the train takes the shorter direction
+  around the loop. Trips take time and can turn up fare-jackers, dropped credchips, or a
+  carriage-wide Samurai singalong. Defeat fare-jackers with the regular combat commands and
+  loot them before disembarking.
 
 ## Content
 

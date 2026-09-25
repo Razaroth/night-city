@@ -15,6 +15,10 @@ import * as netrun from './netrun.js'
 import { createSims } from './sims.js'
 import { SPECIAL_MISSIONS, createSpecialRun, specialMissionView } from './special-missions.js'
 import { levelDelta, rewardMultiplier, scaledLootChance } from './scaling.js'
+import {
+  TRAM_ENCOUNTER_CHANCE, TRAM_FARE_PER_STOP, TRAM_LINE_NAME, TRAM_MS_PER_STOP,
+  TRAM_STATIONS, tramPosition, tramRoute, tramStationByQuery, tramStationForRoom, tramWorldPayload
+} from './tram.js'
 
 const TICK_MS = 1000
 const AUTOSAVE_MS = 20000
@@ -31,11 +35,13 @@ export class Game {
     this.itemCatalog = buildCatalog()
     this.districts = districtMapPayload()
     this.roomList = roomsPayload()
+    this.tram = tramWorldPayload()
     this.startedAt = Date.now()
     this.ambientAt = new Map() // roomId -> next ambient epoch (ms)
     this.netportCd = new Map() // roomId -> access point reboot ready at (ms)
     this.specialRuns = new Map() // runId -> isolated Special Mission runtime
     this.specialRooms = new Map() // roomId -> isolated room data
+    this.tramRuns = new Map() // runId -> isolated passenger + rail trip
     wss.on('connection', ws => this.onConnection(ws))
     this.timer = setInterval(() => this.tick(), TICK_MS)
   }
@@ -60,6 +66,7 @@ export class Game {
     const { player } = session
     if (player) {
       this.cleanupSpecialMission(session)
+      this.cleanupTram(session)
       player.played_sec = (player.played_sec || 0) + Math.floor((this.now() - (session.enteredAt || this.now())) / 1000)
       db.getDb().world.players[session.accountId] = P.serializePlayer(player)
       db.queueSave()
@@ -139,7 +146,7 @@ export class Game {
     session.token = token
     const hasChar = !!db.getDb().world.players?.[accountId]
     this.send(session, { t: 'auth', ok: true, token, username: account.username, hasChar })
-    this.send(session, { t: 'world', districts: this.districts, rooms: this.roomList, items: this.itemCatalog, classes: CLASSES, perks: PERKS, tierRequirements: TIER_REQUIREMENTS, attrLabels: P.ATTR_LABELS })
+    this.send(session, { t: 'world', districts: this.districts, rooms: this.roomList, tram: this.tram, items: this.itemCatalog, classes: CLASSES, perks: PERKS, tierRequirements: TIER_REQUIREMENTS, attrLabels: P.ATTR_LABELS })
     if (hasChar) this.enterGame(session)
     else this.send(session, { t: 'needChar', creation: this.creationPayload() })
   }
@@ -185,6 +192,7 @@ export class Game {
     const { player, accountId } = session
     if (player) {
       this.cleanupSpecialMission(session)
+      this.cleanupTram(session)
       player.played_sec = (player.played_sec || 0) + Math.floor((this.now() - (session.enteredAt || this.now())) / 1000)
       db.getDb().world.players[accountId] = P.serializePlayer(player)
       db.queueSave()
@@ -361,6 +369,7 @@ export class Game {
     if (!mission) return this.log(session, `No Special Mission "${missionId}". Type SPECIAL to see the slate.`, 'bad')
     if (!p.alive) return this.log(session, 'You need to be alive to accept a Special Mission.', 'bad')
     if (session.specialRunId) return this.log(session, 'You are already inside a Special Mission. Type SPECIAL LEAVE to extract.', 'bad')
+    if (session.tramRunId) return this.log(session, 'You cannot jack into a contract shard from a moving NCART car.', 'bad')
     if ((p.level || 1) < mission.minLevel) return this.log(session, `You need level ${mission.minLevel} to run "${mission.title}".`, 'bad')
     if (this.world.hostilesInRoom(p.room).length) return this.log(session, 'Break contact before jacking into a Special Mission.', 'bad')
     const record = p.specialMissions?.[missionId]
@@ -410,6 +419,171 @@ export class Game {
       this.pushAll(session)
       this.describeCurrentRoom(session)
     }
+  }
+
+  tramRidePayload (session, now = this.now()) {
+    const run = this.tramRuns.get(session.tramRunId)
+    if (!run) return null
+    const duration = Math.max(1, run.arriveAt - run.departAt)
+    const progress = run.arrived ? 1 : Math.max(0, Math.min(1, (now - run.departAt) / duration))
+    return {
+      origin: run.origin,
+      destination: run.destination,
+      destinationName: TRAM_STATIONS.find(s => s.id === run.destination)?.name ?? run.destination,
+      route: run.route,
+      direction: run.direction,
+      arrivesAt: run.arriveAt,
+      remainingMs: Math.max(0, run.arriveAt - now),
+      arrived: run.arrived,
+      position: tramPosition(run.route, progress)
+    }
+  }
+
+  tramCommand (session, query = '') {
+    const p = session.player
+    const now = this.now()
+    const activeRide = this.tramRuns.get(session.tramRunId)
+    const targetQuery = String(query).trim()
+    if (activeRide) {
+      if (!targetQuery) {
+        const ride = this.tramRidePayload(session, now)
+        const remaining = Math.ceil(ride.remainingMs / 1000)
+        return this.log(session, `NCART ${ride.direction.toUpperCase()} — ${TRAM_STATIONS.find(s => s.id === activeRide.origin)?.name} → ${ride.destinationName}. ${ride.arrived ? 'At the platform; type TRAM EXIT to disembark, or TAKE any loot first.' : `Arriving in ${remaining}s.`}`, 'good')
+      }
+      if (targetQuery.toLowerCase() === 'exit' && activeRide.arrived && !this.world.hostilesInRoom(p.room).length) return this.completeTramRide(session, activeRide)
+      return this.log(session, activeRide.arrived
+        ? 'The car is at the platform. Clear the hostile contact before disembarking with TRAM EXIT.'
+        : 'The NCART doors are locked while the car is moving. Stay aboard until the next platform.', 'bad')
+    }
+    if (session.specialRunId) return this.log(session, 'NCART access is offline inside a Special Mission.', 'bad')
+    if (!targetQuery) {
+      const station = tramStationForRoom(p.room)
+      const where = station ? `You are at ${station.name}.` : 'Walk to a glowing NCART station marker to board.'
+      const lines = [
+        { text: `◈ ${TRAM_LINE_NAME} — ${where}`, cls: 'level' },
+        { text: `Seven district stations. ${TRAM_FARE_PER_STOP} eddies per stop; the train takes the shorter direction around the loop.`, cls: 'sys' },
+        ...TRAM_STATIONS.map((s, i) => ({ text: `  ${String(i + 1).padStart(2, '0')}  ${s.name} • ${s.id}`, cls: s.id === station?.id ? 'good' : 'exit' }))
+      ]
+      return this.logLines(session, lines)
+    }
+    const origin = tramStationForRoom(p.room)
+    if (!origin) return this.log(session, 'No NCART platform here. Follow a rail marker on the map to a station.', 'bad')
+    if (!p.alive) return this.log(session, 'You need to be alive to board the NCART.', 'bad')
+    if (session.specialRunId) return this.log(session, 'NCART access is offline inside a Special Mission.', 'bad')
+    if (this.world.hostilesInRoom(p.room).length) return this.log(session, 'Clear the platform before boarding.', 'bad')
+    const destination = tramStationByQuery(targetQuery)
+    if (!destination) return this.log(session, `Unknown NCART stop. Try: ${TRAM_STATIONS.map(s => s.id).join(', ')}.`, 'bad')
+    const trip = tramRoute(origin.id, destination.id)
+    if (!trip) return this.log(session, 'You are already at that NCART station.', 'bad')
+    const fare = trip.stops * TRAM_FARE_PER_STOP
+    if (p.eddies < fare) return this.log(session, `NCART fare is ${fare} eddies for ${trip.stops} stops. You have ${p.eddies}.`, 'bad')
+
+    p.eddies -= fare
+    const id = crypto.randomUUID()
+    const roomId = `tram-car-${id}`
+    const duration = trip.stops * TRAM_MS_PER_STOP
+    const run = {
+      id, roomId, accountId: session.accountId,
+      origin: origin.id, destination: destination.id,
+      route: trip.route, direction: trip.direction, fare,
+      departAt: now, arriveAt: now + duration,
+      encounterAt: now + Math.min(5000, Math.floor(duration * 0.3)),
+      encounterChecked: false, arrived: false
+    }
+    this.tramRuns.set(id, run)
+    this.specialRooms.set(roomId, {
+      id: roomId,
+      name: 'NCART — In Transit',
+      district: origin.id,
+      category: 'transit',
+      danger: false,
+      desc: 'The maglev car screams through Night City on a ribbon of steel. Holo-ads crawl across the windows; the doors are sealed until the next station.',
+      exits: {},
+      npcs: [],
+      objects: []
+    })
+    session.tramRunId = id
+    p.room = roomId
+    this.roomLog(origin.roomId, `${p.name} boards the NCART ${trip.direction} toward ${destination.name}.`, 'sys', session.accountId)
+    this.log(session, `NCART departs ${origin.name} for ${destination.name}. ${trip.stops} stops • ${Math.ceil(duration / 1000)}s • -${fare} eddies.`, 'good')
+    this.pushAll(session)
+    this.describeCurrentRoom(session)
+  }
+
+  cleanupTram (session) {
+    const run = this.tramRuns.get(session.tramRunId)
+    if (!run) { session.tramRunId = null; return null }
+    const origin = TRAM_STATIONS.find(s => s.id === run.origin)
+    if (session.player && origin) session.player.room = origin.roomId
+    this.world.removeTemporaryInstances(run.id)
+    this.specialRooms.delete(run.roomId)
+    for (const [uid, corpse] of this.world.corpses) {
+      if (corpse.roomId === run.roomId) this.world.corpses.delete(uid)
+    }
+    this.tramRuns.delete(run.id)
+    session.tramRunId = null
+    return run
+  }
+
+  completeTramRide (session, run = this.tramRuns.get(session.tramRunId)) {
+    if (!run || this.world.hostilesInRoom(run.roomId).length) return
+    const destination = TRAM_STATIONS.find(s => s.id === run.destination)
+    this.cleanupTram(session)
+    if (!destination) return
+    session.player.room = destination.roomId
+    this.log(session, `NCART doors open at ${destination.name}. Welcome to ${destination.id.toUpperCase()}.`, 'good')
+    this.roomLog(destination.roomId, `${session.player.name} steps off the NCART.`, 'sys', session.accountId)
+    this.pushAll(session)
+    this.describeCurrentRoom(session)
+  }
+
+  tickTrams (now) {
+    for (const run of [...this.tramRuns.values()]) {
+      const session = this.byAccount.get(run.accountId)
+      if (!session?.player || session.tramRunId !== run.id) continue
+      if (!run.encounterChecked && now >= run.encounterAt) {
+        run.encounterChecked = true
+        if (Math.random() < TRAM_ENCOUNTER_CHANCE) this.startTramEncounter(session, run, now)
+      }
+      if (now >= run.arriveAt && !run.arrived) {
+        run.arrived = true
+        const station = TRAM_STATIONS.find(s => s.id === run.destination)
+        const loot = this.world.corpseFor(run.roomId)
+        this.roomLog(run.roomId, `The NCART pulls into ${station?.name ?? 'the next platform'}. The doors unlock.${loot ? ' Take the time to loot the fare-jacker, or type TRAM EXIT to leave.' : ''}`, 'amb')
+      }
+      if (run.arrived && !this.world.hostilesInRoom(run.roomId).length && !this.world.corpseFor(run.roomId)) this.completeTramRide(session, run)
+      else this.send(session, { t: 'tram', ride: this.tramRidePayload(session, now) })
+    }
+  }
+
+  startTramEncounter (session, run, now) {
+    const p = session.player
+    const roll = Math.random()
+    if (roll < 0.58) {
+      const templates = ['tyger-1', 'scav-1', 'valentino-1', 'raider-1']
+      const template = npcDefs[templates[C.rand(0, templates.length - 1)]]
+      const id = `tram-ambush-${run.id}`
+      const level = Math.max(1, p.level + C.rand(-1, 1))
+      const def = {
+        ...template,
+        id,
+        name: `${template.faction} fare-jacker`,
+        level,
+        desc: 'A hard-eyed passenger yanks a weapon from under a raincoat and starts demanding eddies.'
+      }
+      this.world.spawnTemporaryInstance(id, run.roomId, def, run.id)
+      this.roomLog(run.roomId, `A ${template.faction} fare-jacker blocks the aisle. “Everybody pays twice on this line.”`, 'combat')
+      this.pushRoom(session)
+      return
+    }
+    if (roll < 0.8) {
+      const eddies = C.rand(35, 110)
+      p.eddies += eddies
+      this.log(session, `You find a dropped credchip wedged under the seat. +${eddies} eddies.`, 'loot')
+      this.pushState(session)
+      return
+    }
+    this.roomLog(run.roomId, 'The car lights flicker. A stranger starts singing an old Samurai chorus; half the carriage joins in before the next verse.', 'amb')
   }
 
   specialMissionKill (session, inst, now) {
@@ -560,7 +734,9 @@ export class Game {
       netportCd: cdLeft,
       weather: this.weatherFor(p.room, now),
       clock: new Date(now).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }),
-      inCombat: hostiles.length > 0
+      inCombat: hostiles.length > 0,
+      tramStation: tramStationForRoom(room.id),
+      tramRide: this.tramRidePayload(session, now)
     }
     const run = this.specialRuns.get(session.specialRunId)
     if (run && run.roomIds.includes(p.room)) {
@@ -822,6 +998,7 @@ export class Game {
       this.cleanupSpecialMission(session)
       this.log(session, 'SPECIAL MISSION FAILED — your shard signal drops before the objective is secured.', 'bad')
     }
+    if (session.tramRunId) this.cleanupTram(session)
     p.alive = false
     p.hp = 0
     p.stats.deaths = (p.stats.deaths || 0) + 1
@@ -908,6 +1085,7 @@ export class Game {
     this.world.tickCorpses(now)
     this.tickAmbient(now, spawnedRooms)
     this.sims?.tick(this, now)
+    this.tickTrams(now)
 
     // player regen + pushes
     for (const session of this.sessions.values()) {

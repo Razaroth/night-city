@@ -55,6 +55,7 @@ export function handleCommand (game, session, line) {
     case 'up': case 'raise': return cmdUp(game, session, rest)
     case 'perk': case 'perks': case 'tree': return cmdPerks(game, session, rest)
     case 'travel': case 'fasttravel': case 'ft': return cmdTravel(game, session, rest, now)
+    case 'tram': case 'ncart': return game.tramCommand(session, rest)
     case 'talk': case 'speak': return cmdTalk(game, session, rest)
     case 'map': return cmdMap(game, session)
     case 'exits': return game.describeCurrentRoom(session)
@@ -100,6 +101,7 @@ function cmdHelp (game, session) {
   const lines = [
     { text: '◈ NIGHT CITY — COMMAND REFERENCE', cls: 'level' },
     { text: 'MOVEMENT   n/s/e/w/ne/nw/se/sw/up/down, go <dir>, travel <district>', cls: 'sys' },
+    { text: 'TRANSIT    tram (at a station), tram <district> (ride the NCART)', cls: 'sys' },
     { text: 'INFO       look [thing], stats, inv, chrome, map, who, weather', cls: 'sys' },
     { text: 'SOCIAL     say <text>, shout <text>, emote <text>, talk <npc>', cls: 'sys' },
     { text: 'COMBAT     attack <target>, hack <quickhack> <target>, defend, dodge', cls: 'sys' },
@@ -634,6 +636,7 @@ function cmdPerk (game, session, query) {
 function cmdTravel (game, session, dest, now) {
   const p = session.player
   if (session.specialRunId) return game.log(session, 'Fast travel is offline inside a Special Mission. Clear it or type SPECIAL LEAVE.', 'bad')
+  if (session.tramRunId) return game.log(session, 'You are aboard the NCART. Wait for the next station before changing routes.', 'bad')
   const dist = Object.keys(HUB_ROOMS).find(d => d === dest.toLowerCase() || districts[d]?.name.toLowerCase().includes(dest.toLowerCase()))
   if (!dist) return game.log(session, `Districts: ${Object.keys(HUB_ROOMS).join(', ')}`, 'bad')
   const target = HUB_ROOMS[dist]
@@ -674,5 +677,7 @@ function cmdMap (game, session) {
     lines.push({ text: `  ${EXIT_NAMES[dir].padEnd(10)} → ${r?.name} [${districts[r?.district]?.name}]`, cls: 'exit' })
   }
   if (!session.specialRunId) lines.push({ text: `Fast travel: travel <${Object.keys(HUB_ROOMS).join('|')}> (100 eddies)`, cls: 'sys' })
+  const station = rooms[p.room] && game.tram?.stations?.find(s => s.roomId === p.room)
+  if (station) lines.push({ text: `NCART: ${station.name} • tram <district> for the rail line (${game.tram.farePerStop} eddies/stop).`, cls: 'good' })
   game.logLines(session, lines)
 }
